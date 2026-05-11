@@ -1,16 +1,17 @@
 import type { ClockMode, GameConfig, GravityDirection, PieceMoveMode, RosterPlayer } from "./types";
 
-export const DEFAULT_COLUMNS = 4;
-export const DEFAULT_ROWS = 4;
-export const DEFAULT_LINE_RULE = "lose";
+/** Tablero clásico 3×3, ganar con 3 en raya, fichas ilimitadas sin movimiento. */
+export const DEFAULT_COLUMNS = 3;
+export const DEFAULT_ROWS = 3;
+export const DEFAULT_LINE_RULE = "win";
 export const DEFAULT_LINE_LENGTH = 3;
 
-export const DEFAULT_UNLIMITED_PIECES = false;
+export const DEFAULT_UNLIMITED_PIECES = true;
 export const DEFAULT_MAX_PIECES_PER_PLAYER = 3;
 export const DEFAULT_LIMITED_PIECE_MOVE_MODE: PieceMoveMode = "forcedOldest";
 export const DEFAULT_UNLIMITED_PIECE_MOVE_MODE: PieceMoveMode = "blocked";
 
-export const DEFAULT_BROKEN_ENABLED = true;
+export const DEFAULT_BROKEN_ENABLED = false;
 export const DEFAULT_BROKEN_HOLE_TURNS = 1;
 export const DEFAULT_BROKEN_HOLE_UNLIMITED = true;
 export const DEFAULT_BROKEN_HOLE_TURNS_PER_PLAYER = false;

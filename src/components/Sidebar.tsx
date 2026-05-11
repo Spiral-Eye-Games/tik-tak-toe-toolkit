@@ -12,6 +12,7 @@ import type {
   RosterPlayer
 } from "../game/types";
 import { PlayersModal } from "./PlayersModal";
+import { PresetModal } from "./PresetModal";
 import { SettingsSection } from "./SettingsSection";
 import { t } from "../i18n";
 
@@ -19,13 +20,15 @@ interface SidebarProps {
   config: GameConfig;
   onChangeConfig: (patch: Partial<GameConfig>) => void;
   onNewGame: () => void;
+  onApplyPreset: (config: GameConfig) => void;
   onHelp: (helpKey: string) => void;
   onRulesHelp: () => void;
   onApplyRoster: (roster: RosterPlayer[]) => void;
 }
 
-export function Sidebar({ config, onChangeConfig, onNewGame, onHelp, onRulesHelp, onApplyRoster }: SidebarProps) {
+export function Sidebar({ config, onChangeConfig, onNewGame, onApplyPreset, onHelp, onRulesHelp, onApplyRoster }: SidebarProps) {
   const [playersModalOpen, setPlayersModalOpen] = useState(false);
+  const [presetModalOpen, setPresetModalOpen] = useState(false);
   const unlimitedPieces = config.pieceLimitType === "unlimited";
   const moveModeOptions = getMoveModeOptions(config.pieceLimitType);
   const lineMax = Math.max(config.columns, config.rows);
@@ -39,6 +42,15 @@ export function Sidebar({ config, onChangeConfig, onNewGame, onHelp, onRulesHelp
       <div className="sidebar-sticky">
         <div className="new-game-row">
           <button className="button full" type="button" onClick={onNewGame}>{t("buttons.newGame")}</button>
+          <button
+            className="button icon"
+            type="button"
+            title={t("presets.openTitle")}
+            aria-label={t("presets.openTitle")}
+            onClick={() => setPresetModalOpen(true)}
+          >
+            {t("ui.presetsOpenGlyph")}
+          </button>
           <button className="help-button large" title={t("actions.viewRulesCurrent")} type="button" onClick={onRulesHelp}>{t("ui.helpInfoGlyph")}</button>
         </div>
       </div>
@@ -429,6 +441,16 @@ export function Sidebar({ config, onChangeConfig, onNewGame, onHelp, onRulesHelp
           )}
         </SettingsSection>
       </div>
+
+      <PresetModal
+        open={presetModalOpen}
+        draftConfig={config}
+        onClose={() => setPresetModalOpen(false)}
+        onApplyPreset={(next) => {
+          onApplyPreset(next);
+          setPresetModalOpen(false);
+        }}
+      />
 
       <PlayersModal
         open={playersModalOpen}

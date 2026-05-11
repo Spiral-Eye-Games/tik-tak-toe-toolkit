@@ -12,9 +12,45 @@
   "buttons": {
     "newGame": "New Game"
   },
+  "presets": {
+    "openTitle": "Presets: load or save",
+    "modalTitle": "Presets",
+    "saveIntro": "Save the current sidebar settings on this device to reuse them later.",
+    "saveNameLabel": "Preset name",
+    "saveNamePlaceholder": "e.g. My favorite variant",
+    "saveButton": "Save to cache",
+    "saveNameRequired": "Enter a name to save.",
+    "builtinHeading": "Built-in",
+    "userHeading": "Saved",
+    "userEmpty": "No saved presets yet.",
+    "deleteUserTitle": "Delete saved preset",
+    "builtin": {
+      "tateti": {
+        "name": "Tic-Tac-Toe",
+        "description": "Classic 3×3: win with 3 in a row, unlimited pieces and no moving them."
+      },
+      "titeta": {
+        "name": "Titeta",
+        "description": "3×3 misère: complete 3 in a row and you lose. Max 3 pieces per player, forced mode (move oldest when full)."
+      },
+      "bullet": {
+        "name": "Bullet",
+        "description": "Classic tic-tac-toe with a 60-second total bank per player."
+      },
+      "quebrantasuelos": {
+        "name": "Quebrantasuelos",
+        "description": "4×4: when you move, the square you leave stays broken for 3 turns times the number of players."
+      },
+      "geocentrismo": {
+        "name": "Geocentrismo",
+        "description": "4×4 with gravity: every 1 turn per player it rotates 90° clockwise and pieces settle again."
+      }
+    }
+  },
   "ui": {
     "helpButtonSymbol": "?",
     "helpInfoGlyph": "i",
+    "presetsOpenGlyph": "⊞",
     "chevronRight": "›",
     "gravityArrows": {
       "down": "↓",

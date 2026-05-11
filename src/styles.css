@@ -183,7 +183,7 @@ body, #root { height: 100vh; }
 
 .new-game-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 44px;
+  grid-template-columns: minmax(0, 1fr) 44px 44px;
   gap: 10px;
   align-items: center;
 }
@@ -854,6 +854,136 @@ body, #root { height: 100vh; }
 .modal-body ul { margin: 0; padding-left: 20px; }
 .modal-body li { margin-bottom: 8px; }
 .modal-body strong { color: var(--text); }
+
+.preset-modal {
+  width: min(94vw, 520px);
+}
+
+.preset-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.preset-save-block {
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.preset-save-intro {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.preset-save-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.preset-save-label {
+  flex: 1;
+  min-width: 140px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.preset-save-label-text {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.preset-save-input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--text);
+  font-size: 14px;
+}
+
+.preset-save-error {
+  margin: 10px 0 0;
+  font-size: 13px;
+  color: #ffb4b4;
+}
+
+.preset-subheading {
+  margin: 8px 0 0;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+}
+
+.preset-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.preset-item {
+  width: 100%;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+}
+
+.preset-item:hover {
+  border-color: rgba(255, 209, 102, 0.28);
+  background: rgba(255, 209, 102, 0.06);
+}
+
+.preset-item-name {
+  font-weight: 800;
+  font-size: 15px;
+}
+
+.preset-item-desc {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.preset-empty {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.preset-user-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 44px;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.preset-user-row .preset-item {
+  width: auto;
+}
+
+.preset-delete {
+  flex-shrink: 0;
+}
 
 .victory-board-overlay {
   position: absolute;

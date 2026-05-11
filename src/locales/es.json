@@ -12,9 +12,45 @@
   "buttons": {
     "newGame": "Nuevo Juego"
   },
+  "presets": {
+    "openTitle": "Presets: cargar o guardar",
+    "modalTitle": "Presets",
+    "saveIntro": "Guardá la configuración actual de la barra lateral en este dispositivo para reutilizarla después.",
+    "saveNameLabel": "Nombre del preset",
+    "saveNamePlaceholder": "Ej.: Mi variante favorita",
+    "saveButton": "Guardar en caché",
+    "saveNameRequired": "Escribí un nombre para guardar.",
+    "builtinHeading": "Integrados",
+    "userHeading": "Guardados",
+    "userEmpty": "Todavía no hay presets guardados.",
+    "deleteUserTitle": "Eliminar preset guardado",
+    "builtin": {
+      "tateti": {
+        "name": "Ta-Te-Ti",
+        "description": "Clásico 3×3: ganar con 3 en raya, fichas ilimitadas y sin moverlas."
+      },
+      "titeta": {
+        "name": "Titeta",
+        "description": "3×3 misère: si completás 3 en raya perdés. Máximo 3 fichas por jugador, modo obligado (mové la más vieja al llenar)."
+      },
+      "bullet": {
+        "name": "Bullet",
+        "description": "Ta-Te-Ti clásico con banca total de 60 segundos por jugador."
+      },
+      "quebrantasuelos": {
+        "name": "Quebrantasuelos",
+        "description": "4×4: al mover, la casilla que dejás queda rota durante 3 turnos por cada jugador en la partida."
+      },
+      "geocentrismo": {
+        "name": "Geocentrismo",
+        "description": "4×4 con gravedad: cada 1 turno por jugador rota 90° en sentido horario y las fichas se reacomodan."
+      }
+    }
+  },
   "ui": {
     "helpButtonSymbol": "?",
     "helpInfoGlyph": "i",
+    "presetsOpenGlyph": "⊞",
     "chevronRight": "›",
     "gravityArrows": {
       "down": "↓",

@@ -152,6 +152,12 @@ export default function App() {
     dispatch({ type: "newGame", config: nextConfig });
   }
 
+  function applyPreset(config: GameConfig) {
+    const nextConfig = sanitizeConfig(config);
+    setDraftConfig(nextConfig);
+    dispatch({ type: "newGame", config: nextConfig });
+  }
+
   function openHelp(helpKey: string) {
     const title = t(`help.${helpKey}.title`);
     const html = t(`help.${helpKey}.html`);
@@ -183,6 +189,7 @@ export default function App() {
           config={draftConfig}
           onChangeConfig={updateDraftConfig}
           onNewGame={startNewGame}
+          onApplyPreset={applyPreset}
           onHelp={openHelp}
           onRulesHelp={openRulesHelp}
           onApplyRoster={applyRoster}
