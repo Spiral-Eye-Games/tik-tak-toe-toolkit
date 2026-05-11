@@ -4,6 +4,7 @@ import {
   DEFAULT_UNLIMITED_PIECE_MOVE_MODE
 } from "./defaults";
 import type { GameConfig, PieceMoveMode } from "./types";
+import { t } from "../i18n";
 
 export function clampInt(value: number, min: number, max: number, fallback: number): number {
   const number = Number.parseInt(String(value), 10);
@@ -47,22 +48,22 @@ export function normalizeMoveMode(pieceLimitType: GameConfig["pieceLimitType"], 
 export function getMoveModeOptions(pieceLimitType: GameConfig["pieceLimitType"]): Array<{ value: PieceMoveMode; label: string }> {
   if (pieceLimitType === "limited") {
     return [
-      { value: "forcedOldest", label: "Obligado: mover la primera colocada" },
-      { value: "limitMoveAny", label: "Límite: mover cualquier ficha" },
-      { value: "limitedFree", label: "Libre: mover cualquier ficha siempre" }
+      { value: "forcedOldest", label: t("moveModes.limited.forcedOldest") },
+      { value: "limitMoveAny", label: t("moveModes.limited.limitMoveAny") },
+      { value: "limitedFree", label: t("moveModes.limited.limitedFree") }
     ];
   }
 
   return [
-    { value: "blocked", label: "Bloqueadas: no se pueden mover" },
-    { value: "free", label: "Libre: mover cualquier ficha" }
+    { value: "blocked", label: t("moveModes.unlimited.blocked") },
+    { value: "free", label: t("moveModes.unlimited.free") }
   ];
 }
 
 export function getMoveModeHelp(pieceLimitType: GameConfig["pieceLimitType"]): string {
   if (pieceLimitType === "limited") {
-    return "Con máximo de fichas: podés obligar movimiento al llegar al máximo o permitir movimiento libre antes de llenarlas.";
+    return t("moveModes.help.limited");
   }
 
-  return "Con fichas ilimitadas: podés bloquear el movimiento o permitir mover fichas en cualquier momento.";
+  return t("moveModes.help.unlimited");
 }

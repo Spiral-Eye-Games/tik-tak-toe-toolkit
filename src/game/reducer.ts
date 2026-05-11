@@ -1,5 +1,6 @@
 import { PLAYERS, STARTING_PLAYER } from "./defaults";
 import { sanitizeConfig } from "./config";
+import { t } from "../i18n";
 import {
   applyGravity,
   canAddPiece,
@@ -159,8 +160,8 @@ function finishTurn(snapshot: GameSnapshot, config: GameConfig): void {
     snapshot.lineCells = completedLine;
     snapshot.gameOver = true;
     snapshot.statusMessage = config.lineRule === "lose"
-      ? `${snapshot.currentPlayer} formó ${config.lineLength} en raya y perdió.`
-      : `${snapshot.currentPlayer} formó ${config.lineLength} en raya y ganó.`;
+      ? t("gameOver.lose", { player: snapshot.currentPlayer, lineLength: config.lineLength })
+      : t("gameOver.win", { player: snapshot.currentPlayer, lineLength: config.lineLength });
     return;
   }
 
@@ -172,7 +173,7 @@ function finishTurn(snapshot: GameSnapshot, config: GameConfig): void {
 
   if (shouldDrawIfNoLegalMoves(snapshot, config)) {
     snapshot.gameOver = true;
-    snapshot.statusMessage = "Empate: no quedan movimientos legales.";
+    snapshot.statusMessage = t("gameOver.draw");
   }
 }
 

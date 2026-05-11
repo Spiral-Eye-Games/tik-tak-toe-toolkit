@@ -2,6 +2,7 @@ import { DEFAULT_MAX_PIECES_PER_PLAYER } from "../game/defaults";
 import { getMoveModeHelp, getMoveModeOptions } from "../game/config";
 import type { GameConfig, LineRule, PieceLimitType, PieceMoveMode } from "../game/types";
 import { SettingsSection } from "./SettingsSection";
+import { t } from "../i18n";
 
 interface SidebarProps {
   config: GameConfig;
@@ -20,16 +21,16 @@ export function Sidebar({ config, onChangeConfig, onNewGame, onHelp, onRulesHelp
     <aside className="sidebar">
       <div className="sidebar-sticky">
         <div className="new-game-row">
-          <button className="button full" type="button" onClick={onNewGame}>Nuevo Juego</button>
-          <button className="help-button large" title="Ver reglas actuales" type="button" onClick={onRulesHelp}>i</button>
+          <button className="button full" type="button" onClick={onNewGame}>{t("buttons.newGame")}</button>
+          <button className="help-button large" title={t("actions.viewRulesCurrent")} type="button" onClick={onRulesHelp}>{t("ui.helpInfoGlyph")}</button>
         </div>
       </div>
 
       <div className="sidebar-content">
-        <SettingsSection title="General" icon="◎" helpKey="general" defaultOpen onHelp={onHelp}>
+        <SettingsSection title={t("sections.general")} icon="◎" helpKey="general" defaultOpen onHelp={onHelp}>
           <div className="field-row">
             <label className="field">
-              N Columnas
+              {t("fields.columns")}
               <input
                 type="number"
                 min={3}
@@ -41,7 +42,7 @@ export function Sidebar({ config, onChangeConfig, onNewGame, onHelp, onRulesHelp
             </label>
 
             <label className="field">
-              N Filas
+              {t("fields.rows")}
               <input
                 type="number"
                 min={3}
@@ -55,18 +56,18 @@ export function Sidebar({ config, onChangeConfig, onNewGame, onHelp, onRulesHelp
 
           <div className="field-row compact">
             <label className="field">
-              Ganar / Perder
+              {t("fields.winLose")}
               <select
                 value={config.lineRule}
                 onChange={(event) => onChangeConfig({ lineRule: event.target.value as LineRule })}
               >
-                <option value="lose">Perder</option>
-                <option value="win">Ganar</option>
+                <option value="lose">{t("fields.lose")}</option>
+                <option value="win">{t("fields.win")}</option>
               </select>
             </label>
 
             <label className="field">
-              N en raya
+              {t("fields.lineLength")}
               <input
                 type="number"
                 min={2}
@@ -79,10 +80,10 @@ export function Sidebar({ config, onChangeConfig, onNewGame, onHelp, onRulesHelp
           </div>
         </SettingsSection>
 
-        <SettingsSection title="Fichas" icon="●" helpKey="pieces" defaultOpen onHelp={onHelp}>
+        <SettingsSection title={t("sections.pieces")} icon="●" helpKey="pieces" defaultOpen onHelp={onHelp}>
           <div className="field-row toggle-and-number">
             <label className="field checkbox boxed">
-              <span>Ilimitadas</span>
+              <span>{t("fields.unlimitedPieces")}</span>
               <input
                 type="checkbox"
                 checked={unlimitedPieces}
@@ -91,7 +92,7 @@ export function Sidebar({ config, onChangeConfig, onNewGame, onHelp, onRulesHelp
             </label>
 
             <label className="field">
-              Cantidad
+              {t("fields.quantity")}
               <input
                 type="number"
                 min={1}
@@ -105,7 +106,7 @@ export function Sidebar({ config, onChangeConfig, onNewGame, onHelp, onRulesHelp
           </div>
 
           <label className="field">
-            Cambiar fichas de lugar
+            {t("fields.changePiecePlace")}
             <select
               value={config.pieceMoveMode}
               onChange={(event) => onChangeConfig({ pieceMoveMode: event.target.value as PieceMoveMode })}
@@ -119,12 +120,12 @@ export function Sidebar({ config, onChangeConfig, onNewGame, onHelp, onRulesHelp
         </SettingsSection>
 
         <SettingsSection
-          title="Rompe huecos"
+          title={t("sections.holes")}
           icon="✦"
           helpKey="holes"
           onHelp={onHelp}
           titleToggle={
-            <label className="section-toggle" title="Activar rompe huecos" onClick={(event) => event.stopPropagation()}>
+            <label className="section-toggle" title={t("fields.enableBrokenHoles")} onClick={(event) => event.stopPropagation()}>
               <input
                 type="checkbox"
                 checked={config.brokenEnabled}
@@ -134,7 +135,7 @@ export function Sidebar({ config, onChangeConfig, onNewGame, onHelp, onRulesHelp
           }
         >
           <label className="field">
-            Turnos
+            {t("fields.turns")}
             <input
               type="number"
               min={0}
@@ -144,17 +145,17 @@ export function Sidebar({ config, onChangeConfig, onNewGame, onHelp, onRulesHelp
               value={config.brokenHoleTurns}
               onChange={(event) => onChangeConfig({ brokenHoleTurns: Number(event.target.value) })}
             />
-            <span className="field-help">0 = queda roto hasta el final.</span>
+            <span className="field-help">{t("fields.brokenTurnsInfo")}</span>
           </label>
         </SettingsSection>
 
         <SettingsSection
-          title="Gravedad"
+          title={t("sections.gravity")}
           icon="↓"
           helpKey="gravity"
           onHelp={onHelp}
           titleToggle={
-            <label className="section-toggle" title="Activar gravedad" onClick={(event) => event.stopPropagation()}>
+            <label className="section-toggle" title={t("fields.enableGravity")} onClick={(event) => event.stopPropagation()}>
               <input
                 type="checkbox"
                 checked={config.gravityEnabled}
@@ -163,7 +164,7 @@ export function Sidebar({ config, onChangeConfig, onNewGame, onHelp, onRulesHelp
             </label>
           }
         >
-          <span className="field-help">Cuando está activa, elegís una columna y la ficha cae hasta el espacio libre más bajo.</span>
+          <span className="field-help">{t("fields.gravityInfo")}</span>
         </SettingsSection>
       </div>
     </aside>

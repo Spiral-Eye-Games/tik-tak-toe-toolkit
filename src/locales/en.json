@@ -1,0 +1,125 @@
+{
+  "app": {
+    "title": "Ta-Te-Ti Toolkit"
+  },
+  "actions": {
+    "undo": "Undo",
+    "redo": "Redo",
+    "close": "Close",
+    "explainSection": "Explain {{section}}",
+    "viewRulesCurrent": "View current rules"
+  },
+  "buttons": {
+    "newGame": "New Game"
+  },
+  "ui": {
+    "helpButtonSymbol": "?",
+    "helpInfoGlyph": "i",
+    "chevronRight": "›"
+  },
+  "modal": {
+    "helpTitle": "Help",
+    "rulesCurrentTitle": "Current Rules"
+  },
+  "sections": {
+    "general": "General",
+    "pieces": "Pieces",
+    "holes": "Broken Holes",
+    "gravity": "Gravity"
+  },
+  "fields": {
+    "columns": "N Columns",
+    "rows": "N Rows",
+    "winLose": "Win / Lose",
+    "lose": "Lose",
+    "win": "Win",
+    "lineLength": "N in a row",
+    "unlimitedPieces": "Unlimited",
+    "quantity": "Quantity",
+    "changePiecePlace": "Move pieces",
+    "enableBrokenHoles": "Enable broken holes",
+    "enableGravity": "Enable gravity",
+    "turns": "Turns",
+    "brokenTurnsInfo": "0 = stays broken until the end.",
+    "gravityInfo": "When enabled, choose a column and the piece falls to the lowest available space."
+  },
+  "moveModes": {
+    "limited": {
+      "forcedOldest": "Forced: move the first placed piece",
+      "limitMoveAny": "Limit: move any of your pieces",
+      "limitedFree": "Free: move any of your pieces always"
+    },
+    "unlimited": {
+      "blocked": "Blocked: pieces can't be moved",
+      "free": "Free: move any of your pieces"
+    },
+    "help": {
+      "limited": "With a max number of pieces: you can force movement when you reach the limit, or allow free movement before filling up.",
+      "unlimited": "With unlimited pieces: you can block movement or allow moving pieces at any time."
+    }
+  },
+  "rules": {
+    "lineRule": {
+      "lose": "You lose",
+      "win": "You win"
+    },
+    "pieces": {
+      "unlimited": "unlimited pieces",
+      "limited": "maximum {{maxPieces}} pieces per player"
+    },
+    "broken": {
+      "disabled": "abandoned holes don't break",
+      "untilEnd": "abandoned holes break until the end",
+      "forTurns": "abandoned holes break after {{turns}} turns"
+    },
+    "gravity": {
+      "enabled": "gravity enabled",
+      "disabled": "gravity disabled"
+    },
+    "moveModeText": {
+      "forcedOldest": "When you reach the maximum, the first placed piece moves",
+      "limitMoveAny": "When you reach the maximum, any of your pieces moves",
+      "limitedFree": "You can move any of your pieces at any time",
+      "blocked": "Pieces can't be moved",
+      "free": "Pieces can be moved freely",
+      "unknown": "Undefined piece move mode"
+    },
+    "summary": "{{columns}} columns x {{rows}} rows. {{lineText}} if you make {{lineLength}} in a row. {{piecesText}}. {{moveText}}. {{brokenText}}. {{gravityText}}.",
+    "modal": {
+      "intro": "These are the rules for the current game. If you change values in the sidebar, press {{newGame}} to apply them."
+    }
+  },
+  "status": {
+    "turn": "Turn of {{currentPlayer}}",
+    "turnMustMove": "Turn of {{currentPlayer}}: move a piece.",
+    "turnForcedFirst": "Turn of {{currentPlayer}}: move piece #1.",
+    "moving": "Moving {{currentPlayer}} #{{order}}. Choose destination or tap the piece to cancel."
+  },
+  "gameOver": {
+    "lose": "{{player}} formed {{lineLength}} in a row and lost.",
+    "win": "{{player}} formed {{lineLength}} in a row and won.",
+    "draw": "Draw: no legal moves left."
+  },
+  "help": {
+    "general": {
+      "title": "General",
+      "html": "<p>This section defines the basic structure of the game.</p><ul><li><strong>N Columns</strong> controls the board width.</li><li><strong>N Rows</strong> controls the board height.</li><li><strong>Win / Lose</strong> changes the main goal: you can play normal Ta-Te-Ti or misère mode, where completing a line makes you lose.</li><li><strong>N in a row</strong> defines how many aligned pieces activate the condition.</li></ul>"
+    },
+    "pieces": {
+      "title": "Pieces",
+      "html": "<p>This section controls how many pieces each player can have and what happens when a piece must move.</p><ul><li><strong>Unlimited disabled</strong>: each player has a limited number of live pieces.</li><li><strong>Unlimited enabled</strong>: players can keep adding pieces without limit.</li><li><strong>Forced</strong>: when reaching the maximum, the next action must move the oldest piece.</li><li><strong>Limit</strong>: when reaching the maximum, the next action must move any of your pieces.</li><li><strong>Free</strong>: with limited pieces, you can move any of your pieces at any time, even before placing all possible pieces.</li><li><strong>Blocked</strong>: with unlimited pieces, you can't move a piece that's already on the board.</li><li><strong>Free</strong>: with unlimited pieces, you can choose to move one of your pieces instead of placing a new one.</li></ul><p>The number above each piece shows its current order among that player's pieces.</p>"
+    },
+    "holes": {
+      "title": "Broken Holes",
+      "html": "<p>When a piece leaves a cell, that cell can become broken.</p><ul><li>The title toggle enables or disables this mechanic.</li><li>If disabled, the cell becomes free normally.</li><li>If enabled, the abandoned cell becomes blocked.</li><li><strong>Turns</strong> sets how long the blocking lasts.</li><li>With <strong>0 turns</strong>, the hole stays broken until the end of the match.</li></ul>"
+    },
+    "gravity": {
+      "title": "Gravity",
+      "html": "<p>Gravity makes the board work more like Connect 4.</p><ul><li>The title toggle enables or disables this mechanic.</li><li>Instead of choosing any empty cell, you choose a column.</li><li>The piece falls to the lowest available position.</li><li>Broken holes act as obstacles: pieces don't pass through broken cells.</li><li>When a piece moves or disappears, the pieces in that column drop down.</li></ul>"
+    }
+  },
+  "broken": {
+    "permanent": "BROKEN"
+  }
+}
+

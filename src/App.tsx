@@ -3,12 +3,13 @@ import { Board } from "./components/Board";
 import { HelpModal } from "./components/HelpModal";
 import { Sidebar } from "./components/Sidebar";
 import { TopBar } from "./components/TopBar";
-import { DEFAULT_CONFIG, DEFAULT_MAX_PIECES_PER_PLAYER, HELP_CONTENT } from "./game/defaults";
+import { DEFAULT_CONFIG, DEFAULT_MAX_PIECES_PER_PLAYER } from "./game/defaults";
 import { clampInt, normalizeMoveMode, sanitizeConfig } from "./game/config";
 import { buildRulesText, getStatusText } from "./game/formatters";
 import { createInitialGameState, gameReducer } from "./game/reducer";
 import { mustMovePiece } from "./game/rules";
 import type { GameConfig } from "./game/types";
+import { t } from "./i18n";
 
 interface ModalState {
   open: boolean;
@@ -16,16 +17,22 @@ interface ModalState {
   html: string;
 }
 
-const closedModal: ModalState = { open: false, title: "Ayuda", html: "" };
-
 export default function App() {
   const [draftConfig, setDraftConfig] = useState<GameConfig>(DEFAULT_CONFIG);
   const [gameState, dispatch] = useReducer(gameReducer, DEFAULT_CONFIG, createInitialGameState);
-  const [modal, setModal] = useState<ModalState>(closedModal);
+  const [modal, setModal] = useState<ModalState>(() => ({
+    open: false,
+    title: t("modal.helpTitle"),
+    html: ""
+  }));
+
+  function closeModal() {
+    setModal({ open: false, title: t("modal.helpTitle"), html: "" });
+  }
 
   useEffect(() => {
     function handleEscape(event: KeyboardEvent) {
-      if (event.key === "Escape") setModal(closedModal);
+      if (event.key === "Escape") closeModal();
     }
 
     document.addEventListener("keydown", handleEscape);
@@ -68,16 +75,17 @@ export default function App() {
   }
 
   function openHelp(helpKey: string) {
-    const content = HELP_CONTENT[helpKey];
-    if (!content) return;
-    setModal({ open: true, title: content.title, html: content.html });
+    const title = t(`help.${helpKey}.title`);
+    const html = t(`help.${helpKey}.html`);
+    setModal({ open: true, title, html });
   }
 
   function openRulesHelp() {
+    const newGameStrong = `<strong>${t("buttons.newGame")}</strong>`;
     setModal({
       open: true,
-      title: "Reglas actuales",
-      html: `<p>${buildRulesText(gameState.config)}</p><p>Estas son las reglas de la partida actual. Si modificás valores en la sidebar, presioná <strong>Nuevo Juego</strong> para aplicarlos.</p>`
+      title: t("modal.rulesCurrentTitle"),
+      html: `<p>${buildRulesText(gameState.config)}</p><p>${t("rules.modal.intro", { newGame: newGameStrong })}</p>`
     });
   }
 
@@ -110,7 +118,7 @@ export default function App() {
         open={modal.open}
         title={modal.title}
         html={modal.html}
-        onClose={() => setModal(closedModal)}
+        onClose={closeModal}
       />
     </div>
   );

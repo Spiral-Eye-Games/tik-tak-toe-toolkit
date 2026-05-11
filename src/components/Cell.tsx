@@ -1,4 +1,4 @@
-import { PERMANENT_BROKEN_LABEL } from "../game/defaults";
+import { t } from "../i18n";
 import { getColumnLetter, getPieceOrder } from "../game/formatters";
 import { canSelectPiece, getGravityTargetRow, isBroken, isCellClickable, isLegalMoveDestination } from "../game/rules";
 import type { GameState, Piece } from "../game/types";
@@ -53,6 +53,6 @@ function PieceView({ state, piece }: { state: GameState; piece: Piece }) {
 }
 
 function getBrokenLabel(brokenTurns: number | null): string {
-  if (brokenTurns === 0) return PERMANENT_BROKEN_LABEL;
+  if (brokenTurns === 0) return t("broken.permanent");
   return String(brokenTurns ?? "");
 }

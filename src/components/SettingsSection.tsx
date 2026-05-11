@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from "react";
+import { t } from "../i18n";
 
 interface SettingsSectionProps {
   title: string;
@@ -33,15 +34,15 @@ export function SettingsSection({
         {titleToggle}
         <button
           className="help-button"
-          title={`Explicar ${title}`}
+          title={t("actions.explainSection", { section: title })}
           type="button"
           onClick={(event) => {
             event.preventDefault();
             event.stopPropagation();
             onHelp(helpKey);
           }}
-        >?</button>
-        <span className="chevron">›</span>
+        >{t("ui.helpButtonSymbol")}</button>
+        <span className="chevron">{t("ui.chevronRight")}</span>
       </summary>
 
       <div className="settings-card">{children}</div>

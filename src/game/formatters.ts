@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { Board, GameConfig, GameSnapshot, Piece } from "./types";
 
 export function getColumnLetter(col: number): string {
@@ -17,29 +18,42 @@ export function getPieceOrder(snapshot: GameSnapshot, piece: Piece): string {
 
 export function getPieceMoveModeText(config: GameConfig): string {
   switch (config.pieceMoveMode) {
-    case "forcedOldest": return "Al llegar al máximo, se mueve la primera ficha colocada";
-    case "limitMoveAny": return "Al llegar al máximo, se mueve cualquier ficha propia";
-    case "limitedFree": return "Se puede mover cualquier ficha propia en cualquier momento";
-    case "blocked": return "Las fichas no se pueden mover";
-    case "free": return "Las fichas se pueden mover libremente";
-    default: return "Movimiento de fichas sin definir";
+    case "forcedOldest": return t("rules.moveModeText.forcedOldest");
+    case "limitMoveAny": return t("rules.moveModeText.limitMoveAny");
+    case "limitedFree": return t("rules.moveModeText.limitedFree");
+    case "blocked": return t("rules.moveModeText.blocked");
+    case "free": return t("rules.moveModeText.free");
+    default: return t("rules.moveModeText.unknown");
   }
 }
 
 export function buildRulesText(config: GameConfig): string {
-  const lineText = config.lineRule === "lose" ? "Perdés" : "Ganás";
-  const piecesText = config.pieceLimitType === "unlimited"
-    ? "fichas ilimitadas"
-    : `máximo ${config.maxPiecesPerPlayer} fichas por jugador`;
-  const moveText = getPieceMoveModeText(config);
-  const brokenText = !config.brokenEnabled
-    ? "los huecos abandonados no se rompen"
-    : config.brokenHoleTurns === 0
-      ? "los huecos abandonados se rompen hasta el final"
-      : `los huecos abandonados se rompen por ${config.brokenHoleTurns} turnos`;
-  const gravityText = config.gravityEnabled ? "gravedad activada" : "gravedad desactivada";
+  const lineText = config.lineRule === "lose" ? t("rules.lineRule.lose") : t("rules.lineRule.win");
 
-  return `${config.columns} columnas x ${config.rows} filas. ${lineText} si formás ${config.lineLength} en raya. ${piecesText}. ${moveText}. ${brokenText}. ${gravityText}.`;
+  const piecesText = config.pieceLimitType === "unlimited"
+    ? t("rules.pieces.unlimited")
+    : t("rules.pieces.limited", { maxPieces: config.maxPiecesPerPlayer });
+
+  const moveText = getPieceMoveModeText(config);
+
+  const brokenText = !config.brokenEnabled
+    ? t("rules.broken.disabled")
+    : config.brokenHoleTurns === 0
+      ? t("rules.broken.untilEnd")
+      : t("rules.broken.forTurns", { turns: config.brokenHoleTurns });
+
+  const gravityText = config.gravityEnabled ? t("rules.gravity.enabled") : t("rules.gravity.disabled");
+
+  return t("rules.summary", {
+    columns: config.columns,
+    rows: config.rows,
+    lineText,
+    lineLength: config.lineLength,
+    piecesText,
+    moveText,
+    brokenText,
+    gravityText
+  });
 }
 
 export function getStatusText(snapshot: GameSnapshot, config: GameConfig, mustMovePiece: (snapshot: GameSnapshot, config: GameConfig) => boolean): string {
@@ -49,15 +63,21 @@ export function getStatusText(snapshot: GameSnapshot, config: GameConfig, mustMo
     const selectedPosition = findPiecePosition(snapshot.board, snapshot.selectedPieceId);
     const selectedPiece = selectedPosition ? snapshot.board[selectedPosition.row][selectedPosition.col].piece : null;
     const order = selectedPiece ? getPieceOrder(snapshot, selectedPiece) : "?";
-    return `Moviendo ${snapshot.currentPlayer} #${order}. Elegí destino o tocá la ficha para cancelar.`;
+
+    return t("status.moving", {
+      currentPlayer: snapshot.currentPlayer,
+      order
+    });
   }
 
   if (mustMovePiece(snapshot, config)) {
-    if (config.pieceMoveMode === "forcedOldest") return `Turno de ${snapshot.currentPlayer}: mové la ficha #1.`;
-    return `Turno de ${snapshot.currentPlayer}: mové una ficha.`;
+    if (config.pieceMoveMode === "forcedOldest") {
+      return t("status.turnForcedFirst", { currentPlayer: snapshot.currentPlayer });
+    }
+    return t("status.turnMustMove", { currentPlayer: snapshot.currentPlayer });
   }
 
-  return `Turno de ${snapshot.currentPlayer}`;
+  return t("status.turn", { currentPlayer: snapshot.currentPlayer });
 }
 
 export function findPiecePosition(board: Board, pieceId: number): { row: number; col: number } | null {
