@@ -1,4 +1,4 @@
-# Ta-Te-Ti Toolkit - React/Vite migration 
+# Ta-Te-Ti Toolkit - React/Vite migration
 
 Migración del prototipo HTML a **Vite + React + TypeScript**.
 
