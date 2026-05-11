@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { normalizeRoster } from "../game/config";
 import type { RosterPlayer } from "../game/types";
 import { t } from "../i18n";
+import { ModalPortal } from "./ModalPortal";
 
 interface PlayersModalProps {
   open: boolean;
@@ -53,51 +54,53 @@ export function PlayersModal({ open, roster, onClose, onApply }: PlayersModalPro
   }
 
   return (
-    <div
-      className="modal-backdrop open"
-      aria-hidden={false}
-      onClick={(event) => {
-        if (event.target === event.currentTarget) onClose();
-      }}
-    >
-      <section className="modal players-modal" role="dialog" aria-modal="true" aria-labelledby="playersModalTitle">
-        <header className="modal-header">
-          <h2 className="modal-title" id="playersModalTitle">{t("playersModal.title")}</h2>
-          <button className="modal-close" type="button" aria-label={t("actions.close")} onClick={onClose}>×</button>
-        </header>
-        <div className="modal-body players-modal-body">
-          <p className="field-help">{t("playersModal.intro")}</p>
-          <ul className="players-modal-list">
-            {draft.map((player, index) => (
-              <li key={player.id} className="players-modal-row">
-                <label className="players-modal-emoji-field">
-                  <input
-                    className="players-modal-emoji-input"
-                    type="text"
-                    value={player.emoji}
-                    maxLength={8}
-                    onChange={(event) => updateEmoji(index, event.target.value)}
-                    aria-label={t("playersModal.emojiLabel")}
-                  />
-                </label>
-                <button
-                  className="button icon danger"
-                  type="button"
-                  disabled={draft.length <= 2}
-                  title={t("playersModal.remove")}
-                  onClick={() => removeRow(index)}
-                >
-                  −
-                </button>
-              </li>
-            ))}
-          </ul>
-          <button className="button full secondary" type="button" onClick={addRow}>{t("playersModal.add")}</button>
-        </div>
-        <footer className="players-modal-footer">
-          <button className="button full" type="button" onClick={handleSave}>{t("playersModal.save")}</button>
-        </footer>
-      </section>
-    </div>
+    <ModalPortal open={open}>
+      <div
+        className="modal-backdrop open"
+        aria-hidden={false}
+        onClick={(event) => {
+          if (event.target === event.currentTarget) onClose();
+        }}
+      >
+        <section className="modal players-modal" role="dialog" aria-modal="true" aria-labelledby="playersModalTitle">
+          <header className="modal-header">
+            <h2 className="modal-title" id="playersModalTitle">{t("playersModal.title")}</h2>
+            <button className="modal-close" type="button" aria-label={t("actions.close")} onClick={onClose}>×</button>
+          </header>
+          <div className="modal-body players-modal-body">
+            <p className="field-help">{t("playersModal.intro")}</p>
+            <ul className="players-modal-list">
+              {draft.map((player, index) => (
+                <li key={player.id} className="players-modal-row">
+                  <label className="players-modal-emoji-field">
+                    <input
+                      className="players-modal-emoji-input"
+                      type="text"
+                      value={player.emoji}
+                      maxLength={8}
+                      onChange={(event) => updateEmoji(index, event.target.value)}
+                      aria-label={t("playersModal.emojiLabel")}
+                    />
+                  </label>
+                  <button
+                    className="button icon danger"
+                    type="button"
+                    disabled={draft.length <= 2}
+                    title={t("playersModal.remove")}
+                    onClick={() => removeRow(index)}
+                  >
+                    −
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <button className="button full secondary" type="button" onClick={addRow}>{t("playersModal.add")}</button>
+          </div>
+          <footer className="players-modal-footer">
+            <button className="button full" type="button" onClick={handleSave}>{t("playersModal.save")}</button>
+          </footer>
+        </section>
+      </div>
+    </ModalPortal>
   );
 }

@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { Tooltip } from "./Tooltip";
 import { t } from "../i18n";
 
 interface SettingsSectionProps {
@@ -94,16 +95,19 @@ export function SettingsSection({
         <span className="section-icon">{icon}</span>
         <span className="section-title-wrap"><span className="section-title">{title}</span></span>
         {titleToggle}
-        <button
-          className="help-button"
-          title={t("actions.explainSection", { section: title })}
-          type="button"
-          onClick={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            onHelp(helpKey);
-          }}
-        >{t("ui.helpButtonSymbol")}</button>
+        <Tooltip text={t("actions.explainSection", { section: title })}>
+          <button
+            className="help-button"
+            type="button"
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              onHelp(helpKey);
+            }}
+          >
+            {t("ui.helpButtonSymbol")}
+          </button>
+        </Tooltip>
         <span className="chevron">{t("ui.chevronRight")}</span>
       </summary>
 

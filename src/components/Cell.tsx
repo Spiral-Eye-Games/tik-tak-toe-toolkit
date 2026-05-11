@@ -63,7 +63,9 @@ export function Cell({ state, row, col, onPlayMove }: CellProps) {
   if (canSelectPiece(state, state.config, piece)) classNames.push("movable");
   if (state.selectedPieceId !== null && isLegalMoveDestination(state, state.config, row, col)) classNames.push("move-target");
   if (isBroken(cell)) classNames.push("broken");
-  if (state.lineCells.some((position) => position.row === row && position.col === col)) classNames.push("losing");
+  if (state.lineCells.some((position) => position.row === row && position.col === col)) {
+    classNames.push(state.config.lineRule === "win" ? "winning-line" : "losing");
+  }
 
   return (
     <button

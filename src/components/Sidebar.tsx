@@ -14,6 +14,7 @@ import type {
 import { PlayersModal } from "./PlayersModal";
 import { PresetModal } from "./PresetModal";
 import { SettingsSection } from "./SettingsSection";
+import { Tooltip } from "./Tooltip";
 import { t } from "../i18n";
 
 interface SidebarProps {
@@ -42,16 +43,16 @@ export function Sidebar({ config, onChangeConfig, onNewGame, onApplyPreset, onHe
       <div className="sidebar-sticky">
         <div className="new-game-row">
           <button className="button full" type="button" onClick={onNewGame}>{t("buttons.newGame")}</button>
-          <button
-            className="button icon"
-            type="button"
-            title={t("presets.openTitle")}
-            aria-label={t("presets.openTitle")}
-            onClick={() => setPresetModalOpen(true)}
-          >
-            {t("ui.presetsOpenGlyph")}
-          </button>
-          <button className="help-button large" title={t("actions.viewRulesCurrent")} type="button" onClick={onRulesHelp}>{t("ui.helpInfoGlyph")}</button>
+          <Tooltip text={t("presets.openTitle")}>
+            <button className="help-button large" type="button" onClick={() => setPresetModalOpen(true)}>
+              {t("ui.presetsOpenGlyph")}
+            </button>
+          </Tooltip>
+          <Tooltip text={t("actions.viewRulesCurrent")}>
+            <button className="help-button large" type="button" onClick={onRulesHelp}>
+              {t("ui.helpInfoGlyph")}
+            </button>
+          </Tooltip>
         </div>
       </div>
 

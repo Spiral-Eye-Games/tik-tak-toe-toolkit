@@ -16,6 +16,7 @@
   --muted: #aaaabd;
   --accent: #ffd166;
   --danger: #ff7b7b;
+  --win-line: #52d87a;
   --line: rgba(255, 255, 255, 0.09);
   --shadow: rgba(0, 0, 0, 0.35);
 }
@@ -169,12 +170,13 @@ body, #root { height: 100vh; }
   overflow-y: auto;
   background: rgba(28, 29, 45, 0.94);
   border-right: 1px solid var(--line);
+  isolation: isolate;
 }
 
 .sidebar-sticky {
   position: sticky;
   top: 0;
-  z-index: 3;
+  z-index: 30;
   padding: 16px;
   background: linear-gradient(to bottom, var(--sidebar) 0%, rgba(28, 29, 45, 0.96) 100%);
   border-bottom: 1px solid var(--line);
@@ -189,6 +191,8 @@ body, #root { height: 100vh; }
 }
 
 .sidebar-content {
+  position: relative;
+  z-index: 0;
   padding: 16px;
   display: flex;
   flex-direction: column;
@@ -197,7 +201,7 @@ body, #root { height: 100vh; }
 
 .settings-section {
   border-radius: 20px;
-  overflow: hidden;
+  overflow: visible;
   background:
     linear-gradient(145deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.025)),
     rgba(255, 255, 255, 0.045);
@@ -233,6 +237,7 @@ body, #root { height: 100vh; }
 
 .settings-section-toggle-locked > .section-header .section-toggle,
 .settings-section-toggle-locked > .section-header .section-toggle *,
+.settings-section-toggle-locked > .section-header .tooltip-host,
 .settings-section-toggle-locked > .section-header .help-button {
   opacity: 1;
   filter: none;
@@ -242,6 +247,23 @@ body, #root { height: 100vh; }
 
 .settings-section summary { list-style: none; }
 .settings-section summary::-webkit-details-marker { display: none; }
+
+.settings-section > .settings-card {
+  overflow: hidden;
+  border-radius: 0 0 20px 20px;
+}
+
+.settings-section:not([open]) > .settings-card {
+  border-radius: 0;
+}
+
+.settings-section:not([open]) > .section-header {
+  border-radius: 20px;
+}
+
+.settings-section[open] > .section-header {
+  border-radius: 20px 20px 0 0;
+}
 
 .section-header {
   min-height: 58px;
@@ -318,6 +340,32 @@ body, #root { height: 100vh; }
   transform: translateY(-1px);
   background: rgba(255, 209, 102, 0.16);
   border-color: rgba(255, 209, 102, 0.35);
+}
+
+/* Ancla del tooltip (el globo se renderiza en body vía portal) */
+.tooltip-host {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+}
+
+.tooltip-portal {
+  box-sizing: border-box;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgba(22, 24, 38, 0.98);
+  border: 1px solid rgba(255, 209, 102, 0.22);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.35;
+  width: max-content;
+  text-align: center;
+  text-wrap: balance;
+  pointer-events: none;
 }
 
 .section-toggle {
@@ -720,6 +768,11 @@ body, #root { height: 100vh; }
   animation: pulse 0.7s infinite alternate;
 }
 
+.cell.winning-line {
+  outline: 4px solid var(--win-line);
+  animation: pulse 0.7s infinite alternate;
+}
+
 .cell.selected {
   outline: 4px solid var(--accent);
   border-color: rgba(255, 209, 102, 0.65);
@@ -788,7 +841,7 @@ body, #root { height: 100vh; }
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 20;
+  z-index: 2147482000;
   display: none;
   align-items: center;
   justify-content: center;
