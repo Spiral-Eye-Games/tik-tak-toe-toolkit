@@ -3,7 +3,14 @@ import { Board } from "./components/Board";
 import { HelpModal } from "./components/HelpModal";
 import { Sidebar } from "./components/Sidebar";
 import { TopBar } from "./components/TopBar";
-import { DEFAULT_CONFIG, DEFAULT_MAX_PIECES_PER_PLAYER, DEFAULT_PLAYER_COUNT } from "./game/defaults";
+import {
+  DEFAULT_BROKEN_HOLE_TURNS,
+  DEFAULT_CONFIG,
+  DEFAULT_GRAVITY_ROTATION_PAUSE_MS,
+  DEFAULT_GRAVITY_ROTATE_EVERY_TURNS,
+  DEFAULT_MAX_PIECES_PER_PLAYER,
+  DEFAULT_PLAYER_COUNT
+} from "./game/defaults";
 import { clampInt, normalizeMoveMode, normalizeRoster, sanitizeConfig } from "./game/config";
 import { buildRulesText, getStatusText } from "./game/formatters";
 import { createInitialGameState, gameReducer } from "./game/reducer";
@@ -38,6 +45,14 @@ export default function App() {
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
   }, []);
+
+  useEffect(() => {
+    if (gameState.pendingGravityRotationTarget === null) return;
+    const id = window.setTimeout(() => {
+      dispatch({ type: "completePendingGravityRotation" });
+    }, DEFAULT_GRAVITY_ROTATION_PAUSE_MS);
+    return () => window.clearTimeout(id);
+  }, [gameState.pendingGravityRotationTarget, dispatch]);
 
   const status = useMemo(
     () => getStatusText(gameState, gameState.config, mustMovePiece),
@@ -78,7 +93,13 @@ export default function App() {
       next.maxPiecesPerPlayer = next.pieceLimitType === "unlimited"
         ? next.maxPiecesPerPlayer
         : clampInt(next.maxPiecesPerPlayer, 1, 99, DEFAULT_MAX_PIECES_PER_PLAYER);
-      next.brokenHoleTurns = clampInt(next.brokenHoleTurns, 0, 99, 0);
+      next.brokenHoleTurns = clampInt(next.brokenHoleTurns, 1, 99, DEFAULT_BROKEN_HOLE_TURNS);
+      next.gravityRotateEveryTurns = clampInt(
+        next.gravityRotateEveryTurns,
+        1,
+        99,
+        DEFAULT_GRAVITY_ROTATE_EVERY_TURNS
+      );
 
       return next;
     });

@@ -1,5 +1,12 @@
 import { sanitizeConfig } from "./config";
 import { getPlayerLabel } from "./formatters";
+import {
+  applyScheduledGravityRotation,
+  isVerticalGravity,
+  scheduleGravityRotationIfDue,
+  scanColumnLanding,
+  scanRowLanding
+} from "./gravity";
 import { t } from "../i18n";
 import {
   abandonCellForBroken,
@@ -10,10 +17,9 @@ import {
   findLine,
   findPiecePosition,
   getDefaultSelectedPieceIdForcedOldest,
-  getGravityTargetRow,
-  getGravityTargetRowIgnoringPiece,
   getNextActivePlayer,
   getNextTurnAfterPlayerRemoved,
+  isBroken,
   isLegalMoveDestination,
   isLegalPlacementDestination,
   removeAllPiecesForPlayer,
@@ -43,6 +49,8 @@ export function createInitialGameState(configInput: GameConfig): GameState {
     turnNumber: 0,
     statusMessage: "",
     selectedPieceId: null,
+    gravityDirection: config.gravityInitialDirection,
+    pendingGravityRotationTarget: null,
     undoStack: [],
     redoStack: []
   };
@@ -58,6 +66,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return undoMove(state);
     case "redo":
       return redoMove(state);
+    case "completePendingGravityRotation":
+      return completePendingGravityRotation(state);
     default:
       return state;
   }
@@ -78,6 +88,8 @@ function playMove(state: GameState, clickedRow: number, clickedCol: number): Gam
     };
   }
 
+  if (state.pendingGravityRotationTarget !== null) return state;
+
   if (state.selectedPieceId !== null) {
     return moveSelectedPiece(state, clickedRow, clickedCol);
   }
@@ -88,13 +100,24 @@ function playMove(state: GameState, clickedRow: number, clickedCol: number): Gam
 function placeNewPiece(state: GameState, clickedRow: number, clickedCol: number): GameState {
   if (!canAddPiece(state, state.config, state.currentPlayer)) return state;
 
-  const row = state.config.gravityEnabled
-    ? getGravityTargetRow(state.board, state.config, clickedCol)
-    : clickedRow;
-  const col = clickedCol;
+  if (!isLegalPlacementDestination(state, state.config, clickedRow, clickedCol)) return state;
 
-  if (row === null) return state;
-  if (!isLegalPlacementDestination(state, state.config, row, col)) return state;
+  const d = state.gravityDirection;
+  let row = clickedRow;
+  let col = clickedCol;
+  if (state.config.gravityEnabled) {
+    if (isVerticalGravity(d)) {
+      const r = scanColumnLanding(state.board, state.config, d, clickedCol, null);
+      if (r === null) return state;
+      row = r;
+      col = clickedCol;
+    } else {
+      const c = scanRowLanding(state.board, state.config, d, clickedRow, null);
+      if (c === null) return state;
+      row = clickedRow;
+      col = c;
+    }
+  }
 
   const previousSnapshot = createSnapshot(state);
   const next = cloneSnapshot(previousSnapshot);
@@ -107,7 +130,7 @@ function placeNewPiece(state: GameState, clickedRow: number, clickedCol: number)
   next.board[row][col].piece = piece;
   next.pieceHistory[next.currentPlayer].push(piece.id);
 
-  if (state.config.gravityEnabled) applyGravity(next.board, state.config);
+  if (state.config.gravityEnabled) applyGravity(next.board, state.config, next.gravityDirection);
   finishTurn(next, state.config);
 
   return snapshotToState(state, next, [...state.undoStack, previousSnapshot], []);
@@ -121,12 +144,7 @@ function moveSelectedPiece(state: GameState, clickedRow: number, clickedCol: num
     return { ...state, selectedPieceId: null };
   }
 
-  const initialTargetRow = state.config.gravityEnabled
-    ? getGravityTargetRowIgnoringPiece(state.board, state.config, clickedCol, state.selectedPieceId)
-    : clickedRow;
-
-  if (initialTargetRow === null) return state;
-  if (!isLegalMoveDestination(state, state.config, initialTargetRow, clickedCol)) return state;
+  if (!isLegalMoveDestination(state, state.config, clickedRow, clickedCol)) return state;
 
   const previousSnapshot = createSnapshot(state);
   const next = cloneSnapshot(previousSnapshot);
@@ -139,22 +157,21 @@ function moveSelectedPiece(state: GameState, clickedRow: number, clickedCol: num
   next.statusMessage = "";
 
   const piece = next.board[nextSource.row][nextSource.col].piece;
+  if (piece === null) return state;
+
   next.board[nextSource.row][nextSource.col].piece = null;
   breakAbandonedCell(next, state.config, nextSource);
 
-  if (state.config.gravityEnabled) applyGravity(next.board, state.config);
+  if (state.config.gravityEnabled) applyGravity(next.board, state.config, next.gravityDirection);
 
-  const finalTargetRow = state.config.gravityEnabled
-    ? getGravityTargetRow(next.board, state.config, clickedCol)
-    : initialTargetRow;
+  const destCell = next.board[clickedRow]?.[clickedCol];
+  if (!destCell || destCell.piece !== null || isBroken(destCell)) return state;
 
-  if (finalTargetRow === null || piece === null) return state;
-
-  next.board[finalTargetRow][clickedCol].piece = piece;
+  next.board[clickedRow][clickedCol].piece = piece;
   movePieceToNewest(next, piece.owner, piece.id);
   next.selectedPieceId = null;
 
-  if (state.config.gravityEnabled) applyGravity(next.board, state.config);
+  if (state.config.gravityEnabled) applyGravity(next.board, state.config, next.gravityDirection);
   finishTurn(next, state.config);
 
   return snapshotToState(state, next, [...state.undoStack, previousSnapshot], []);
@@ -165,20 +182,21 @@ function finishTurn(snapshot: GameSnapshot, config: GameConfig): void {
 
   if (completedLine) {
     handleCompletedLine(snapshot, config, completedLine);
-    return;
+  } else {
+    tickBrokenHoles(snapshot.board, config, snapshot.turnNumber);
+    if (config.gravityEnabled) applyGravity(snapshot.board, config, snapshot.gravityDirection);
+
+    snapshot.currentPlayer = getNextActivePlayer(snapshot.activePlayerIds, snapshot.currentPlayer);
+    snapshot.selectedPieceId = getDefaultSelectedPieceIdForcedOldest(snapshot, config);
+
+    if (shouldDrawIfNoLegalMoves(snapshot, config)) {
+      snapshot.gameOver = true;
+      snapshot.gameEndSummary = { type: "draw" };
+      snapshot.statusMessage = t("gameOver.draw");
+    }
   }
 
-  tickBrokenHoles(snapshot.board, config, snapshot.turnNumber);
-  if (config.gravityEnabled) applyGravity(snapshot.board, config);
-
-  snapshot.currentPlayer = getNextActivePlayer(snapshot.activePlayerIds, snapshot.currentPlayer);
-  snapshot.selectedPieceId = getDefaultSelectedPieceIdForcedOldest(snapshot, config);
-
-  if (shouldDrawIfNoLegalMoves(snapshot, config)) {
-    snapshot.gameOver = true;
-    snapshot.gameEndSummary = { type: "draw" };
-    snapshot.statusMessage = t("gameOver.draw");
-  }
+  scheduleGravityRotationIfDue(snapshot, config);
 }
 
 function handleCompletedLine(snapshot: GameSnapshot, config: GameConfig, completedLine: BoardPosition[]): void {
@@ -235,7 +253,7 @@ function handleCompletedLine(snapshot: GameSnapshot, config: GameConfig, complet
     snapshot.currentPlayer = getNextTurnAfterPlayerRemoved(oldActive, winnerId);
     snapshot.selectedPieceId = getDefaultSelectedPieceIdForcedOldest(snapshot, config);
     tickBrokenHoles(snapshot.board, config, snapshot.turnNumber);
-    if (config.gravityEnabled) applyGravity(snapshot.board, config);
+    if (config.gravityEnabled) applyGravity(snapshot.board, config, snapshot.gravityDirection);
 
     if (shouldDrawIfNoLegalMoves(snapshot, config)) {
       snapshot.gameOver = true;
@@ -301,7 +319,7 @@ function handleCompletedLine(snapshot: GameSnapshot, config: GameConfig, complet
   snapshot.currentPlayer = getNextTurnAfterPlayerRemoved(oldActive, eliminatedId);
   snapshot.selectedPieceId = getDefaultSelectedPieceIdForcedOldest(snapshot, config);
   tickBrokenHoles(snapshot.board, config, snapshot.turnNumber);
-  if (config.gravityEnabled) applyGravity(snapshot.board, config);
+  if (config.gravityEnabled) applyGravity(snapshot.board, config, snapshot.gravityDirection);
 
   if (shouldDrawIfNoLegalMoves(snapshot, config)) {
     snapshot.gameOver = true;
@@ -320,6 +338,14 @@ function movePieceToNewest(snapshot: GameSnapshot, player: PlayerId, pieceId: nu
   const index = history.indexOf(pieceId);
   if (index >= 0) history.splice(index, 1);
   history.push(pieceId);
+}
+
+function completePendingGravityRotation(state: GameState): GameState {
+  if (state.pendingGravityRotationTarget === null) return state;
+
+  const snap = cloneSnapshot(createSnapshot(state));
+  applyScheduledGravityRotation(snap, state.config);
+  return snapshotToState(state, snap, state.undoStack, state.redoStack);
 }
 
 function undoMove(state: GameState): GameState {
@@ -356,7 +382,9 @@ export function createSnapshot(state: GameSnapshot): GameSnapshot {
     nextPieceId: state.nextPieceId,
     turnNumber: state.turnNumber,
     statusMessage: state.statusMessage,
-    selectedPieceId: state.selectedPieceId
+    selectedPieceId: state.selectedPieceId,
+    gravityDirection: state.gravityDirection,
+    pendingGravityRotationTarget: state.pendingGravityRotationTarget ?? null
   });
 }
 
@@ -367,6 +395,7 @@ function cloneSnapshot(snapshot: GameSnapshot): GameSnapshot {
 function snapshotToState(base: GameState, snapshot: GameSnapshot, undoStack: GameSnapshot[], redoStack: GameSnapshot[]): GameState {
   return {
     ...snapshot,
+    pendingGravityRotationTarget: snapshot.pendingGravityRotationTarget ?? null,
     config: base.config,
     undoStack,
     redoStack

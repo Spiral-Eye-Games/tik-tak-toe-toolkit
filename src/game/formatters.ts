@@ -1,5 +1,21 @@
+import { getResolvedBrokenHoleTurns, getResolvedGravityRotateInterval } from "./config";
 import { t } from "../i18n";
-import type { Board, GameConfig, GameEndSummary, GameSnapshot, Piece, PlayerId } from "./types";
+import type { Board, GameConfig, GameEndSummary, GameSnapshot, GravityDirection, Piece, PlayerId } from "./types";
+
+export function getGravityArrowSymbol(direction: GravityDirection): string {
+  switch (direction) {
+    case "down":
+      return t("ui.gravityArrows.down");
+    case "up":
+      return t("ui.gravityArrows.up");
+    case "left":
+      return t("ui.gravityArrows.left");
+    case "right":
+      return t("ui.gravityArrows.right");
+    default:
+      return t("ui.gravityArrows.down");
+  }
+}
 
 export function getPlayerLabel(config: GameConfig, id: PlayerId): string {
   const found = config.roster.find((player) => player.id === id);
@@ -42,13 +58,25 @@ export function buildRulesText(config: GameConfig): string {
 
   const moveText = getPieceMoveModeText(config);
 
+  const resolvedBrokenTurns = getResolvedBrokenHoleTurns(config);
   const brokenText = !config.brokenEnabled
     ? t("rules.broken.disabled")
-    : config.brokenHoleTurns === 0
+    : resolvedBrokenTurns === 0
       ? t("rules.broken.untilEnd")
-      : t("rules.broken.forTurns", { turns: config.brokenHoleTurns });
+      : t("rules.broken.forTurns", { turns: resolvedBrokenTurns });
 
-  const gravityText = config.gravityEnabled ? t("rules.gravity.enabled") : t("rules.gravity.disabled");
+  const gravityText = !config.gravityEnabled
+    ? t("rules.gravity.disabled")
+    : config.gravityRotateEnabled
+      ? t("rules.gravity.enabledWithRotation", {
+        direction: t(`rules.gravity.direction.${config.gravityInitialDirection}`),
+        interval: getResolvedGravityRotateInterval(config),
+        angle: t(`rules.gravity.rotateAngle.${config.gravityRotateAngle}`),
+        spin: t(`rules.gravity.rotateSpin.${config.gravityRotateSpin}`)
+      })
+      : t("rules.gravity.enabledDirected", {
+        direction: t(`rules.gravity.direction.${config.gravityInitialDirection}`)
+      });
 
   return t("rules.summary", {
     columns: config.columns,
@@ -64,6 +92,10 @@ export function buildRulesText(config: GameConfig): string {
 
 export function getStatusText(snapshot: GameSnapshot, config: GameConfig, mustMovePiece: (snapshot: GameSnapshot, config: GameConfig) => boolean): string {
   if (snapshot.statusMessage) return snapshot.statusMessage;
+
+  if (snapshot.pendingGravityRotationTarget !== null && config.gravityEnabled && config.gravityRotateEnabled) {
+    return t("status.gravityRotationPause");
+  }
 
   const currentLabel = getPlayerLabel(config, snapshot.currentPlayer);
 

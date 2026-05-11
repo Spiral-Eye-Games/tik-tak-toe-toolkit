@@ -1,5 +1,13 @@
-import { getColumnLetter, getPieceOrder, getPlayerLabel } from "../game/formatters";
-import { canSelectPiece, getGravityTargetRow, isBroken, isCellClickable, isLegalMoveDestination } from "../game/rules";
+import { getColumnLetter, getGravityArrowSymbol, getPieceOrder, getPlayerLabel } from "../game/formatters";
+import {
+  canAddPiece,
+  canSelectPiece,
+  isBroken,
+  isCellClickable,
+  isGravityLandingCell,
+  isGravityPlacementClick,
+  isLegalMoveDestination
+} from "../game/rules";
 import type { GameState, Piece } from "../game/types";
 import { t } from "../i18n";
 
@@ -33,7 +41,17 @@ export function Cell({ state, row, col, onPlayMove }: CellProps) {
   const piece = cell.piece;
   const coordinate = `${getColumnLetter(col)}${row + 1}`;
   const clickable = isCellClickable(state, state.config, row, col);
-  const gravityTarget = state.config.gravityEnabled && !state.gameOver && getGravityTargetRow(state.board, state.config, col) === row;
+  const gravityLanding =
+    state.config.gravityEnabled &&
+    !state.gameOver &&
+    isGravityLandingCell(state.board, state.config, state.gravityDirection, row, col);
+  const gravityLineHint =
+    state.config.gravityEnabled &&
+    !state.gameOver &&
+    state.selectedPieceId === null &&
+    canAddPiece(state, state.config, state.currentPlayer) &&
+    isGravityPlacementClick(state.board, state.config, state.gravityDirection, row, col) &&
+    !gravityLanding;
 
   const pieceOutKind = getPieceOutKind(state, piece);
 
@@ -56,7 +74,14 @@ export function Cell({ state, row, col, onPlayMove }: CellProps) {
       onClick={() => onPlayMove(row, col)}
     >
       <span className="coord-label">{coordinate}</span>
-      {gravityTarget && <span className="gravity-arrow">↓</span>}
+      {gravityLanding && (
+        <span className={`gravity-arrow gravity-arrow--${state.gravityDirection}`}>{getGravityArrowSymbol(state.gravityDirection)}</span>
+      )}
+      {gravityLineHint && (
+        <span className={`gravity-arrow gravity-arrow--hint gravity-arrow--${state.gravityDirection}`}>
+          {getGravityArrowSymbol(state.gravityDirection)}
+        </span>
+      )}
       {piece && <PieceView state={state} piece={piece} outKind={pieceOutKind} />}
     </button>
   );

@@ -1,7 +1,16 @@
 import { useState } from "react";
 import { DEFAULT_MAX_PIECES_PER_PLAYER } from "../game/defaults";
-import { getMoveModeHelp, getMoveModeOptions } from "../game/config";
-import type { GameConfig, LineRule, PieceLimitType, PieceMoveMode, RosterPlayer } from "../game/types";
+import { getMoveModeHelp, getMoveModeOptions, getResolvedBrokenHoleTurns, getResolvedGravityRotateInterval } from "../game/config";
+import type {
+  GameConfig,
+  GravityDirection,
+  GravityRotateAngle,
+  GravityRotateSpin,
+  LineRule,
+  PieceLimitType,
+  PieceMoveMode,
+  RosterPlayer
+} from "../game/types";
 import { PlayersModal } from "./PlayersModal";
 import { SettingsSection } from "./SettingsSection";
 import { t } from "../i18n";
@@ -196,19 +205,51 @@ export function Sidebar({ config, onChangeConfig, onNewGame, onHelp, onRulesHelp
             </label>
           }
         >
-          <label className="field">
-            {t("fields.turns")}
-            <input
-              type="number"
-              min={0}
-              max={99}
-              step={1}
-              disabled={!config.brokenEnabled}
-              value={config.brokenHoleTurns}
-              onChange={(event) => onChangeConfig({ brokenHoleTurns: Number(event.target.value) })}
-            />
-            <span className="field-help">{t("fields.brokenTurnsInfo")}</span>
-          </label>
+          <div className="field-row broken-rupture-row">
+            <label className="field">
+              {t("fields.turns")}
+              <input
+                type="number"
+                min={1}
+                max={99}
+                step={1}
+                disabled={!config.brokenEnabled || config.brokenHoleUnlimited}
+                value={config.brokenHoleTurns}
+                onChange={(event) => onChangeConfig({ brokenHoleTurns: Number(event.target.value) })}
+              />
+            </label>
+            <label className="field checkbox boxed broken-rupture-check">
+              <span>{t("fields.brokenUnlimited")}</span>
+              <input
+                type="checkbox"
+                disabled={!config.brokenEnabled}
+                checked={config.brokenHoleUnlimited}
+                onChange={(event) => onChangeConfig({ brokenHoleUnlimited: event.target.checked })}
+              />
+            </label>
+          </div>
+          <div className="field-row broken-rupture-per-player-row">
+            <label className="field checkbox boxed broken-rupture-check">
+              <span>{t("fields.brokenTurnsPerPlayer")}</span>
+              <input
+                type="checkbox"
+                disabled={!config.brokenEnabled || config.brokenHoleUnlimited}
+                checked={config.brokenHoleTurnsPerPlayer}
+                onChange={(event) => onChangeConfig({ brokenHoleTurnsPerPlayer: event.target.checked })}
+              />
+            </label>
+          </div>
+          <span className="field-help">
+            {config.brokenHoleUnlimited
+              ? t("fields.brokenTurnsInfoUnlimited")
+              : config.brokenHoleTurnsPerPlayer
+                ? t("fields.brokenTurnsInfoPerPlayer", {
+                  base: config.brokenHoleTurns,
+                  players: config.playerCount,
+                  total: getResolvedBrokenHoleTurns(config)
+                })
+                : t("fields.brokenTurnsInfo")}
+          </span>
         </SettingsSection>
 
         <SettingsSection
@@ -226,7 +267,95 @@ export function Sidebar({ config, onChangeConfig, onNewGame, onHelp, onRulesHelp
             </label>
           }
         >
-          <span className="field-help">{t("fields.gravityInfo")}</span>
+          <label className="field">
+            {t("fields.gravityInitialDirection")}
+            <select
+              disabled={!config.gravityEnabled}
+              value={config.gravityInitialDirection}
+              onChange={(event) => onChangeConfig({ gravityInitialDirection: event.target.value as GravityDirection })}
+            >
+              <option value="down">{t("rules.gravity.direction.down")}</option>
+              <option value="up">{t("rules.gravity.direction.up")}</option>
+              <option value="left">{t("rules.gravity.direction.left")}</option>
+              <option value="right">{t("rules.gravity.direction.right")}</option>
+            </select>
+          </label>
+
+          <label className="field checkbox boxed">
+            <span>{t("fields.gravityRotate")}</span>
+            <input
+              type="checkbox"
+              disabled={!config.gravityEnabled}
+              checked={config.gravityRotateEnabled}
+              onChange={(event) => onChangeConfig({ gravityRotateEnabled: event.target.checked })}
+            />
+          </label>
+
+          {config.gravityEnabled && config.gravityRotateEnabled && (
+            <>
+              <div className="field-row">
+                <label className="field">
+                  {t("fields.gravityRotateAngle")}
+                  <select
+                    value={config.gravityRotateAngle}
+                    onChange={(event) => onChangeConfig({ gravityRotateAngle: event.target.value as GravityRotateAngle })}
+                  >
+                    <option value="90">{t("rules.gravity.rotateAngle.90")}</option>
+                    <option value="180">{t("rules.gravity.rotateAngle.180")}</option>
+                    <option value="270">{t("rules.gravity.rotateAngle.270")}</option>
+                    <option value="random">{t("rules.gravity.rotateAngle.random")}</option>
+                  </select>
+                </label>
+
+                <label className="field">
+                  {t("fields.gravityRotateSpin")}
+                  <select
+                    value={config.gravityRotateSpin}
+                    onChange={(event) => onChangeConfig({ gravityRotateSpin: event.target.value as GravityRotateSpin })}
+                  >
+                    <option value="cw">{t("rules.gravity.rotateSpin.cw")}</option>
+                    <option value="ccw">{t("rules.gravity.rotateSpin.ccw")}</option>
+                    <option value="random">{t("rules.gravity.rotateSpin.random")}</option>
+                  </select>
+                </label>
+              </div>
+
+              <div className="field-row toggle-and-number">
+                <label className="field">
+                  {t("fields.gravityRotateEvery")}
+                  <input
+                    type="number"
+                    min={1}
+                    max={99}
+                    step={1}
+                    value={config.gravityRotateEveryTurns}
+                    onChange={(event) => onChangeConfig({ gravityRotateEveryTurns: Number(event.target.value) })}
+                  />
+                </label>
+
+                <label className="field checkbox boxed">
+                  <span>{t("fields.gravityRotatePerPlayer")}</span>
+                  <input
+                    type="checkbox"
+                    checked={config.gravityRotateEveryTurnsPerPlayer}
+                    onChange={(event) =>
+                      onChangeConfig({ gravityRotateEveryTurnsPerPlayer: event.target.checked })
+                    }
+                  />
+                </label>
+              </div>
+
+              <span className="field-help">
+                {config.gravityRotateEveryTurnsPerPlayer
+                  ? t("fields.gravityRotateInfoPerPlayer", {
+                    base: config.gravityRotateEveryTurns,
+                    players: config.playerCount,
+                    total: getResolvedGravityRotateInterval(config)
+                  })
+                  : t("fields.gravityRotateInfo", { turns: getResolvedGravityRotateInterval(config) })}
+              </span>
+            </>
+          )}
         </SettingsSection>
       </div>
 

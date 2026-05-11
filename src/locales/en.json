@@ -15,7 +15,13 @@
   "ui": {
     "helpButtonSymbol": "?",
     "helpInfoGlyph": "i",
-    "chevronRight": "›"
+    "chevronRight": "›",
+    "gravityArrows": {
+      "down": "↓",
+      "up": "↑",
+      "left": "←",
+      "right": "→"
+    }
   },
   "modal": {
     "helpTitle": "Help",
@@ -25,7 +31,7 @@
     "general": "General",
     "players": "Players",
     "pieces": "Pieces",
-    "holes": "Broken Holes",
+    "holes": "Rupture",
     "gravity": "Gravity"
   },
   "fields": {
@@ -38,11 +44,22 @@
     "unlimitedPieces": "Unlimited",
     "quantity": "Quantity",
     "changePiecePlace": "Move pieces",
-    "enableBrokenHoles": "Enable broken holes",
+    "enableBrokenHoles": "Enable rupture",
     "enableGravity": "Enable gravity",
     "turns": "Turns",
-    "brokenTurnsInfo": "0 = stays broken until the end.",
-    "gravityInfo": "When enabled, choose a column and the piece falls to the lowest available space.",
+    "brokenUnlimited": "Unlimited",
+    "brokenTurnsPerPlayer": "Per player",
+    "brokenTurnsInfo": "Duration in turns (from the next turn onward).",
+    "brokenTurnsInfoUnlimited": "The break lasts until the end of the match.",
+    "brokenTurnsInfoPerPlayer": "{{base}} × {{players}} players = {{total}} turns.",
+    "gravityInitialDirection": "Initial direction",
+    "gravityRotate": "Rotate gravity",
+    "gravityRotateAngle": "Rotation step",
+    "gravityRotateSpin": "Turn direction",
+    "gravityRotateEvery": "Every N turns",
+    "gravityRotatePerPlayer": "Per player",
+    "gravityRotateInfo": "The direction changes every {{turns}} completed turns (after board settles).",
+    "gravityRotateInfoPerPlayer": "{{base}} × {{players}} players = {{total}} turns between rotations.",
     "playerCount": "Number of players",
     "customizePlayers": "Customize players",
     "eliminateLosers": "Eliminate losers (remove their pieces when they complete a line)",
@@ -92,13 +109,31 @@
       "limited": "maximum {{maxPieces}} pieces per player"
     },
     "broken": {
-      "disabled": "abandoned holes don't break",
-      "untilEnd": "abandoned holes break until the end",
-      "forTurns": "abandoned holes break after {{turns}} turns"
+      "disabled": "no rupture on abandoned cells",
+      "untilEnd": "broken cells last until the end of the match",
+      "forTurns": "broken cells last {{turns}} turns"
     },
     "gravity": {
-      "enabled": "gravity enabled",
-      "disabled": "gravity disabled"
+      "disabled": "gravity disabled",
+      "enabledDirected": "gravity enabled (initially toward {{direction}})",
+      "enabledWithRotation": "gravity enabled (start {{direction}}; every {{interval}} turns: {{angle}}, {{spin}})",
+      "direction": {
+        "down": "down",
+        "up": "up",
+        "left": "left",
+        "right": "right"
+      },
+      "rotateAngle": {
+        "90": "90°",
+        "180": "180°",
+        "270": "270°",
+        "random": "random angle"
+      },
+      "rotateSpin": {
+        "cw": "clockwise",
+        "ccw": "counter-clockwise",
+        "random": "random turn direction"
+      }
     },
     "moveModeText": {
       "forcedOldest": "When you reach the maximum, the first placed piece moves",
@@ -117,7 +152,8 @@
     "turn": "Turn of {{currentPlayer}}",
     "turnMustMove": "Turn of {{currentPlayer}}: move a piece.",
     "turnForcedFirst": "Turn of {{currentPlayer}}: move piece #1.",
-    "moving": "Moving {{currentPlayer}} #{{order}}. Choose destination or tap the piece to cancel."
+    "moving": "Moving {{currentPlayer}} #{{order}}. Choose destination or tap the piece to cancel.",
+    "gravityRotationPause": "Gravity will rotate in a moment…"
   },
   "gameOver": {
     "lose": "{{player}} formed {{lineLength}} in a row and lost.",
@@ -136,12 +172,12 @@
       "html": "<p>This section controls how many pieces each player can have and what happens when a piece must move.</p><ul><li><strong>Unlimited disabled</strong>: each player has a limited number of live pieces.</li><li><strong>Unlimited enabled</strong>: players can keep adding pieces without limit.</li><li><strong>Forced</strong>: when reaching the maximum, the next action must move the oldest piece.</li><li><strong>Limit</strong>: when reaching the maximum, the next action must move any of your pieces.</li><li><strong>Free</strong>: with limited pieces, you can move any of your pieces at any time, even before placing all possible pieces.</li><li><strong>Blocked</strong>: with unlimited pieces, you can't move a piece that's already on the board.</li><li><strong>Free</strong>: with unlimited pieces, you can choose to move one of your pieces instead of placing a new one.</li></ul><p>The number above each piece shows its current order among that player's pieces.</p>"
     },
     "holes": {
-      "title": "Broken Holes",
-      "html": "<p>When a piece leaves a cell, that cell can become broken.</p><ul><li>The title toggle enables or disables this mechanic.</li><li>If disabled, the cell becomes free normally.</li><li>If enabled, the abandoned cell becomes blocked.</li><li><strong>Turns</strong> sets how long the blocking lasts.</li><li>With <strong>0 turns</strong>, the hole stays broken until the end of the match.</li></ul>"
+      "title": "Rupture",
+      "html": "<p>When a piece leaves a cell, that cell can become broken (blocked).</p><ul><li>The title toggle enables or disables rupture.</li><li>If disabled, the cell becomes empty when the piece leaves.</li><li>If enabled, the abandoned cell becomes broken.</li><li><strong>Unlimited</strong>: the break lasts until the end of the match (turn count does not apply).</li><li>Without unlimited, <strong>Turns</strong> is the base duration (minimum 1).</li><li><strong>Per player</strong> multiplies that amount by the number of players in the game.</li></ul>"
     },
     "gravity": {
       "title": "Gravity",
-      "html": "<p>Gravity makes the board work more like Connect 4.</p><ul><li>The title toggle enables or disables this mechanic.</li><li>Instead of choosing any empty cell, you choose a column.</li><li>The piece falls to the lowest available position.</li><li>Broken holes act as obstacles: pieces don't pass through broken cells.</li><li>When a piece moves or disappears, the pieces in that column drop down.</li></ul>"
+      "html": "<p>Gravity pulls pieces toward one side of the board (like a sideways Connect 4).</p><ul><li>The title toggle enables or disables this mechanic.</li><li><strong>Initial direction</strong> sets which way is “down” at the start of the match.</li><li>With vertical gravity (up/down), tap any empty cell in that column: the new piece settles at the landing spot (strong arrow). Fainter arrows mark other empty cells in the same column you can use as shortcuts.</li><li>With horizontal gravity (left/right), the same idea applies along the row.</li><li>When moving a piece, tap any empty cell on the board; the piece is placed there, then gravity pulls it and the other pieces along the current direction.</li><li>Broken cells from rupture block movement through that cell.</li><li><strong>Rotate gravity</strong> changes the pull direction every N completed turns; there is a one-second pause so you can see the board, then all pieces re-settle in the new direction.</li><li><strong>Rotation step</strong> is 90°, 180°, or 270° per tick (or random among those).</li><li><strong>Turn direction</strong> is clockwise or counter-clockwise on the screen (or random each tick).</li><li><strong>Per player</strong> multiplies N by the number of players, same idea as rupture duration.</li></ul>"
     },
     "players": {
       "title": "Players",

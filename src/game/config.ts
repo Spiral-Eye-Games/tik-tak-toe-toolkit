@@ -1,12 +1,16 @@
 import {
   DEFAULT_ELIMINATE_WINNERS,
+  DEFAULT_BROKEN_HOLE_TURNS,
+  DEFAULT_GRAVITY_INITIAL_DIRECTION,
+  DEFAULT_GRAVITY_ROTATE_EVERY_TURNS,
+  DEFAULT_GRAVITY_ROTATE_EVERY_TURNS_PER_PLAYER,
   DEFAULT_LIMITED_PIECE_MOVE_MODE,
   DEFAULT_MAX_PIECES_PER_PLAYER,
   DEFAULT_PLAYER_COUNT,
   DEFAULT_ROSTER,
   DEFAULT_UNLIMITED_PIECE_MOVE_MODE
 } from "./defaults";
-import type { GameConfig, PieceMoveMode, RosterPlayer } from "./types";
+import type { GameConfig, GravityDirection, GravityRotateAngle, GravityRotateSpin, PieceMoveMode, RosterPlayer } from "./types";
 import { t } from "../i18n";
 
 export function normalizeRoster(roster: RosterPlayer[] | undefined): RosterPlayer[] {
@@ -30,6 +34,36 @@ export function clampInt(value: number, min: number, max: number, fallback: numb
   return Math.max(min, Math.min(max, number));
 }
 
+export function getResolvedBrokenHoleTurns(config: GameConfig): number {
+  if (config.brokenHoleUnlimited) return 0;
+  let n = config.brokenHoleTurns;
+  if (config.brokenHoleTurnsPerPlayer) n *= config.playerCount;
+  return Math.min(Math.max(0, n), 9999);
+}
+
+const GRAVITY_DIRECTIONS: GravityDirection[] = ["down", "up", "left", "right"];
+const GRAVITY_ROTATE_ANGLES: GravityRotateAngle[] = ["90", "180", "270", "random"];
+const GRAVITY_ROTATE_SPINS: GravityRotateSpin[] = ["cw", "ccw", "random"];
+
+export function normalizeGravityDirection(value: unknown): GravityDirection {
+  return GRAVITY_DIRECTIONS.includes(value as GravityDirection) ? (value as GravityDirection) : DEFAULT_GRAVITY_INITIAL_DIRECTION;
+}
+
+export function normalizeGravityRotateAngle(value: unknown): GravityRotateAngle {
+  return GRAVITY_ROTATE_ANGLES.includes(value as GravityRotateAngle) ? (value as GravityRotateAngle) : "90";
+}
+
+export function normalizeGravityRotateSpin(value: unknown): GravityRotateSpin {
+  return GRAVITY_ROTATE_SPINS.includes(value as GravityRotateSpin) ? (value as GravityRotateSpin) : "cw";
+}
+
+/** Effective turn interval for gravity rotation (0 if rotation disabled). */
+export function getResolvedGravityRotateInterval(config: GameConfig): number {
+  if (!config.gravityEnabled || !config.gravityRotateEnabled) return 0;
+  const base = clampInt(config.gravityRotateEveryTurns, 1, 99, DEFAULT_GRAVITY_ROTATE_EVERY_TURNS);
+  return config.gravityRotateEveryTurnsPerPlayer ? base * config.playerCount : base;
+}
+
 export function sanitizeConfig(config: GameConfig): GameConfig {
   const columns = clampInt(config.columns, 3, 12, 4);
   const rows = clampInt(config.rows, 3, 12, 4);
@@ -40,6 +74,16 @@ export function sanitizeConfig(config: GameConfig): GameConfig {
   const roster = normalizeRoster(config.roster);
   const maxPlayers = roster.length;
   const playerCount = clampInt(config.playerCount, 2, maxPlayers, Math.min(DEFAULT_PLAYER_COUNT, maxPlayers));
+
+  const explicitBrokenUnlimited = typeof config.brokenHoleUnlimited === "boolean";
+  const brokenHoleUnlimited = explicitBrokenUnlimited
+    ? config.brokenHoleUnlimited
+    : config.brokenHoleTurns === 0;
+  const brokenHoleTurnsPerPlayer = Boolean(config.brokenHoleTurnsPerPlayer);
+  const baseBrokenTurnsRaw = !explicitBrokenUnlimited && config.brokenHoleTurns === 0
+    ? DEFAULT_BROKEN_HOLE_TURNS
+    : config.brokenHoleTurns;
+  const brokenHoleTurns = clampInt(baseBrokenTurnsRaw, 1, 99, DEFAULT_BROKEN_HOLE_TURNS);
 
   return {
     columns,
@@ -52,8 +96,16 @@ export function sanitizeConfig(config: GameConfig): GameConfig {
       : clampInt(config.maxPiecesPerPlayer, 1, 99, DEFAULT_MAX_PIECES_PER_PLAYER),
     pieceMoveMode,
     brokenEnabled: config.brokenEnabled,
-    brokenHoleTurns: clampInt(config.brokenHoleTurns, 0, 99, 0),
+    brokenHoleTurns,
+    brokenHoleUnlimited,
+    brokenHoleTurnsPerPlayer,
     gravityEnabled: config.gravityEnabled,
+    gravityInitialDirection: normalizeGravityDirection(config.gravityInitialDirection),
+    gravityRotateEnabled: Boolean(config.gravityRotateEnabled),
+    gravityRotateAngle: normalizeGravityRotateAngle(config.gravityRotateAngle),
+    gravityRotateSpin: normalizeGravityRotateSpin(config.gravityRotateSpin),
+    gravityRotateEveryTurns: clampInt(config.gravityRotateEveryTurns, 1, 99, DEFAULT_GRAVITY_ROTATE_EVERY_TURNS),
+    gravityRotateEveryTurnsPerPlayer: Boolean(config.gravityRotateEveryTurnsPerPlayer),
     roster,
     playerCount,
     eliminateLosers: Boolean(config.eliminateLosers),

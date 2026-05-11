@@ -1,5 +1,7 @@
+import { getResolvedBrokenHoleTurns } from "./config";
 import { DRAW_IF_NO_LEGAL_MOVES } from "./defaults";
-import type { Board, BoardCell, BoardPosition, GameConfig, GameSnapshot, Piece, PlayerId } from "./types";
+import { applyGravity as applyGravityInDirection, isVerticalGravity, scanColumnLanding, scanRowLanding } from "./gravity";
+import type { Board, BoardCell, BoardPosition, GameConfig, GameSnapshot, GravityDirection, Piece, PlayerId } from "./types";
 
 export function createEmptyCell(): BoardCell {
   return { piece: null, brokenTurns: null, brokenCreatedOnTurn: null };
@@ -62,11 +64,28 @@ export function canSelectPiece(snapshot: GameSnapshot, config: GameConfig, piece
 
 export function isLegalPlacementDestination(snapshot: GameSnapshot, config: GameConfig, row: number, col: number): boolean {
   if (config.gravityEnabled) {
-    return getGravityTargetRow(snapshot.board, config, col) === row;
+    return isGravityPlacementClick(snapshot.board, config, snapshot.gravityDirection, row, col);
   }
 
   const cell = snapshot.board[row][col];
   return cell.piece === null && !isBroken(cell);
+}
+
+/** Casilla vacía en la columna (gravedad vertical) o fila (horizontal) donde hay un hueco de caída válido. */
+export function isGravityPlacementClick(
+  board: Board,
+  config: GameConfig,
+  direction: GravityDirection,
+  row: number,
+  col: number
+): boolean {
+  const cell = board[row][col];
+  if (isBroken(cell) || cell.piece !== null) return false;
+
+  if (isVerticalGravity(direction)) {
+    return scanColumnLanding(board, config, direction, col, null) !== null;
+  }
+  return scanRowLanding(board, config, direction, row, null) !== null;
 }
 
 export function isLegalMoveDestination(snapshot: GameSnapshot, config: GameConfig, row: number, col: number): boolean {
@@ -74,18 +93,13 @@ export function isLegalMoveDestination(snapshot: GameSnapshot, config: GameConfi
 
   const source = findPiecePosition(snapshot.board, snapshot.selectedPieceId);
   if (!source) return false;
-
-  const targetRow = config.gravityEnabled
-    ? getGravityTargetRowIgnoringPiece(snapshot.board, config, col, snapshot.selectedPieceId)
-    : row;
-
-  if (targetRow !== row) return false;
   if (source.row === row && source.col === col) return false;
 
   const targetCell = snapshot.board[row][col];
-  const targetHasOtherPiece = targetCell.piece !== null && targetCell.piece.id !== snapshot.selectedPieceId;
+  if (isBroken(targetCell)) return false;
+  if (targetCell.piece !== null) return false;
 
-  return !targetHasOtherPiece && !isBroken(targetCell);
+  return true;
 }
 
 export function isCellClickable(snapshot: GameSnapshot, config: GameConfig, row: number, col: number): boolean {
@@ -94,6 +108,10 @@ export function isCellClickable(snapshot: GameSnapshot, config: GameConfig, row:
   const cell = snapshot.board[row][col];
   const piece = cell.piece;
 
+  if (snapshot.pendingGravityRotationTarget !== null) {
+    return canSelectPiece(snapshot, config, piece);
+  }
+
   if (canSelectPiece(snapshot, config, piece)) return true;
   if (snapshot.selectedPieceId !== null) return isLegalMoveDestination(snapshot, config, row, col);
   if (!canAddPiece(snapshot, config, snapshot.currentPlayer)) return false;
@@ -101,30 +119,23 @@ export function isCellClickable(snapshot: GameSnapshot, config: GameConfig, row:
   return isLegalPlacementDestination(snapshot, config, row, col);
 }
 
-export function getGravityTargetRow(board: Board, config: GameConfig, col: number): number | null {
-  let lastEmptyRow: number | null = null;
-
-  for (let row = 0; row < config.rows; row++) {
-    const cell = board[row][col];
-    if (cell.piece !== null || isBroken(cell)) return lastEmptyRow;
-    lastEmptyRow = row;
+export function isGravityLandingCell(
+  board: Board,
+  config: GameConfig,
+  direction: GravityDirection,
+  row: number,
+  col: number
+): boolean {
+  if (isVerticalGravity(direction)) {
+    const landRow = scanColumnLanding(board, config, direction, col, null);
+    return landRow !== null && landRow === row;
   }
-
-  return lastEmptyRow;
+  const landCol = scanRowLanding(board, config, direction, row, null);
+  return landCol !== null && landCol === col;
 }
 
-export function getGravityTargetRowIgnoringPiece(board: Board, config: GameConfig, col: number, ignoredPieceId: number): number | null {
-  let lastEmptyRow: number | null = null;
-
-  for (let row = 0; row < config.rows; row++) {
-    const cell = board[row][col];
-    const hasBlockingPiece = cell.piece !== null && cell.piece.id !== ignoredPieceId;
-
-    if (hasBlockingPiece || isBroken(cell)) return lastEmptyRow;
-    lastEmptyRow = row;
-  }
-
-  return lastEmptyRow;
+export function applyGravity(board: Board, config: GameConfig, direction: GravityDirection): void {
+  applyGravityInDirection(board, config, direction);
 }
 
 export function findPiecePosition(board: Board, pieceId: number): BoardPosition | null {
@@ -134,41 +145,6 @@ export function findPiecePosition(board: Board, pieceId: number): BoardPosition 
     }
   }
   return null;
-}
-
-export function applyGravity(board: Board, config: GameConfig): void {
-  for (let col = 0; col < config.columns; col++) {
-    let segmentRows: number[] = [];
-
-    for (let row = config.rows - 1; row >= -1; row--) {
-      const reachedTop = row === -1;
-      const cell = reachedTop ? null : board[row][col];
-      const blocked = reachedTop || isBroken(cell);
-
-      if (blocked) {
-        settleSegment(board, segmentRows, col);
-        segmentRows = [];
-      } else {
-        segmentRows.push(row);
-      }
-    }
-  }
-}
-
-function settleSegment(board: Board, rowsBottomToTop: number[], col: number): void {
-  if (rowsBottomToTop.length === 0) return;
-
-  const piecesBottomToTop: Piece[] = [];
-
-  for (const row of rowsBottomToTop) {
-    const piece = board[row][col].piece;
-    if (piece !== null) piecesBottomToTop.push(piece);
-    board[row][col].piece = null;
-  }
-
-  for (let i = 0; i < piecesBottomToTop.length; i++) {
-    board[rowsBottomToTop[i]][col].piece = piecesBottomToTop[i];
-  }
 }
 
 export function tickBrokenHoles(board: Board, config: GameConfig, turnNumber: number): void {
@@ -208,7 +184,7 @@ export function getNextTurnAfterPlayerRemoved(activePlayerIds: PlayerId[], remov
 export function abandonCellForBroken(snapshot: GameSnapshot, config: GameConfig, position: BoardPosition): void {
   const cell = snapshot.board[position.row][position.col];
   if (config.brokenEnabled) {
-    cell.brokenTurns = config.brokenHoleTurns;
+    cell.brokenTurns = getResolvedBrokenHoleTurns(config);
     cell.brokenCreatedOnTurn = snapshot.turnNumber;
   } else {
     cell.brokenTurns = null;
@@ -227,13 +203,20 @@ export function removeAllPiecesForPlayer(snapshot: GameSnapshot, config: GameCon
     }
   }
   snapshot.pieceHistory[playerId] = [];
-  if (config.gravityEnabled) applyGravity(snapshot.board, config);
+  if (config.gravityEnabled) applyGravity(snapshot.board, config, snapshot.gravityDirection);
 }
 
 export function hasLegalMove(snapshot: GameSnapshot, config: GameConfig): boolean {
   if (config.gravityEnabled) {
-    for (let col = 0; col < config.columns; col++) {
-      if (getGravityTargetRow(snapshot.board, config, col) !== null) return true;
+    const d = snapshot.gravityDirection;
+    if (isVerticalGravity(d)) {
+      for (let col = 0; col < config.columns; col++) {
+        if (scanColumnLanding(snapshot.board, config, d, col, null) !== null) return true;
+      }
+      return false;
+    }
+    for (let row = 0; row < config.rows; row++) {
+      if (scanRowLanding(snapshot.board, config, d, row, null) !== null) return true;
     }
     return false;
   }

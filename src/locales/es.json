@@ -15,7 +15,13 @@
   "ui": {
     "helpButtonSymbol": "?",
     "helpInfoGlyph": "i",
-    "chevronRight": "›"
+    "chevronRight": "›",
+    "gravityArrows": {
+      "down": "↓",
+      "up": "↑",
+      "left": "←",
+      "right": "→"
+    }
   },
   "modal": {
     "helpTitle": "Ayuda",
@@ -25,7 +31,7 @@
     "general": "General",
     "players": "Jugadores",
     "pieces": "Fichas",
-    "holes": "Rompe huecos",
+    "holes": "Ruptura",
     "gravity": "Gravedad"
   },
   "fields": {
@@ -38,11 +44,22 @@
     "unlimitedPieces": "Ilimitadas",
     "quantity": "Cantidad",
     "changePiecePlace": "Cambiar fichas de lugar",
-    "enableBrokenHoles": "Activar rompe huecos",
+    "enableBrokenHoles": "Activar ruptura",
     "enableGravity": "Activar gravedad",
     "turns": "Turnos",
-    "brokenTurnsInfo": "0 = queda roto hasta el final.",
-    "gravityInfo": "Cuando está activa, elegís una columna y la ficha cae hasta el espacio libre más bajo.",
+    "brokenUnlimited": "Ilimitado",
+    "brokenTurnsPerPlayer": "Por jugador",
+    "brokenTurnsInfo": "Duración en turnos (desde el siguiente turno).",
+    "brokenTurnsInfoUnlimited": "La rotura dura hasta el final de la partida.",
+    "brokenTurnsInfoPerPlayer": "{{base}} × {{players}} jugadores = {{total}} turnos.",
+    "gravityInitialDirection": "Dirección inicial",
+    "gravityRotate": "Rotar gravedad",
+    "gravityRotateAngle": "Paso de rotación",
+    "gravityRotateSpin": "Sentido de giro",
+    "gravityRotateEvery": "Cada N turnos",
+    "gravityRotatePerPlayer": "Por jugador",
+    "gravityRotateInfo": "La dirección cambia cada {{turns}} turnos completados (después de resolver líneas y estabilizar el tablero).",
+    "gravityRotateInfoPerPlayer": "{{base}} × {{players}} jugadores = {{total}} turnos entre rotaciones.",
     "playerCount": "Cantidad de jugadores",
     "customizePlayers": "Personalizar jugadores",
     "eliminateLosers": "Eliminar perdedores (sacar fichas al perder la raya)",
@@ -92,13 +109,31 @@
       "limited": "máximo {{maxPieces}} fichas por jugador"
     },
     "broken": {
-      "disabled": "los huecos abandonados no se rompen",
-      "untilEnd": "los huecos abandonados se rompen hasta el final",
-      "forTurns": "los huecos abandonados se rompen por {{turns}} turnos"
+      "disabled": "sin ruptura en casillas abandonadas",
+      "untilEnd": "las casillas rotas duran hasta el final de la partida",
+      "forTurns": "las casillas rotas duran {{turns}} turnos"
     },
     "gravity": {
-      "enabled": "gravedad activada",
-      "disabled": "gravedad desactivada"
+      "disabled": "Gravedad desactivada",
+      "enabledDirected": "Gravedad activada (inicialmente hacia {{direction}})",
+      "enabledWithRotation": "Gravedad activada (inicio {{direction}}; cada {{interval}} turnos: {{angle}}, {{spin}})",
+      "direction": {
+        "down": "Abajo",
+        "up": "Arriba",
+        "left": "Izquierda",
+        "right": "Derecha"
+      },
+      "rotateAngle": {
+        "90": "90°",
+        "180": "180°",
+        "270": "270°",
+        "random": "Angulo aleatorio"
+      },
+      "rotateSpin": {
+        "cw": "Sentido horario",
+        "ccw": "Sentido antihorario",
+        "random": "Sentido de giro aleatorio"
+      }
     },
     "moveModeText": {
       "forcedOldest": "Al llegar al máximo, se mueve la primera ficha colocada",
@@ -117,7 +152,8 @@
     "turn": "Turno de {{currentPlayer}}",
     "turnMustMove": "Turno de {{currentPlayer}}: mové una ficha.",
     "turnForcedFirst": "Turno de {{currentPlayer}}: mové la ficha #1.",
-    "moving": "Moviendo {{currentPlayer}} #{{order}}. Elegí destino o tocá la ficha para cancelar."
+    "moving": "Moviendo {{currentPlayer}} #{{order}}. Elegí destino o tocá la ficha para cancelar.",
+    "gravityRotationPause": "La gravedad va a rotar en un momento…"
   },
   "gameOver": {
     "lose": "{{player}} formó {{lineLength}} en raya y perdió.",
@@ -136,12 +172,12 @@
       "html": "<p>Esta sección controla cuántas fichas puede tener cada jugador y qué pasa cuando una ficha debe moverse.</p><ul><li><strong>Ilimitadas desactivado</strong>: cada jugador tiene una cantidad limitada de fichas vivas.</li><li><strong>Ilimitadas activado</strong>: los jugadores pueden seguir agregando fichas sin límite.</li><li><strong>Obligado</strong>: al llegar al máximo, la próxima acción debe mover la ficha más vieja.</li><li><strong>Límite</strong>: al llegar al máximo, la próxima acción debe mover cualquier ficha propia.</li><li><strong>Libre</strong>: con fichas limitadas, se puede mover cualquier ficha propia en cualquier momento, incluso antes de colocar todas las fichas posibles.</li><li><strong>Bloqueadas</strong>: con fichas ilimitadas, no se puede mover una ficha ya colocada.</li><li><strong>Libre</strong>: con fichas ilimitadas, se puede elegir mover una ficha propia en vez de colocar una nueva.</li></ul><p>El número sobre cada ficha muestra su orden actual dentro de las fichas de ese jugador.</p>"
     },
     "holes": {
-      "title": "Rompe huecos",
-      "html": "<p>Cuando una ficha abandona una casilla, esa casilla puede quedar rota.</p><ul><li>El toggle del título activa o desactiva esta mecánica.</li><li>Si está desactivada, la casilla queda libre normalmente.</li><li>Si está activada, la casilla abandonada queda bloqueada.</li><li><strong>Turnos</strong> define cuánto dura el bloqueo.</li><li>Con <strong>0 turnos</strong>, el hueco queda roto hasta el final de la partida.</li></ul>"
+      "title": "Ruptura",
+      "html": "<p>Cuando una ficha abandona una casilla, esa casilla puede quedar rota (bloqueada).</p><ul><li>El toggle del título activa o desactiva la ruptura.</li><li>Si está desactivada, la casilla queda libre al salir la ficha.</li><li>Si está activada, la casilla abandonada queda rota.</li><li><strong>Ilimitado</strong>: la rotura dura hasta el final de la partida (el número de turnos no aplica).</li><li>Sin ilimitado, <strong>Turnos</strong> es la duración base (mínimo 1).</li><li><strong>Por jugador</strong> multiplica esa cantidad por la cantidad de jugadores en la partida.</li></ul>"
     },
     "gravity": {
       "title": "Gravedad",
-      "html": "<p>La gravedad hace que el tablero funcione más parecido a un Conecta 4.</p><ul><li>El toggle del título activa o desactiva esta mecánica.</li><li>En vez de elegir cualquier casilla vacía, elegís una columna.</li><li>La ficha cae hasta la posición libre más baja posible.</li><li>Los huecos rotos actúan como obstáculos: las fichas no atraviesan casillas rotas.</li><li>Cuando una ficha se mueve o desaparece, las fichas de esa columna se reacomodan hacia abajo.</li></ul>"
+      "html": "<p>La gravedad tira las fichas hacia un costado del tablero (como un Conecta 4 lateral).</p><ul><li>El toggle del título activa o desactiva esta mecánica.</li><li><strong>Dirección inicial</strong> define qué lado es “abajo” al empezar la partida.</li><li>Con gravedad vertical (arriba/abajo), tocá cualquier casilla vacía de esa columna: la ficha nueva cae al punto de aterrizaje (flecha marcada). Flechas más tenues marcan otras casillas vacías de la misma columna como atajo.</li><li>Con gravedad horizontal (izquierda/derecha), lo mismo a lo largo de la fila.</li><li>Al mover una ficha, tocá cualquier casilla vacía del tablero; la ficha se coloca ahí y después la gravedad la tira junto con el resto en la dirección actual.</li><li>Las casillas rotas por ruptura bloquean el paso.</li><li><strong>Rotar gravedad</strong> cambia el sentido de la caída cada N turnos; hay una pausa de un segundo para ver el tablero y después todas las fichas se reacomodan en la nueva dirección.</li><li><strong>Paso de rotación</strong> es 90°, 180° o 270° por vez (o aleatorio entre esos).</li><li><strong>Sentido de giro</strong> es horario o antihorario en pantalla (o aleatorio en cada tick).</li><li><strong>Por jugador</strong> multiplica N por la cantidad de jugadores, igual que la duración de ruptura.</li></ul>"
     },
     "players": {
       "title": "Jugadores",
