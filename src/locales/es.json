@@ -32,7 +32,8 @@
     "players": "Jugadores",
     "pieces": "Fichas",
     "holes": "Ruptura",
-    "gravity": "Gravedad"
+    "gravity": "Gravedad",
+    "clock": "Cronómetro"
   },
   "fields": {
     "columns": "N Columnas",
@@ -64,7 +65,23 @@
     "customizePlayers": "Personalizar jugadores",
     "eliminateLosers": "Eliminar perdedores (sacar fichas al perder la raya)",
     "continueRanking": "Seguir por el ranking (varios ganadores por orden)",
-    "eliminateWinners": "Eliminar ganadores (sacar fichas al ganar la raya en ranking)"
+    "eliminateWinners": "Eliminar ganadores (sacar fichas al ganar la raya en ranking)",
+    "clockEnabled": "Activar cronómetro",
+    "clockType": "Tipo de reloj",
+    "clockBankSeconds": "Banca total (s)",
+    "clockRecoverSeconds": "Recuperar al mover (s)",
+    "clockPerTurnSeconds": "Tiempo por turno (s)",
+    "clockHintBank": "Tiempo total acumulado entre turnos; al llegar a 0 perdés. La recuperación se suma al terminar cada movimiento (tope: la banca inicial).",
+    "clockHintPerTurn": "Cada jugador tiene el mismo tiempo en cada turno; al agotarse pierde el turno (sin colocar ni mover)."
+  },
+  "clock": {
+    "modes": {
+      "bank": "Banca total",
+      "perTurn": "Reloj por turno"
+    }
+  },
+  "topbar": {
+    "clock": "{{seconds}} s"
   },
   "playersModal": {
     "title": "Jugadores",
@@ -143,7 +160,13 @@
       "free": "Las fichas se pueden mover libremente",
       "unknown": "Movimiento de fichas sin definir"
     },
-    "summary": "{{columns}} columnas x {{rows}} filas. {{lineText}} si formás {{lineLength}} en raya. {{piecesText}}. {{moveText}}. {{brokenText}}. {{gravityText}}.",
+    "clock": {
+      "disabled": "Sin límite de tiempo por jugador.",
+      "bankNoRecover": "Banca total: {{total}} s por jugador (el tiempo no usado se conserva entre turnos).",
+      "bankWithRecover": "Banca total: {{total}} s por jugador; recuperación al mover: +{{recover}} s (hasta el tope inicial).",
+      "perTurn": "Reloj por turno: {{seconds}} s por jugada; al agotarse pierde el turno."
+    },
+    "summary": "{{columns}} columnas x {{rows}} filas. {{lineText}} si formás {{lineLength}} en raya. {{piecesText}}. {{moveText}}. {{brokenText}}. {{gravityText}} {{clockText}}",
     "modal": {
       "intro": "Estas son las reglas de la partida actual. Si modificás valores en la sidebar, presioná {{newGame}} para aplicarlos."
     }
@@ -160,7 +183,8 @@
     "win": "{{player}} formó {{lineLength}} en raya y ganó.",
     "draw": "Empate: no quedan movimientos legales.",
     "survivorWin": "¡{{player}} es el último en pie y gana!",
-    "rankingComplete": "Ranking final listo."
+    "rankingComplete": "Ranking final listo.",
+    "clockBankOut": "{{loser}} se quedó sin tiempo. Gana {{winner}}."
   },
   "help": {
     "general": {
@@ -182,6 +206,10 @@
     "players": {
       "title": "Jugadores",
       "html": "<p>Definí cuántos jugadores entran y personalizá sus emojis.</p><ul><li><strong>Cantidad</strong> usa los primeros jugadores de la lista en orden.</li><li>Con más de dos en modo <strong>Perder</strong>, quien forma la raya queda fuera del turno; podés activar <strong>Eliminar perdedores</strong> para que también desaparezcan sus fichas del tablero.</li><li>Con más de dos en modo <strong>Ganar</strong>, el primero en formar la raya gana salvo que actives <strong>Seguir por el ranking</strong>, donde se van retirando ganadores hasta definir el orden completo.</li><li>Con <strong>Seguir por el ranking</strong> activo, <strong>Eliminar ganadores</strong> hace que al ganar una ronda se borren las fichas de ese jugador del tablero; si lo desactivás, siguen como obstáculos.</li></ul>"
+    },
+    "clock": {
+      "title": "Cronómetro",
+      "html": "<p>El casillero del título activa o desactiva el cronómetro.</p><ul><li>Con el cronómetro desactivado, la partida no mide tiempo.</li><li><strong>Banca total</strong>: cada jugador tiene un mismo tiempo total para toda la partida; lo que no usás en un turno queda para los siguientes. Si llega a 0, perdés (en varios jugadores podés quedar fuera como al perder una raya). Opcionalmente podés sumar segundos al terminar cada movimiento válido, hasta el tope de la banca inicial.</li><li><strong>Reloj por turno</strong>: en cada turno tenés el mismo cupo de segundos; si se acaba, perdés solo esa jugada y pasa el turno.</li></ul><p>Durante la pausa de rotación de gravedad el reloj no avanza.</p>"
     }
   },
   "board": {

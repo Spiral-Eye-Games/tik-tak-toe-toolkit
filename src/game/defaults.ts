@@ -1,4 +1,4 @@
-import type { GameConfig, GravityDirection, PieceMoveMode, RosterPlayer } from "./types";
+import type { ClockMode, GameConfig, GravityDirection, PieceMoveMode, RosterPlayer } from "./types";
 
 export const DEFAULT_COLUMNS = 4;
 export const DEFAULT_ROWS = 4;
@@ -40,6 +40,12 @@ export const DEFAULT_ELIMINATE_LOSERS = true;
 export const DEFAULT_CONTINUE_RANKING = false;
 export const DEFAULT_ELIMINATE_WINNERS = false;
 
+export const DEFAULT_CLOCK_ENABLED = false;
+export const DEFAULT_CLOCK_MODE: ClockMode = "bank";
+export const DEFAULT_CLOCK_BANK_SECONDS = 300;
+export const DEFAULT_CLOCK_RECOVER_SECONDS = 0;
+export const DEFAULT_CLOCK_PER_TURN_SECONDS = 30;
+
 export const DRAW_IF_NO_LEGAL_MOVES = true;
 
 export const DEFAULT_CONFIG: GameConfig = {
@@ -65,5 +71,10 @@ export const DEFAULT_CONFIG: GameConfig = {
   playerCount: DEFAULT_PLAYER_COUNT,
   eliminateLosers: DEFAULT_ELIMINATE_LOSERS,
   continueRanking: DEFAULT_CONTINUE_RANKING,
-  eliminateWinners: DEFAULT_ELIMINATE_WINNERS
+  eliminateWinners: DEFAULT_ELIMINATE_WINNERS,
+  clockEnabled: DEFAULT_CLOCK_ENABLED,
+  clockMode: DEFAULT_CLOCK_MODE,
+  clockBankSeconds: DEFAULT_CLOCK_BANK_SECONDS,
+  clockRecoverSeconds: DEFAULT_CLOCK_RECOVER_SECONDS,
+  clockPerTurnSeconds: DEFAULT_CLOCK_PER_TURN_SECONDS
 };

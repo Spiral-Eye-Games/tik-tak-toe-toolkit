@@ -1,3 +1,12 @@
+import {
+  buildClockBankInitial,
+  clearClockPauseIfNoPendingGravity,
+  commitBankAfterSuccessfulMove,
+  extendClockTurnStartAfterGravityPause,
+  getClockRemainingSeconds,
+  isClockEnabled,
+  restartTurnClock
+} from "./clock";
 import { sanitizeConfig } from "./config";
 import { getPlayerLabel } from "./formatters";
 import {
@@ -34,6 +43,12 @@ export function createInitialGameState(configInput: GameConfig): GameState {
   const activePlayerIds = rosterSlice.map((player) => player.id);
   const pieceHistory = Object.fromEntries(activePlayerIds.map((id) => [id, [] as number[]])) as Record<PlayerId, number[]>;
 
+  const nowMs = Date.now();
+  const clockBankRemaining =
+    config.clockEnabled && config.clockMode === "bank"
+      ? buildClockBankInitial(activePlayerIds, config.clockBankSeconds)
+      : null;
+
   return {
     config,
     board: createBoard(config),
@@ -51,6 +66,9 @@ export function createInitialGameState(configInput: GameConfig): GameState {
     selectedPieceId: null,
     gravityDirection: config.gravityInitialDirection,
     pendingGravityRotationTarget: null,
+    clockTurnStartedAtMs: nowMs,
+    clockBankRemaining,
+    clockPauseStartedAtMs: null,
     undoStack: [],
     redoStack: []
   };
@@ -68,6 +86,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return redoMove(state);
     case "completePendingGravityRotation":
       return completePendingGravityRotation(state);
+    case "clockBankTimeout":
+      return applyClockBankTimeout(state);
+    case "clockPerTurnTimeout":
+      return applyClockPerTurnTimeout(state);
     default:
       return state;
   }
@@ -131,7 +153,11 @@ function placeNewPiece(state: GameState, clickedRow: number, clickedCol: number)
   next.pieceHistory[next.currentPlayer].push(piece.id);
 
   if (state.config.gravityEnabled) applyGravity(next.board, state.config, next.gravityDirection);
+  commitBankAfterSuccessfulMove(next, state.config, Date.now(), { ignoreElapsed: state.turnNumber === 0 });
   finishTurn(next, state.config);
+  if (!next.gameOver && isClockEnabled(state.config)) {
+    restartTurnClock(next, state.config, Date.now());
+  }
 
   return snapshotToState(state, next, [...state.undoStack, previousSnapshot], []);
 }
@@ -172,9 +198,27 @@ function moveSelectedPiece(state: GameState, clickedRow: number, clickedCol: num
   next.selectedPieceId = null;
 
   if (state.config.gravityEnabled) applyGravity(next.board, state.config, next.gravityDirection);
+  commitBankAfterSuccessfulMove(next, state.config, Date.now(), { ignoreElapsed: state.turnNumber === 0 });
   finishTurn(next, state.config);
+  if (!next.gameOver && isClockEnabled(state.config)) {
+    restartTurnClock(next, state.config, Date.now());
+  }
 
   return snapshotToState(state, next, [...state.undoStack, previousSnapshot], []);
+}
+
+function advanceTurnAfterNoLine(snapshot: GameSnapshot, config: GameConfig): void {
+  tickBrokenHoles(snapshot.board, config, snapshot.turnNumber);
+  if (config.gravityEnabled) applyGravity(snapshot.board, config, snapshot.gravityDirection);
+
+  snapshot.currentPlayer = getNextActivePlayer(snapshot.activePlayerIds, snapshot.currentPlayer);
+  snapshot.selectedPieceId = getDefaultSelectedPieceIdForcedOldest(snapshot, config);
+
+  if (shouldDrawIfNoLegalMoves(snapshot, config)) {
+    snapshot.gameOver = true;
+    snapshot.gameEndSummary = { type: "draw" };
+    snapshot.statusMessage = t("gameOver.draw");
+  }
 }
 
 function finishTurn(snapshot: GameSnapshot, config: GameConfig): void {
@@ -183,20 +227,11 @@ function finishTurn(snapshot: GameSnapshot, config: GameConfig): void {
   if (completedLine) {
     handleCompletedLine(snapshot, config, completedLine);
   } else {
-    tickBrokenHoles(snapshot.board, config, snapshot.turnNumber);
-    if (config.gravityEnabled) applyGravity(snapshot.board, config, snapshot.gravityDirection);
-
-    snapshot.currentPlayer = getNextActivePlayer(snapshot.activePlayerIds, snapshot.currentPlayer);
-    snapshot.selectedPieceId = getDefaultSelectedPieceIdForcedOldest(snapshot, config);
-
-    if (shouldDrawIfNoLegalMoves(snapshot, config)) {
-      snapshot.gameOver = true;
-      snapshot.gameEndSummary = { type: "draw" };
-      snapshot.statusMessage = t("gameOver.draw");
-    }
+    advanceTurnAfterNoLine(snapshot, config);
   }
 
   scheduleGravityRotationIfDue(snapshot, config);
+  clearClockPauseIfNoPendingGravity(snapshot);
 }
 
 function handleCompletedLine(snapshot: GameSnapshot, config: GameConfig, completedLine: BoardPosition[]): void {
@@ -340,10 +375,120 @@ function movePieceToNewest(snapshot: GameSnapshot, player: PlayerId, pieceId: nu
   history.push(pieceId);
 }
 
+/** El jugador actual se queda sin tiempo en modo banca: pierde la partida o queda eliminado. */
+function resolveBankTimeoutLoss(snapshot: GameSnapshot, config: GameConfig): void {
+  const activeCount = snapshot.activePlayerIds.length;
+  const label = (id: PlayerId) => getPlayerLabel(config, id);
+  const timedOutId = snapshot.currentPlayer;
+
+  if (snapshot.clockBankRemaining && snapshot.clockBankRemaining[timedOutId] !== undefined) {
+    snapshot.clockBankRemaining[timedOutId] = 0;
+  }
+
+  if (activeCount <= 2) {
+    snapshot.gameOver = true;
+    snapshot.lineCells = [];
+    const loserId = timedOutId;
+    const winnerId = snapshot.activePlayerIds.find((id) => id !== loserId);
+    snapshot.gameEndSummary = winnerId ? { type: "winner", winnerId, loserId } : { type: "draw" };
+    snapshot.statusMessage = winnerId
+      ? t("gameOver.clockBankOut", { loser: label(loserId), winner: label(winnerId) })
+      : t("gameOver.draw");
+    return;
+  }
+
+  const eliminatedId = timedOutId;
+  snapshot.eliminationOrderLose.push(eliminatedId);
+  if (config.eliminateLosers) {
+    removeAllPiecesForPlayer(snapshot, config, eliminatedId);
+  }
+
+  const oldActive = [...snapshot.activePlayerIds];
+  snapshot.activePlayerIds = oldActive.filter((id) => id !== eliminatedId);
+  snapshot.lineCells = [];
+
+  if (snapshot.activePlayerIds.length === 1) {
+    snapshot.gameOver = true;
+    const champ = snapshot.activePlayerIds[0];
+    const orderedIds = [champ, ...[...snapshot.eliminationOrderLose].reverse()];
+    snapshot.gameEndSummary = { type: "ranking", orderedIds };
+    snapshot.statusMessage = t("gameOver.survivorWin", {
+      player: label(champ)
+    });
+    return;
+  }
+
+  snapshot.currentPlayer = getNextTurnAfterPlayerRemoved(oldActive, eliminatedId);
+  snapshot.selectedPieceId = getDefaultSelectedPieceIdForcedOldest(snapshot, config);
+  tickBrokenHoles(snapshot.board, config, snapshot.turnNumber);
+  if (config.gravityEnabled) applyGravity(snapshot.board, config, snapshot.gravityDirection);
+
+  if (shouldDrawIfNoLegalMoves(snapshot, config)) {
+    snapshot.gameOver = true;
+    snapshot.gameEndSummary = { type: "draw" };
+    snapshot.statusMessage = t("gameOver.draw");
+    return;
+  }
+
+  scheduleGravityRotationIfDue(snapshot, config);
+  clearClockPauseIfNoPendingGravity(snapshot);
+}
+
+function applyClockBankTimeout(state: GameState): GameState {
+  if (
+    state.gameOver ||
+    !state.config.clockEnabled ||
+    state.config.clockMode !== "bank" ||
+    state.pendingGravityRotationTarget !== null
+  ) {
+    return state;
+  }
+
+  const remaining = getClockRemainingSeconds(state, state.config, Date.now());
+  if (remaining === null || remaining > 0.12) return state;
+
+  const snap = cloneSnapshot(createSnapshot(state));
+  resolveBankTimeoutLoss(snap, state.config);
+  if (!snap.gameOver && isClockEnabled(state.config)) {
+    restartTurnClock(snap, state.config, Date.now());
+  }
+
+  return snapshotToState(state, snap, state.undoStack, []);
+}
+
+function applyClockPerTurnTimeout(state: GameState): GameState {
+  if (
+    state.gameOver ||
+    !state.config.clockEnabled ||
+    state.config.clockMode !== "perTurn" ||
+    state.pendingGravityRotationTarget !== null
+  ) {
+    return state;
+  }
+
+  const remaining = getClockRemainingSeconds(state, state.config, Date.now());
+  if (remaining === null || remaining > 0.12) return state;
+
+  const snap = cloneSnapshot(createSnapshot(state));
+  snap.turnNumber++;
+  snap.statusMessage = "";
+  advanceTurnAfterNoLine(snap, state.config);
+  scheduleGravityRotationIfDue(snap, state.config);
+  clearClockPauseIfNoPendingGravity(snap);
+
+  if (!snap.gameOver && isClockEnabled(state.config)) {
+    restartTurnClock(snap, state.config, Date.now());
+  }
+
+  return snapshotToState(state, snap, state.undoStack, []);
+}
+
 function completePendingGravityRotation(state: GameState): GameState {
   if (state.pendingGravityRotationTarget === null) return state;
 
   const snap = cloneSnapshot(createSnapshot(state));
+  const nowMs = Date.now();
+  extendClockTurnStartAfterGravityPause(snap, nowMs);
   applyScheduledGravityRotation(snap, state.config);
   return snapshotToState(state, snap, state.undoStack, state.redoStack);
 }
@@ -384,7 +529,10 @@ export function createSnapshot(state: GameSnapshot): GameSnapshot {
     statusMessage: state.statusMessage,
     selectedPieceId: state.selectedPieceId,
     gravityDirection: state.gravityDirection,
-    pendingGravityRotationTarget: state.pendingGravityRotationTarget ?? null
+    pendingGravityRotationTarget: state.pendingGravityRotationTarget ?? null,
+    clockTurnStartedAtMs: state.clockTurnStartedAtMs,
+    clockBankRemaining: state.clockBankRemaining ? { ...state.clockBankRemaining } : null,
+    clockPauseStartedAtMs: state.clockPauseStartedAtMs ?? null
   });
 }
 

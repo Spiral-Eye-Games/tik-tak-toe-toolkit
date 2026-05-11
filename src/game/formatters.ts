@@ -78,6 +78,18 @@ export function buildRulesText(config: GameConfig): string {
         direction: t(`rules.gravity.direction.${config.gravityInitialDirection}`)
       });
 
+  const clockText =
+    !config.clockEnabled
+      ? t("rules.clock.disabled")
+      : config.clockMode === "bank"
+        ? config.clockRecoverSeconds > 0
+          ? t("rules.clock.bankWithRecover", {
+            total: config.clockBankSeconds,
+            recover: config.clockRecoverSeconds
+          })
+          : t("rules.clock.bankNoRecover", { total: config.clockBankSeconds })
+        : t("rules.clock.perTurn", { seconds: config.clockPerTurnSeconds });
+
   return t("rules.summary", {
     columns: config.columns,
     rows: config.rows,
@@ -86,7 +98,8 @@ export function buildRulesText(config: GameConfig): string {
     piecesText,
     moveText,
     brokenText,
-    gravityText
+    gravityText,
+    clockText
   });
 }
 

@@ -1,4 +1,7 @@
 import {
+  DEFAULT_CLOCK_BANK_SECONDS,
+  DEFAULT_CLOCK_PER_TURN_SECONDS,
+  DEFAULT_CLOCK_RECOVER_SECONDS,
   DEFAULT_ELIMINATE_WINNERS,
   DEFAULT_BROKEN_HOLE_TURNS,
   DEFAULT_GRAVITY_INITIAL_DIRECTION,
@@ -10,7 +13,7 @@ import {
   DEFAULT_ROSTER,
   DEFAULT_UNLIMITED_PIECE_MOVE_MODE
 } from "./defaults";
-import type { GameConfig, GravityDirection, GravityRotateAngle, GravityRotateSpin, PieceMoveMode, RosterPlayer } from "./types";
+import type { ClockMode, GameConfig, GravityDirection, GravityRotateAngle, GravityRotateSpin, PieceMoveMode, RosterPlayer } from "./types";
 import { t } from "../i18n";
 
 export function normalizeRoster(roster: RosterPlayer[] | undefined): RosterPlayer[] {
@@ -57,6 +60,25 @@ export function normalizeGravityRotateSpin(value: unknown): GravityRotateSpin {
   return GRAVITY_ROTATE_SPINS.includes(value as GravityRotateSpin) ? (value as GravityRotateSpin) : "cw";
 }
 
+/** Modo de conteo cuando el cronómetro está activo (solo `bank` | `perTurn`). */
+export function normalizeClockStrategy(value: unknown): ClockMode {
+  return value === "perTurn" ? "perTurn" : "bank";
+}
+
+function resolveClockEnabledAndMode(config: GameConfig): { clockEnabled: boolean; clockMode: ClockMode } {
+  const loose = config as { clockEnabled?: boolean; clockMode?: unknown };
+  const legacyModeRaw = loose.clockMode;
+  const wasLegacyOff = legacyModeRaw === "off";
+  const clockMode = normalizeClockStrategy(wasLegacyOff ? "bank" : legacyModeRaw);
+
+  const clockEnabled =
+    typeof loose.clockEnabled === "boolean"
+      ? loose.clockEnabled
+      : !wasLegacyOff && (legacyModeRaw === "bank" || legacyModeRaw === "perTurn");
+
+  return { clockEnabled, clockMode };
+}
+
 /** Effective turn interval for gravity rotation (0 if rotation disabled). */
 export function getResolvedGravityRotateInterval(config: GameConfig): number {
   if (!config.gravityEnabled || !config.gravityRotateEnabled) return 0;
@@ -85,6 +107,8 @@ export function sanitizeConfig(config: GameConfig): GameConfig {
     : config.brokenHoleTurns;
   const brokenHoleTurns = clampInt(baseBrokenTurnsRaw, 1, 99, DEFAULT_BROKEN_HOLE_TURNS);
 
+  const { clockEnabled, clockMode } = resolveClockEnabledAndMode(config);
+
   return {
     columns,
     rows,
@@ -110,7 +134,12 @@ export function sanitizeConfig(config: GameConfig): GameConfig {
     playerCount,
     eliminateLosers: Boolean(config.eliminateLosers),
     continueRanking: Boolean(config.continueRanking),
-    eliminateWinners: typeof config.eliminateWinners === "boolean" ? config.eliminateWinners : DEFAULT_ELIMINATE_WINNERS
+    eliminateWinners: typeof config.eliminateWinners === "boolean" ? config.eliminateWinners : DEFAULT_ELIMINATE_WINNERS,
+    clockEnabled,
+    clockMode,
+    clockBankSeconds: clampInt(config.clockBankSeconds, 10, 7200, DEFAULT_CLOCK_BANK_SECONDS),
+    clockRecoverSeconds: clampInt(config.clockRecoverSeconds, 0, 600, DEFAULT_CLOCK_RECOVER_SECONDS),
+    clockPerTurnSeconds: clampInt(config.clockPerTurnSeconds, 3, 600, DEFAULT_CLOCK_PER_TURN_SECONDS)
   };
 }
 

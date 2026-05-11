@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { DEFAULT_MAX_PIECES_PER_PLAYER } from "../game/defaults";
-import { getMoveModeHelp, getMoveModeOptions, getResolvedBrokenHoleTurns, getResolvedGravityRotateInterval } from "../game/config";
+import { getMoveModeHelp, getMoveModeOptions, getResolvedBrokenHoleTurns, getResolvedGravityRotateInterval, normalizeClockStrategy } from "../game/config";
 import type {
   GameConfig,
   GravityDirection,
@@ -195,6 +195,7 @@ export function Sidebar({ config, onChangeConfig, onNewGame, onHelp, onRulesHelp
           icon="✦"
           helpKey="holes"
           onHelp={onHelp}
+          toggleExpanded={config.brokenEnabled}
           titleToggle={
             <label className="section-toggle" title={t("fields.enableBrokenHoles")} onClick={(event) => event.stopPropagation()}>
               <input
@@ -257,6 +258,7 @@ export function Sidebar({ config, onChangeConfig, onNewGame, onHelp, onRulesHelp
           icon="↓"
           helpKey="gravity"
           onHelp={onHelp}
+          toggleExpanded={config.gravityEnabled}
           titleToggle={
             <label className="section-toggle" title={t("fields.enableGravity")} onClick={(event) => event.stopPropagation()}>
               <input
@@ -354,6 +356,75 @@ export function Sidebar({ config, onChangeConfig, onNewGame, onHelp, onRulesHelp
                   })
                   : t("fields.gravityRotateInfo", { turns: getResolvedGravityRotateInterval(config) })}
               </span>
+            </>
+          )}
+        </SettingsSection>
+
+        <SettingsSection
+          title={t("sections.clock")}
+          icon="⏱"
+          helpKey="clock"
+          onHelp={onHelp}
+          toggleExpanded={config.clockEnabled}
+          titleToggle={
+            <label className="section-toggle" title={t("fields.clockEnabled")} onClick={(event) => event.stopPropagation()}>
+              <input
+                type="checkbox"
+                checked={config.clockEnabled}
+                onChange={(event) => onChangeConfig({ clockEnabled: event.target.checked })}
+              />
+            </label>
+          }
+        >
+          {config.clockEnabled && (
+            <label className="field">
+              {t("fields.clockType")}
+              <select
+                value={config.clockMode}
+                onChange={(event) => onChangeConfig({ clockMode: normalizeClockStrategy(event.target.value) })}
+              >
+                <option value="bank">{t("clock.modes.bank")}</option>
+                <option value="perTurn">{t("clock.modes.perTurn")}</option>
+              </select>
+            </label>
+          )}
+
+          {config.clockEnabled && config.clockMode === "bank" && (
+            <>
+              <label className="field">
+                {t("fields.clockBankSeconds")}
+                <input
+                  type="number"
+                  step={1}
+                  value={config.clockBankSeconds}
+                  onChange={(event) => onChangeConfig({ clockBankSeconds: Number(event.target.value) })}
+                />
+              </label>
+              <label className="field">
+                {t("fields.clockRecoverSeconds")}
+                <input
+                  type="number"
+                  step={1}
+                  value={config.clockRecoverSeconds}
+                  onChange={(event) => onChangeConfig({ clockRecoverSeconds: Number(event.target.value) })}
+                />
+              </label>
+              <span className="field-help">{t("fields.clockHintBank")}</span>
+            </>
+          )}
+
+          {config.clockEnabled && config.clockMode === "perTurn" && (
+            <>
+              <label className="field">
+                {t("fields.clockPerTurnSeconds")}
+                <input
+                  type="number"
+                  step={1}
+                  value={config.clockPerTurnSeconds}
+                  onChange={(event) => onChangeConfig({ clockPerTurnSeconds: Number(event.target.value) })}
+                />
+              </label>
+              <span className="field-help">{t("fields.clockHintPerTurn")}</span>
             </>
           )}
         </SettingsSection>

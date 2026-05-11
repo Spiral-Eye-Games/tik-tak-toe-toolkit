@@ -32,7 +32,8 @@
     "players": "Players",
     "pieces": "Pieces",
     "holes": "Rupture",
-    "gravity": "Gravity"
+    "gravity": "Gravity",
+    "clock": "Clock"
   },
   "fields": {
     "columns": "N Columns",
@@ -64,7 +65,23 @@
     "customizePlayers": "Customize players",
     "eliminateLosers": "Eliminate losers (remove their pieces when they complete a line)",
     "continueRanking": "Continue for ranking (multiple winners in order)",
-    "eliminateWinners": "Eliminate winners (remove their pieces when they complete a line in ranking)"
+    "eliminateWinners": "Eliminate winners (remove their pieces when they complete a line in ranking)",
+    "clockEnabled": "Enable clock",
+    "clockType": "Clock type",
+    "clockBankSeconds": "Total bank (s)",
+    "clockRecoverSeconds": "Recover on move (s)",
+    "clockPerTurnSeconds": "Time per turn (s)",
+    "clockHintBank": "Total time carried across turns; at 0 you lose. Recovery adds seconds after each completed move (capped at the initial bank).",
+    "clockHintPerTurn": "Each turn resets to the same allowance; at 0 you forfeit the turn (no place or move)."
+  },
+  "clock": {
+    "modes": {
+      "bank": "Total bank",
+      "perTurn": "Per-turn clock"
+    }
+  },
+  "topbar": {
+    "clock": "{{seconds}} s"
   },
   "playersModal": {
     "title": "Players",
@@ -143,7 +160,13 @@
       "free": "Pieces can be moved freely",
       "unknown": "Undefined piece move mode"
     },
-    "summary": "{{columns}} columns x {{rows}} rows. {{lineText}} if you make {{lineLength}} in a row. {{piecesText}}. {{moveText}}. {{brokenText}}. {{gravityText}}.",
+    "clock": {
+      "disabled": "No per-player time limit.",
+      "bankNoRecover": "Total bank: {{total}} s per player (unused time carries across turns).",
+      "bankWithRecover": "Total bank: {{total}} s per player; recover on move: +{{recover}} s (capped at the initial bank).",
+      "perTurn": "Per-turn clock: {{seconds}} s per move; at 0 you forfeit the turn."
+    },
+    "summary": "{{columns}} columns x {{rows}} rows. {{lineText}} if you make {{lineLength}} in a row. {{piecesText}}. {{moveText}}. {{brokenText}}. {{gravityText}} {{clockText}}",
     "modal": {
       "intro": "These are the rules for the current game. If you change values in the sidebar, press {{newGame}} to apply them."
     }
@@ -160,7 +183,8 @@
     "win": "{{player}} formed {{lineLength}} in a row and won.",
     "draw": "Draw: no legal moves left.",
     "survivorWin": "{{player}} is the last one standing and wins!",
-    "rankingComplete": "Final ranking is set."
+    "rankingComplete": "Final ranking is set.",
+    "clockBankOut": "{{loser}} ran out of time. {{winner}} wins."
   },
   "help": {
     "general": {
@@ -182,6 +206,10 @@
     "players": {
       "title": "Players",
       "html": "<p>Set how many players join and customize their emojis.</p><ul><li><strong>Number</strong> uses the first players in list order.</li><li>With more than two in <strong>Lose</strong> mode, completing a line removes a player from the turn order; enable <strong>Eliminate losers</strong> to also remove their pieces from the board.</li><li>With more than two in <strong>Win</strong> mode, the first line wins unless <strong>Continue for ranking</strong> is enabled, where winners are removed until the full order is decided.</li><li>With <strong>Continue for ranking</strong> on, <strong>Eliminate winners</strong> clears that player's pieces from the board when they take a round; turn it off to leave their pieces as obstacles.</li></ul>"
+    },
+    "clock": {
+      "title": "Clock",
+      "html": "<p>The title checkbox turns the clock on or off.</p><ul><li>With the clock off, the match does not track time.</li><li><strong>Total bank</strong>: each player has one total budget for the whole game; unused time on a turn stays for later turns. At 0 you lose (with more than two players you may be removed like losing a line). Optionally you can add seconds after each legal move, capped at the initial bank.</li><li><strong>Per-turn clock</strong>: each turn gets the same allowance; if it hits 0 you only lose that turn and play passes on.</li></ul><p>During the gravity-rotation pause the clock does not run.</p>"
     }
   },
   "board": {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useReducer, useState } from "react";
+import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { Board } from "./components/Board";
 import { HelpModal } from "./components/HelpModal";
 import { Sidebar } from "./components/Sidebar";
@@ -11,7 +11,8 @@ import {
   DEFAULT_MAX_PIECES_PER_PLAYER,
   DEFAULT_PLAYER_COUNT
 } from "./game/defaults";
-import { clampInt, normalizeMoveMode, normalizeRoster, sanitizeConfig } from "./game/config";
+import { clampInt, normalizeClockStrategy, normalizeMoveMode, normalizeRoster, sanitizeConfig } from "./game/config";
+import { formatClockSecondsForDisplay, getClockRemainingSeconds, isClockEnabled } from "./game/clock";
 import { buildRulesText, getStatusText } from "./game/formatters";
 import { createInitialGameState, gameReducer } from "./game/reducer";
 import { mustMovePiece } from "./game/rules";
@@ -53,6 +54,39 @@ export default function App() {
     }, DEFAULT_GRAVITY_ROTATION_PAUSE_MS);
     return () => window.clearTimeout(id);
   }, [gameState.pendingGravityRotationTarget, dispatch]);
+
+  const gameRef = useRef(gameState);
+  gameRef.current = gameState;
+  const [clockPulse, setClockPulse] = useState(0);
+
+  useEffect(() => {
+    if (gameState.gameOver || !isClockEnabled(gameState.config)) return;
+
+    const id = window.setInterval(() => {
+      const gs = gameRef.current;
+      if (gs.gameOver || !isClockEnabled(gs.config)) return;
+
+      const remaining = getClockRemainingSeconds(gs, gs.config, Date.now());
+      if (remaining !== null && remaining <= 0.12) {
+        if (gs.config.clockMode === "bank") {
+          dispatch({ type: "clockBankTimeout" });
+        } else {
+          dispatch({ type: "clockPerTurnTimeout" });
+        }
+      }
+
+      setClockPulse((value) => value + 1);
+    }, 100);
+
+    return () => window.clearInterval(id);
+  }, [gameState.gameOver, gameState.config.clockEnabled, gameState.config.clockMode, dispatch]);
+
+  const topbarClockText = useMemo(() => {
+    if (gameState.gameOver || !isClockEnabled(gameState.config)) return null;
+    const remaining = getClockRemainingSeconds(gameState, gameState.config, Date.now());
+    if (remaining === null) return null;
+    return t("topbar.clock", { seconds: formatClockSecondsForDisplay(remaining) });
+  }, [gameState, clockPulse]);
 
   const status = useMemo(
     () => getStatusText(gameState, gameState.config, mustMovePiece),
@@ -101,6 +135,9 @@ export default function App() {
         DEFAULT_GRAVITY_ROTATE_EVERY_TURNS
       );
 
+      next.clockEnabled = Boolean(next.clockEnabled);
+      next.clockMode = normalizeClockStrategy(next.clockMode);
+
       return next;
     });
   }
@@ -134,6 +171,7 @@ export default function App() {
     <div className="app">
       <TopBar
         status={status}
+        clockText={topbarClockText}
         canUndo={gameState.undoStack.length > 0}
         canRedo={gameState.redoStack.length > 0}
         onUndo={() => dispatch({ type: "undo" })}
