@@ -3,12 +3,12 @@ import { Board } from "./components/Board";
 import { HelpModal } from "./components/HelpModal";
 import { Sidebar } from "./components/Sidebar";
 import { TopBar } from "./components/TopBar";
-import { DEFAULT_CONFIG, DEFAULT_MAX_PIECES_PER_PLAYER } from "./game/defaults";
-import { clampInt, normalizeMoveMode, sanitizeConfig } from "./game/config";
+import { DEFAULT_CONFIG, DEFAULT_MAX_PIECES_PER_PLAYER, DEFAULT_PLAYER_COUNT } from "./game/defaults";
+import { clampInt, normalizeMoveMode, normalizeRoster, sanitizeConfig } from "./game/config";
 import { buildRulesText, getStatusText } from "./game/formatters";
 import { createInitialGameState, gameReducer } from "./game/reducer";
 import { mustMovePiece } from "./game/rules";
-import type { GameConfig } from "./game/types";
+import type { GameConfig, RosterPlayer } from "./game/types";
 import { t } from "./i18n";
 
 interface ModalState {
@@ -18,7 +18,7 @@ interface ModalState {
 }
 
 export default function App() {
-  const [draftConfig, setDraftConfig] = useState<GameConfig>(DEFAULT_CONFIG);
+  const [draftConfig, setDraftConfig] = useState<GameConfig>(() => sanitizeConfig(DEFAULT_CONFIG));
   const [gameState, dispatch] = useReducer(gameReducer, DEFAULT_CONFIG, createInitialGameState);
   const [modal, setModal] = useState<ModalState>(() => ({
     open: false,
@@ -48,6 +48,22 @@ export default function App() {
     setDraftConfig((previous) => {
       const next: GameConfig = { ...previous, ...patch };
 
+      if (patch.roster !== undefined) {
+        next.roster = normalizeRoster(patch.roster);
+        if (next.playerCount > next.roster.length) {
+          next.playerCount = next.roster.length;
+        }
+      }
+
+      if (patch.playerCount !== undefined) {
+        next.playerCount = clampInt(
+          next.playerCount,
+          2,
+          Math.max(2, next.roster.length),
+          Math.min(DEFAULT_PLAYER_COUNT, next.roster.length)
+        );
+      }
+
       if (patch.pieceLimitType !== undefined || patch.pieceMoveMode !== undefined) {
         next.pieceMoveMode = normalizeMoveMode(next.pieceLimitType, next.pieceMoveMode);
       }
@@ -66,6 +82,10 @@ export default function App() {
 
       return next;
     });
+  }
+
+  function applyRoster(nextRoster: RosterPlayer[]) {
+    updateDraftConfig({ roster: nextRoster });
   }
 
   function startNewGame() {
@@ -106,11 +126,14 @@ export default function App() {
           onNewGame={startNewGame}
           onHelp={openHelp}
           onRulesHelp={openRulesHelp}
+          onApplyRoster={applyRoster}
         />
 
         <Board
           state={gameState}
           onPlayMove={(row, col) => dispatch({ type: "playMove", row, col })}
+          onVictoryNewGame={startNewGame}
+          onVictoryUndo={() => dispatch({ type: "undo" })}
         />
       </main>
 
@@ -120,6 +143,7 @@ export default function App() {
         html={modal.html}
         onClose={closeModal}
       />
+
     </div>
   );
 }

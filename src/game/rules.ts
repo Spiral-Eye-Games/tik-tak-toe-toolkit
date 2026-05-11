@@ -1,5 +1,5 @@
-import { DRAW_IF_NO_LEGAL_MOVES, PLAYERS } from "./defaults";
-import type { Board, BoardCell, BoardPosition, GameConfig, GameSnapshot, Piece, Player } from "./types";
+import { DRAW_IF_NO_LEGAL_MOVES } from "./defaults";
+import type { Board, BoardCell, BoardPosition, GameConfig, GameSnapshot, Piece, PlayerId } from "./types";
 
 export function createEmptyCell(): BoardCell {
   return { piece: null, brokenTurns: null, brokenCreatedOnTurn: null };
@@ -15,16 +15,32 @@ export function isBroken(cell: BoardCell | null): boolean {
   return cell !== null && cell.brokenTurns !== null;
 }
 
-export function canAddPiece(snapshot: GameSnapshot, config: GameConfig, player: Player): boolean {
+export function canAddPiece(snapshot: GameSnapshot, config: GameConfig, player: PlayerId): boolean {
   if (config.pieceLimitType === "unlimited") return true;
-  return snapshot.pieceHistory[player].length < config.maxPiecesPerPlayer;
+  const history = snapshot.pieceHistory[player];
+  if (!history) return true;
+  return history.length < config.maxPiecesPerPlayer;
 }
 
 export function mustMovePiece(snapshot: GameSnapshot, config: GameConfig): boolean {
   const player = snapshot.currentPlayer;
   if (config.pieceLimitType === "unlimited") return false;
   if (config.pieceMoveMode === "limitedFree") return false;
-  return snapshot.pieceHistory[player].length >= config.maxPiecesPerPlayer;
+  const history = snapshot.pieceHistory[player];
+  if (!history) return false;
+  return history.length >= config.maxPiecesPerPlayer;
+}
+
+export function getDefaultSelectedPieceIdForcedOldest(
+  snapshot: GameSnapshot,
+  config: GameConfig
+): number | null {
+  if (config.pieceMoveMode !== "forcedOldest") return null;
+  if (!mustMovePiece(snapshot, config)) return null;
+  const oldestId = snapshot.pieceHistory[snapshot.currentPlayer]?.[0];
+  if (oldestId == null) return null;
+  if (findPiecePosition(snapshot.board, oldestId) === null) return null;
+  return oldestId;
 }
 
 export function canSelectPiece(snapshot: GameSnapshot, config: GameConfig, piece: Piece | null): boolean {
@@ -32,7 +48,7 @@ export function canSelectPiece(snapshot: GameSnapshot, config: GameConfig, piece
 
   switch (config.pieceMoveMode) {
     case "forcedOldest":
-      return mustMovePiece(snapshot, config) && snapshot.pieceHistory[piece.owner][0] === piece.id;
+      return mustMovePiece(snapshot, config) && snapshot.pieceHistory[piece.owner]?.[0] === piece.id;
     case "limitMoveAny":
       return mustMovePiece(snapshot, config);
     case "limitedFree":
@@ -171,9 +187,47 @@ export function tickBrokenHoles(board: Board, config: GameConfig, turnNumber: nu
   }
 }
 
-export function getNextPlayer(player: Player): Player {
-  const index = PLAYERS.indexOf(player);
-  return PLAYERS[(index + 1) % PLAYERS.length];
+export function getNextActivePlayer(activePlayerIds: PlayerId[], current: PlayerId): PlayerId {
+  if (activePlayerIds.length === 0) return current;
+  const index = activePlayerIds.indexOf(current);
+  if (index < 0) return activePlayerIds[0];
+  return activePlayerIds[(index + 1) % activePlayerIds.length];
+}
+
+export function getNextTurnAfterPlayerRemoved(activePlayerIds: PlayerId[], removedId: PlayerId): PlayerId {
+  const index = activePlayerIds.indexOf(removedId);
+  const n = activePlayerIds.length;
+  if (n <= 1) return activePlayerIds[0] ?? removedId;
+  for (let step = 1; step < n; step++) {
+    const candidate = activePlayerIds[(index + step) % n];
+    if (candidate !== removedId) return candidate;
+  }
+  return activePlayerIds[0];
+}
+
+export function abandonCellForBroken(snapshot: GameSnapshot, config: GameConfig, position: BoardPosition): void {
+  const cell = snapshot.board[position.row][position.col];
+  if (config.brokenEnabled) {
+    cell.brokenTurns = config.brokenHoleTurns;
+    cell.brokenCreatedOnTurn = snapshot.turnNumber;
+  } else {
+    cell.brokenTurns = null;
+    cell.brokenCreatedOnTurn = null;
+  }
+}
+
+export function removeAllPiecesForPlayer(snapshot: GameSnapshot, config: GameConfig, playerId: PlayerId): void {
+  for (let row = 0; row < config.rows; row++) {
+    for (let col = 0; col < config.columns; col++) {
+      const cell = snapshot.board[row][col];
+      if (cell.piece?.owner === playerId) {
+        cell.piece = null;
+        abandonCellForBroken(snapshot, config, { row, col });
+      }
+    }
+  }
+  snapshot.pieceHistory[playerId] = [];
+  if (config.gravityEnabled) applyGravity(snapshot.board, config);
 }
 
 export function hasLegalMove(snapshot: GameSnapshot, config: GameConfig): boolean {
@@ -194,7 +248,7 @@ export function hasLegalMove(snapshot: GameSnapshot, config: GameConfig): boolea
   return false;
 }
 
-export function findLine(snapshot: GameSnapshot, config: GameConfig, player: Player): BoardPosition[] | null {
+export function findLine(snapshot: GameSnapshot, config: GameConfig, player: PlayerId): BoardPosition[] | null {
   const directions = [
     { row: 0, col: 1 },
     { row: 1, col: 0 },

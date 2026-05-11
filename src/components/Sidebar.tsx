@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { DEFAULT_MAX_PIECES_PER_PLAYER } from "../game/defaults";
 import { getMoveModeHelp, getMoveModeOptions } from "../game/config";
-import type { GameConfig, LineRule, PieceLimitType, PieceMoveMode } from "../game/types";
+import type { GameConfig, LineRule, PieceLimitType, PieceMoveMode, RosterPlayer } from "../game/types";
+import { PlayersModal } from "./PlayersModal";
 import { SettingsSection } from "./SettingsSection";
 import { t } from "../i18n";
 
@@ -10,12 +12,18 @@ interface SidebarProps {
   onNewGame: () => void;
   onHelp: (helpKey: string) => void;
   onRulesHelp: () => void;
+  onApplyRoster: (roster: RosterPlayer[]) => void;
 }
 
-export function Sidebar({ config, onChangeConfig, onNewGame, onHelp, onRulesHelp }: SidebarProps) {
+export function Sidebar({ config, onChangeConfig, onNewGame, onHelp, onRulesHelp, onApplyRoster }: SidebarProps) {
+  const [playersModalOpen, setPlayersModalOpen] = useState(false);
   const unlimitedPieces = config.pieceLimitType === "unlimited";
   const moveModeOptions = getMoveModeOptions(config.pieceLimitType);
   const lineMax = Math.max(config.columns, config.rows);
+  const playerOptions = Array.from(
+    { length: Math.max(0, config.roster.length - 1) },
+    (_, index) => index + 2
+  );
 
   return (
     <aside className="sidebar">
@@ -119,6 +127,60 @@ export function Sidebar({ config, onChangeConfig, onNewGame, onHelp, onRulesHelp
           </label>
         </SettingsSection>
 
+        <SettingsSection title={t("sections.players")} icon="☺" helpKey="players" onHelp={onHelp}>
+          <div className="field-row players-tool-row">
+            <label className="field">
+              {t("fields.playerCount")}
+              <select
+                value={config.playerCount}
+                onChange={(event) => onChangeConfig({ playerCount: Number(event.target.value) })}
+              >
+                {playerOptions.map((value) => (
+                  <option key={value} value={value}>{value}</option>
+                ))}
+              </select>
+            </label>
+            <div className="players-customize-cell">
+              <button className="button secondary" type="button" onClick={() => setPlayersModalOpen(true)}>
+                {t("fields.customizePlayers")}
+              </button>
+            </div>
+          </div>
+
+          {config.lineRule === "lose" && config.playerCount > 2 && (
+            <label className="field checkbox boxed">
+              <span>{t("fields.eliminateLosers")}</span>
+              <input
+                type="checkbox"
+                checked={config.eliminateLosers}
+                onChange={(event) => onChangeConfig({ eliminateLosers: event.target.checked })}
+              />
+            </label>
+          )}
+
+          {config.lineRule === "win" && config.playerCount > 2 && (
+            <label className="field checkbox boxed">
+              <span>{t("fields.continueRanking")}</span>
+              <input
+                type="checkbox"
+                checked={config.continueRanking}
+                onChange={(event) => onChangeConfig({ continueRanking: event.target.checked })}
+              />
+            </label>
+          )}
+
+          {config.lineRule === "win" && config.playerCount > 2 && config.continueRanking && (
+            <label className="field checkbox boxed">
+              <span>{t("fields.eliminateWinners")}</span>
+              <input
+                type="checkbox"
+                checked={config.eliminateWinners}
+                onChange={(event) => onChangeConfig({ eliminateWinners: event.target.checked })}
+              />
+            </label>
+          )}
+        </SettingsSection>
+
         <SettingsSection
           title={t("sections.holes")}
           icon="✦"
@@ -167,6 +229,13 @@ export function Sidebar({ config, onChangeConfig, onNewGame, onHelp, onRulesHelp
           <span className="field-help">{t("fields.gravityInfo")}</span>
         </SettingsSection>
       </div>
+
+      <PlayersModal
+        open={playersModalOpen}
+        roster={config.roster}
+        onClose={() => setPlayersModalOpen(false)}
+        onApply={onApplyRoster}
+      />
     </aside>
   );
 }

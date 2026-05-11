@@ -1,10 +1,28 @@
 import {
+  DEFAULT_ELIMINATE_WINNERS,
   DEFAULT_LIMITED_PIECE_MOVE_MODE,
   DEFAULT_MAX_PIECES_PER_PLAYER,
+  DEFAULT_PLAYER_COUNT,
+  DEFAULT_ROSTER,
   DEFAULT_UNLIMITED_PIECE_MOVE_MODE
 } from "./defaults";
-import type { GameConfig, PieceMoveMode } from "./types";
+import type { GameConfig, PieceMoveMode, RosterPlayer } from "./types";
 import { t } from "../i18n";
+
+export function normalizeRoster(roster: RosterPlayer[] | undefined): RosterPlayer[] {
+  if (!Array.isArray(roster) || roster.length < 2) {
+    return DEFAULT_ROSTER.map((r) => ({ ...r }));
+  }
+
+  const seen = new Set<string>();
+  return roster.map((entry, index) => {
+    const emoji = typeof entry.emoji === "string" && entry.emoji.trim() ? entry.emoji.trim() : "🙂";
+    let id = typeof entry.id === "string" && entry.id.trim() ? entry.id.trim() : `p${index}`;
+    while (seen.has(id)) id = `${id}_${index}`;
+    seen.add(id);
+    return { id, emoji };
+  });
+}
 
 export function clampInt(value: number, min: number, max: number, fallback: number): number {
   const number = Number.parseInt(String(value), 10);
@@ -19,6 +37,10 @@ export function sanitizeConfig(config: GameConfig): GameConfig {
   const pieceLimitType = config.pieceLimitType;
   const pieceMoveMode = normalizeMoveMode(pieceLimitType, config.pieceMoveMode);
 
+  const roster = normalizeRoster(config.roster);
+  const maxPlayers = roster.length;
+  const playerCount = clampInt(config.playerCount, 2, maxPlayers, Math.min(DEFAULT_PLAYER_COUNT, maxPlayers));
+
   return {
     columns,
     rows,
@@ -31,7 +53,12 @@ export function sanitizeConfig(config: GameConfig): GameConfig {
     pieceMoveMode,
     brokenEnabled: config.brokenEnabled,
     brokenHoleTurns: clampInt(config.brokenHoleTurns, 0, 99, 0),
-    gravityEnabled: config.gravityEnabled
+    gravityEnabled: config.gravityEnabled,
+    roster,
+    playerCount,
+    eliminateLosers: Boolean(config.eliminateLosers),
+    continueRanking: Boolean(config.continueRanking),
+    eliminateWinners: typeof config.eliminateWinners === "boolean" ? config.eliminateWinners : DEFAULT_ELIMINATE_WINNERS
   };
 }
 

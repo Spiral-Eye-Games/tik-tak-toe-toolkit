@@ -23,6 +23,7 @@
   },
   "sections": {
     "general": "General",
+    "players": "Jugadores",
     "pieces": "Fichas",
     "holes": "Rompe huecos",
     "gravity": "Gravedad"
@@ -41,7 +42,30 @@
     "enableGravity": "Activar gravedad",
     "turns": "Turnos",
     "brokenTurnsInfo": "0 = queda roto hasta el final.",
-    "gravityInfo": "Cuando está activa, elegís una columna y la ficha cae hasta el espacio libre más bajo."
+    "gravityInfo": "Cuando está activa, elegís una columna y la ficha cae hasta el espacio libre más bajo.",
+    "playerCount": "Cantidad de jugadores",
+    "customizePlayers": "Personalizar jugadores",
+    "eliminateLosers": "Eliminar perdedores (sacar fichas al perder la raya)",
+    "continueRanking": "Seguir por el ranking (varios ganadores por orden)",
+    "eliminateWinners": "Eliminar ganadores (sacar fichas al ganar la raya en ranking)"
+  },
+  "playersModal": {
+    "title": "Jugadores",
+    "intro": "Editá el emoji de cada jugador. Podés sumar o quitar filas (mínimo 2). El orden define quién entra primero en la partida.",
+    "emojiLabel": "Emoji del jugador",
+    "remove": "Quitar jugador",
+    "add": "Agregar jugador",
+    "save": "Guardar"
+  },
+  "victory": {
+    "titleDraw": "Partida terminada",
+    "titleWinner": "¡Victoria!",
+    "titleRanking": "Resultado final",
+    "titleOutcome": "Resultado",
+    "drawMessage": "Empate: no quedan movimientos legales.",
+    "winnerLine": "Ganador: {{player}}",
+    "loserLine": "Perdió: {{player}}",
+    "rankLabel": "{{place}}°"
   },
   "moveModes": {
     "limited": {
@@ -98,7 +122,9 @@
   "gameOver": {
     "lose": "{{player}} formó {{lineLength}} en raya y perdió.",
     "win": "{{player}} formó {{lineLength}} en raya y ganó.",
-    "draw": "Empate: no quedan movimientos legales."
+    "draw": "Empate: no quedan movimientos legales.",
+    "survivorWin": "¡{{player}} es el último en pie y gana!",
+    "rankingComplete": "Ranking final listo."
   },
   "help": {
     "general": {
@@ -116,7 +142,16 @@
     "gravity": {
       "title": "Gravedad",
       "html": "<p>La gravedad hace que el tablero funcione más parecido a un Conecta 4.</p><ul><li>El toggle del título activa o desactiva esta mecánica.</li><li>En vez de elegir cualquier casilla vacía, elegís una columna.</li><li>La ficha cae hasta la posición libre más baja posible.</li><li>Los huecos rotos actúan como obstáculos: las fichas no atraviesan casillas rotas.</li><li>Cuando una ficha se mueve o desaparece, las fichas de esa columna se reacomodan hacia abajo.</li></ul>"
+    },
+    "players": {
+      "title": "Jugadores",
+      "html": "<p>Definí cuántos jugadores entran y personalizá sus emojis.</p><ul><li><strong>Cantidad</strong> usa los primeros jugadores de la lista en orden.</li><li>Con más de dos en modo <strong>Perder</strong>, quien forma la raya queda fuera del turno; podés activar <strong>Eliminar perdedores</strong> para que también desaparezcan sus fichas del tablero.</li><li>Con más de dos en modo <strong>Ganar</strong>, el primero en formar la raya gana salvo que actives <strong>Seguir por el ranking</strong>, donde se van retirando ganadores hasta definir el orden completo.</li><li>Con <strong>Seguir por el ranking</strong> activo, <strong>Eliminar ganadores</strong> hace que al ganar una ronda se borren las fichas de ese jugador del tablero; si lo desactivás, siguen como obstáculos.</li></ul>"
     }
+  },
+  "board": {
+    "outcomeStripLabel": "Resultados en la partida",
+    "outcomeEliminated": "{{player}} eliminado",
+    "outcomeRoundWin": "{{player}} ganó la ronda"
   },
   "broken": {
     "permanent": "ROTO"

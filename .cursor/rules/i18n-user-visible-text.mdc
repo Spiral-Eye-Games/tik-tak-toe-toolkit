@@ -1,0 +1,24 @@
+---
+description: Todo texto visible al usuario debe ir por traducciones (i18n), no hardcodeado.
+alwaysApply: true
+---
+
+# Textos visibles e i18n
+
+Al agregar o cambiar **cualquier cadena que vea el usuario** (UI, mensajes, títulos, tooltips, labels, errores mostrados en pantalla):
+
+1. **No** escribas el literal en JSX/TS salvo casos técnicos inevitables (p. ej. símbolos puntuales ya acordados en `ui.*`).
+2. Añade la clave en **`src/locales/en.json`** y **`src/locales/es.json`** con el mismo árbol de claves (puntos).
+3. Usa `import { t } from "../i18n"` (o `./i18n` según la carpeta) y **`t("grupo.subclave")`**.
+4. Interpolación: en JSON usa `{{nombre}}` y en código `t("clave", { nombre: valor })`.
+
+```tsx
+// Mal
+<button>Nuevo juego</button>
+
+// Bien
+import { t } from "../i18n";
+<button>{t("buttons.newGame")}</button>
+```
+
+Si introduces texto nuevo, **siempre** actualiza ambos JSON en el mismo cambio.

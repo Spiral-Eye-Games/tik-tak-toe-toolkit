@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "Ta-Te-Ti Toolkit"
+    "title": "Tik-Tak-Toe Toolkit"
   },
   "actions": {
     "undo": "Undo",
@@ -23,6 +23,7 @@
   },
   "sections": {
     "general": "General",
+    "players": "Players",
     "pieces": "Pieces",
     "holes": "Broken Holes",
     "gravity": "Gravity"
@@ -41,7 +42,30 @@
     "enableGravity": "Enable gravity",
     "turns": "Turns",
     "brokenTurnsInfo": "0 = stays broken until the end.",
-    "gravityInfo": "When enabled, choose a column and the piece falls to the lowest available space."
+    "gravityInfo": "When enabled, choose a column and the piece falls to the lowest available space.",
+    "playerCount": "Number of players",
+    "customizePlayers": "Customize players",
+    "eliminateLosers": "Eliminate losers (remove their pieces when they complete a line)",
+    "continueRanking": "Continue for ranking (multiple winners in order)",
+    "eliminateWinners": "Eliminate winners (remove their pieces when they complete a line in ranking)"
+  },
+  "playersModal": {
+    "title": "Players",
+    "intro": "Edit each player's emoji. You can add or remove rows (minimum 2). Order defines who starts first.",
+    "emojiLabel": "Player emoji",
+    "remove": "Remove player",
+    "add": "Add player",
+    "save": "Save"
+  },
+  "victory": {
+    "titleDraw": "Game over",
+    "titleWinner": "Victory!",
+    "titleRanking": "Final standings",
+    "titleOutcome": "Result",
+    "drawMessage": "Draw: no legal moves left.",
+    "winnerLine": "Winner: {{player}}",
+    "loserLine": "Lost: {{player}}",
+    "rankLabel": "#{{place}}"
   },
   "moveModes": {
     "limited": {
@@ -98,7 +122,9 @@
   "gameOver": {
     "lose": "{{player}} formed {{lineLength}} in a row and lost.",
     "win": "{{player}} formed {{lineLength}} in a row and won.",
-    "draw": "Draw: no legal moves left."
+    "draw": "Draw: no legal moves left.",
+    "survivorWin": "{{player}} is the last one standing and wins!",
+    "rankingComplete": "Final ranking is set."
   },
   "help": {
     "general": {
@@ -116,7 +142,16 @@
     "gravity": {
       "title": "Gravity",
       "html": "<p>Gravity makes the board work more like Connect 4.</p><ul><li>The title toggle enables or disables this mechanic.</li><li>Instead of choosing any empty cell, you choose a column.</li><li>The piece falls to the lowest available position.</li><li>Broken holes act as obstacles: pieces don't pass through broken cells.</li><li>When a piece moves or disappears, the pieces in that column drop down.</li></ul>"
+    },
+    "players": {
+      "title": "Players",
+      "html": "<p>Set how many players join and customize their emojis.</p><ul><li><strong>Number</strong> uses the first players in list order.</li><li>With more than two in <strong>Lose</strong> mode, completing a line removes a player from the turn order; enable <strong>Eliminate losers</strong> to also remove their pieces from the board.</li><li>With more than two in <strong>Win</strong> mode, the first line wins unless <strong>Continue for ranking</strong> is enabled, where winners are removed until the full order is decided.</li><li>With <strong>Continue for ranking</strong> on, <strong>Eliminate winners</strong> clears that player's pieces from the board when they take a round; turn it off to leave their pieces as obstacles.</li></ul>"
     }
+  },
+  "board": {
+    "outcomeStripLabel": "Match results",
+    "outcomeEliminated": "{{player}} eliminated",
+    "outcomeRoundWin": "{{player}} won the round"
   },
   "broken": {
     "permanent": "BROKEN"

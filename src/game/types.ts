@@ -1,4 +1,10 @@
-export type Player = "X" | "O";
+export type PlayerId = string;
+
+export interface RosterPlayer {
+  id: PlayerId;
+  emoji: string;
+}
+
 export type LineRule = "lose" | "win";
 export type PieceLimitType = "limited" | "unlimited";
 export type PieceMoveMode = "forcedOldest" | "limitMoveAny" | "limitedFree" | "blocked" | "free";
@@ -14,11 +20,16 @@ export interface GameConfig {
   brokenEnabled: boolean;
   brokenHoleTurns: number;
   gravityEnabled: boolean;
+  roster: RosterPlayer[];
+  playerCount: number;
+  eliminateLosers: boolean;
+  continueRanking: boolean;
+  eliminateWinners: boolean;
 }
 
 export interface Piece {
   id: number;
-  owner: Player;
+  owner: PlayerId;
 }
 
 export interface BoardCell {
@@ -34,13 +45,22 @@ export interface BoardPosition {
 
 export type Board = BoardCell[][];
 
-export type PieceHistory = Record<Player, number[]>;
+export type PieceHistory = Record<PlayerId, number[]>;
+
+export type GameEndSummary =
+  | { type: "draw" }
+  | { type: "winner"; winnerId: PlayerId; loserId?: PlayerId }
+  | { type: "ranking"; orderedIds: PlayerId[] };
 
 export interface GameSnapshot {
   board: Board;
   pieceHistory: PieceHistory;
-  currentPlayer: Player;
+  currentPlayer: PlayerId;
+  activePlayerIds: PlayerId[];
+  placementOrderWin: PlayerId[];
+  eliminationOrderLose: PlayerId[];
   gameOver: boolean;
+  gameEndSummary: GameEndSummary | null;
   lineCells: BoardPosition[];
   nextPieceId: number;
   turnNumber: number;

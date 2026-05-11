@@ -1,36 +1,43 @@
-import { PLAYERS, STARTING_PLAYER } from "./defaults";
 import { sanitizeConfig } from "./config";
+import { getPlayerLabel } from "./formatters";
 import { t } from "../i18n";
 import {
+  abandonCellForBroken,
   applyGravity,
   canAddPiece,
   canSelectPiece,
   createBoard,
   findLine,
   findPiecePosition,
+  getDefaultSelectedPieceIdForcedOldest,
   getGravityTargetRow,
   getGravityTargetRowIgnoringPiece,
-  getNextPlayer,
+  getNextActivePlayer,
+  getNextTurnAfterPlayerRemoved,
   isLegalMoveDestination,
   isLegalPlacementDestination,
+  removeAllPiecesForPlayer,
   shouldDrawIfNoLegalMoves,
   tickBrokenHoles
 } from "./rules";
-import type { BoardPosition, GameAction, GameConfig, GameSnapshot, GameState, Player } from "./types";
+import type { BoardPosition, GameAction, GameConfig, GameSnapshot, GameState, PlayerId } from "./types";
 
 export function createInitialGameState(configInput: GameConfig): GameState {
   const config = sanitizeConfig(configInput);
-  const pieceHistory = PLAYERS.reduce((acc, player) => {
-    acc[player] = [];
-    return acc;
-  }, {} as Record<Player, number[]>);
+  const rosterSlice = config.roster.slice(0, config.playerCount);
+  const activePlayerIds = rosterSlice.map((player) => player.id);
+  const pieceHistory = Object.fromEntries(activePlayerIds.map((id) => [id, [] as number[]])) as Record<PlayerId, number[]>;
 
   return {
     config,
     board: createBoard(config),
     pieceHistory,
-    currentPlayer: STARTING_PLAYER,
+    currentPlayer: activePlayerIds[0],
+    activePlayerIds,
+    placementOrderWin: [],
+    eliminationOrderLose: [],
     gameOver: false,
+    gameEndSummary: null,
     lineCells: [],
     nextPieceId: 1,
     turnNumber: 0,
@@ -157,40 +164,159 @@ function finishTurn(snapshot: GameSnapshot, config: GameConfig): void {
   const completedLine = findLine(snapshot, config, snapshot.currentPlayer);
 
   if (completedLine) {
-    snapshot.lineCells = completedLine;
-    snapshot.gameOver = true;
-    snapshot.statusMessage = config.lineRule === "lose"
-      ? t("gameOver.lose", { player: snapshot.currentPlayer, lineLength: config.lineLength })
-      : t("gameOver.win", { player: snapshot.currentPlayer, lineLength: config.lineLength });
+    handleCompletedLine(snapshot, config, completedLine);
     return;
   }
 
   tickBrokenHoles(snapshot.board, config, snapshot.turnNumber);
   if (config.gravityEnabled) applyGravity(snapshot.board, config);
 
-  snapshot.currentPlayer = getNextPlayer(snapshot.currentPlayer);
-  snapshot.selectedPieceId = null;
+  snapshot.currentPlayer = getNextActivePlayer(snapshot.activePlayerIds, snapshot.currentPlayer);
+  snapshot.selectedPieceId = getDefaultSelectedPieceIdForcedOldest(snapshot, config);
 
   if (shouldDrawIfNoLegalMoves(snapshot, config)) {
     snapshot.gameOver = true;
+    snapshot.gameEndSummary = { type: "draw" };
+    snapshot.statusMessage = t("gameOver.draw");
+  }
+}
+
+function handleCompletedLine(snapshot: GameSnapshot, config: GameConfig, completedLine: BoardPosition[]): void {
+  snapshot.lineCells = completedLine;
+  const activeCount = snapshot.activePlayerIds.length;
+  const label = (id: PlayerId) => getPlayerLabel(config, id);
+
+  if (config.lineRule === "win") {
+    if (!config.continueRanking) {
+      snapshot.gameOver = true;
+      snapshot.gameEndSummary = { type: "winner", winnerId: snapshot.currentPlayer };
+      snapshot.statusMessage = t("gameOver.win", {
+        player: label(snapshot.currentPlayer),
+        lineLength: config.lineLength
+      });
+      return;
+    }
+
+    const winnerId = snapshot.currentPlayer;
+    const oldActive = [...snapshot.activePlayerIds];
+
+    if (activeCount === 2) {
+      const loserId = oldActive.find((id) => id !== winnerId);
+      snapshot.placementOrderWin.push(winnerId);
+      if (config.eliminateWinners) {
+        removeAllPiecesForPlayer(snapshot, config, winnerId);
+      }
+      snapshot.activePlayerIds = [];
+      snapshot.lineCells = [];
+      snapshot.gameOver = true;
+      const orderedIds = loserId ? [...snapshot.placementOrderWin, loserId] : [...snapshot.placementOrderWin];
+      snapshot.gameEndSummary = { type: "ranking", orderedIds };
+      snapshot.statusMessage = t("gameOver.rankingComplete");
+      return;
+    }
+
+    snapshot.placementOrderWin.push(winnerId);
+    if (config.eliminateWinners) {
+      removeAllPiecesForPlayer(snapshot, config, winnerId);
+    }
+    snapshot.activePlayerIds = oldActive.filter((id) => id !== winnerId);
+    snapshot.lineCells = [];
+
+    if (snapshot.activePlayerIds.length <= 1) {
+      snapshot.gameOver = true;
+      if (snapshot.activePlayerIds.length === 1) {
+        snapshot.placementOrderWin.push(snapshot.activePlayerIds[0]);
+      }
+      snapshot.gameEndSummary = { type: "ranking", orderedIds: [...snapshot.placementOrderWin] };
+      snapshot.statusMessage = t("gameOver.rankingComplete");
+      return;
+    }
+
+    snapshot.currentPlayer = getNextTurnAfterPlayerRemoved(oldActive, winnerId);
+    snapshot.selectedPieceId = getDefaultSelectedPieceIdForcedOldest(snapshot, config);
+    tickBrokenHoles(snapshot.board, config, snapshot.turnNumber);
+    if (config.gravityEnabled) applyGravity(snapshot.board, config);
+
+    if (shouldDrawIfNoLegalMoves(snapshot, config)) {
+      snapshot.gameOver = true;
+      snapshot.gameEndSummary = { type: "draw" };
+      snapshot.statusMessage = t("gameOver.draw");
+    }
+    return;
+  }
+
+  if (activeCount <= 2) {
+    snapshot.gameOver = true;
+    const loserId = snapshot.currentPlayer;
+    const winnerId = snapshot.activePlayerIds.find((id) => id !== loserId);
+
+    if (config.playerCount > 2) {
+      const tail = [...snapshot.eliminationOrderLose].reverse();
+      const orderedIds = winnerId ? [winnerId, loserId, ...tail] : tail;
+      snapshot.gameEndSummary = orderedIds.length > 0
+        ? { type: "ranking", orderedIds }
+        : winnerId
+          ? { type: "winner", winnerId, loserId }
+          : { type: "draw" };
+      snapshot.statusMessage = winnerId
+        ? t("gameOver.survivorWin", { player: label(winnerId) })
+        : t("gameOver.lose", {
+            player: label(loserId),
+            lineLength: config.lineLength
+          });
+      return;
+    }
+
+    snapshot.gameEndSummary = winnerId
+      ? { type: "winner", winnerId, loserId }
+      : { type: "draw" };
+    snapshot.statusMessage = t("gameOver.lose", {
+      player: label(snapshot.currentPlayer),
+      lineLength: config.lineLength
+    });
+    return;
+  }
+
+  const eliminatedId = snapshot.currentPlayer;
+  snapshot.eliminationOrderLose.push(eliminatedId);
+  if (config.eliminateLosers) {
+    removeAllPiecesForPlayer(snapshot, config, eliminatedId);
+  }
+
+  const oldActive = [...snapshot.activePlayerIds];
+  snapshot.activePlayerIds = oldActive.filter((id) => id !== eliminatedId);
+  snapshot.lineCells = [];
+
+  if (snapshot.activePlayerIds.length === 1) {
+    snapshot.gameOver = true;
+    const champ = snapshot.activePlayerIds[0];
+    const orderedIds = [champ, ...[...snapshot.eliminationOrderLose].reverse()];
+    snapshot.gameEndSummary = { type: "ranking", orderedIds };
+    snapshot.statusMessage = t("gameOver.survivorWin", {
+      player: label(champ)
+    });
+    return;
+  }
+
+  snapshot.currentPlayer = getNextTurnAfterPlayerRemoved(oldActive, eliminatedId);
+  snapshot.selectedPieceId = getDefaultSelectedPieceIdForcedOldest(snapshot, config);
+  tickBrokenHoles(snapshot.board, config, snapshot.turnNumber);
+  if (config.gravityEnabled) applyGravity(snapshot.board, config);
+
+  if (shouldDrawIfNoLegalMoves(snapshot, config)) {
+    snapshot.gameOver = true;
+    snapshot.gameEndSummary = { type: "draw" };
     snapshot.statusMessage = t("gameOver.draw");
   }
 }
 
 function breakAbandonedCell(snapshot: GameSnapshot, config: GameConfig, source: BoardPosition): void {
-  const cell = snapshot.board[source.row][source.col];
-
-  if (config.brokenEnabled) {
-    cell.brokenTurns = config.brokenHoleTurns;
-    cell.brokenCreatedOnTurn = snapshot.turnNumber;
-  } else {
-    cell.brokenTurns = null;
-    cell.brokenCreatedOnTurn = null;
-  }
+  abandonCellForBroken(snapshot, config, source);
 }
 
-function movePieceToNewest(snapshot: GameSnapshot, player: Player, pieceId: number): void {
+function movePieceToNewest(snapshot: GameSnapshot, player: PlayerId, pieceId: number): void {
   const history = snapshot.pieceHistory[player];
+  if (!history) return;
   const index = history.indexOf(pieceId);
   if (index >= 0) history.splice(index, 1);
   history.push(pieceId);
@@ -221,7 +347,11 @@ export function createSnapshot(state: GameSnapshot): GameSnapshot {
     board: state.board,
     pieceHistory: state.pieceHistory,
     currentPlayer: state.currentPlayer,
+    activePlayerIds: state.activePlayerIds,
+    placementOrderWin: state.placementOrderWin,
+    eliminationOrderLose: state.eliminationOrderLose,
     gameOver: state.gameOver,
+    gameEndSummary: state.gameEndSummary,
     lineCells: state.lineCells,
     nextPieceId: state.nextPieceId,
     turnNumber: state.turnNumber,

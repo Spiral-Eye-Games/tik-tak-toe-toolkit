@@ -1,7 +1,25 @@
-import { t } from "../i18n";
-import { getColumnLetter, getPieceOrder } from "../game/formatters";
+import { getColumnLetter, getPieceOrder, getPlayerLabel } from "../game/formatters";
 import { canSelectPiece, getGravityTargetRow, isBroken, isCellClickable, isLegalMoveDestination } from "../game/rules";
 import type { GameState, Piece } from "../game/types";
+import { t } from "../i18n";
+
+type PieceOutKind = "lose" | "win" | null;
+
+function getPieceOutKind(state: GameState, piece: Piece | null): PieceOutKind {
+  if (!piece) return null;
+  if (state.config.lineRule === "lose" && state.eliminationOrderLose.includes(piece.owner)) {
+    return "lose";
+  }
+  if (
+    state.config.lineRule === "win" &&
+    state.config.continueRanking &&
+    state.placementOrderWin.includes(piece.owner) &&
+    !state.activePlayerIds.includes(piece.owner)
+  ) {
+    return "win";
+  }
+  return null;
+}
 
 interface CellProps {
   state: GameState;
@@ -17,9 +35,12 @@ export function Cell({ state, row, col, onPlayMove }: CellProps) {
   const clickable = isCellClickable(state, state.config, row, col);
   const gravityTarget = state.config.gravityEnabled && !state.gameOver && getGravityTargetRow(state.board, state.config, col) === row;
 
+  const pieceOutKind = getPieceOutKind(state, piece);
+
   const classNames = ["cell"];
-  if (piece?.owner === "X") classNames.push("occupied-x");
-  if (piece?.owner === "O") classNames.push("occupied-o");
+  if (piece) classNames.push("occupied-piece");
+  if (pieceOutKind === "lose") classNames.push("cell-eliminated-lose");
+  if (pieceOutKind === "win") classNames.push("cell-eliminated-win");
   if (piece?.id === state.selectedPieceId) classNames.push("selected");
   if (canSelectPiece(state, state.config, piece)) classNames.push("movable");
   if (state.selectedPieceId !== null && isLegalMoveDestination(state, state.config, row, col)) classNames.push("move-target");
@@ -36,17 +57,23 @@ export function Cell({ state, row, col, onPlayMove }: CellProps) {
     >
       <span className="coord-label">{coordinate}</span>
       {gravityTarget && <span className="gravity-arrow">↓</span>}
-      {piece && <PieceView state={state} piece={piece} />}
+      {piece && <PieceView state={state} piece={piece} outKind={pieceOutKind} />}
     </button>
   );
 }
 
-function PieceView({ state, piece }: { state: GameState; piece: Piece }) {
-  const ownerClass = piece.owner.toLowerCase();
+function PieceView({ state, piece, outKind }: { state: GameState; piece: Piece; outKind: PieceOutKind }) {
+  const mark = getPlayerLabel(state.config, piece.owner);
+  const pieceExtra =
+    outKind === "lose"
+      ? " piece-eliminated-lose"
+      : outKind === "win"
+        ? " piece-eliminated-win"
+        : "";
 
   return (
-    <span className={`piece ${ownerClass}`}>
-      <span className="piece-mark">{piece.owner}</span>
+    <span className={`piece emoji-piece${pieceExtra}`}>
+      <span className="piece-mark">{mark}</span>
       <span className="piece-order">{getPieceOrder(state, piece)}</span>
     </span>
   );
