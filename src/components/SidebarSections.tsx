@@ -70,13 +70,33 @@ function NumericDraftInput({
     return Number.isFinite(parsedValue) ? parsedValue : null;
   }
 
+  function parseNumericProp(propValue: InputHTMLAttributes<HTMLInputElement>[keyof InputHTMLAttributes<HTMLInputElement>]) {
+    const parsedValue = Number(propValue);
+    return Number.isFinite(parsedValue) ? parsedValue : null;
+  }
+
+  function normalizeDraft(valueToNormalize: string) {
+    const parsedValue = parseDraft(valueToNormalize);
+    if (parsedValue === null) return null;
+
+    const stepValue = parseNumericProp(props.step);
+    const minValue = parseNumericProp(props.min);
+    const maxValue = parseNumericProp(props.max);
+    let nextValue = stepValue !== null && Number.isInteger(stepValue) ? Math.trunc(parsedValue) : parsedValue;
+
+    if (minValue !== null) nextValue = Math.max(minValue, nextValue);
+    if (maxValue !== null) nextValue = Math.min(maxValue, nextValue);
+    return nextValue;
+  }
+
   function scheduleCommit(nextDraftValue: string) {
     clearPendingCommit();
-    const parsedValue = parseDraft(nextDraftValue);
-    if (parsedValue === null || disabled) return;
+    const normalizedValue = normalizeDraft(nextDraftValue);
+    if (normalizedValue === null || disabled) return;
 
     commitTimeoutRef.current = window.setTimeout(() => {
-      onCommit(parsedValue);
+      setDraftValue(String(normalizedValue));
+      onCommit(normalizedValue);
       commitTimeoutRef.current = undefined;
     }, commitDelayMs);
   }
@@ -89,12 +109,13 @@ function NumericDraftInput({
 
   function handleBlur(event: FocusEvent<HTMLInputElement>) {
     clearPendingCommit();
-    const parsedValue = parseDraft(event.target.value);
+    const normalizedValue = normalizeDraft(event.target.value);
 
-    if (parsedValue === null || disabled) {
+    if (normalizedValue === null || disabled) {
       setDraftValue(String(value));
     } else {
-      onCommit(parsedValue);
+      setDraftValue(String(normalizedValue));
+      onCommit(normalizedValue);
     }
 
     onBlur?.(event);
@@ -587,6 +608,8 @@ export function ClockSettingsSection({ config, onChangeConfig, onHelp }: Sidebar
           <label className="field">
             {t("fields.clockBankSeconds")}
             <NumericDraftInput
+              min={10}
+              max={7200}
               step={1}
               value={config.clockBankSeconds}
               onCommit={(value) => onChangeConfig({ clockBankSeconds: value })}
@@ -595,6 +618,8 @@ export function ClockSettingsSection({ config, onChangeConfig, onHelp }: Sidebar
           <label className="field">
             {t("fields.clockRecoverSeconds")}
             <NumericDraftInput
+              min={0}
+              max={600}
               step={1}
               value={config.clockRecoverSeconds}
               onCommit={(value) => onChangeConfig({ clockRecoverSeconds: value })}
@@ -609,6 +634,8 @@ export function ClockSettingsSection({ config, onChangeConfig, onHelp }: Sidebar
           <label className="field">
             {t("fields.clockPerTurnSeconds")}
             <NumericDraftInput
+              min={3}
+              max={600}
               step={1}
               value={config.clockPerTurnSeconds}
               onCommit={(value) => onChangeConfig({ clockPerTurnSeconds: value })}

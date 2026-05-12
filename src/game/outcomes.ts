@@ -45,6 +45,22 @@ export function finishTurn(snapshot: GameSnapshot, config: GameConfig): void {
   clearClockPauseIfNoPendingGravity(snapshot);
 }
 
+export function resolveActivePlayerLine(snapshot: GameSnapshot, config: GameConfig): boolean {
+  if (snapshot.gameOver) return false;
+
+  const activePlayers = getActivePlayersStartingFromCurrent(snapshot);
+  for (const playerId of activePlayers) {
+    const completedLine = findLine(snapshot, config, playerId);
+    if (!completedLine) continue;
+
+    snapshot.currentPlayer = playerId;
+    handleCompletedLine(snapshot, config, completedLine);
+    return true;
+  }
+
+  return false;
+}
+
 function handleCompletedLine(snapshot: GameSnapshot, config: GameConfig, completedLine: BoardPosition[]): void {
   snapshot.lineCells = completedLine;
   const activeCount = snapshot.activePlayerIds.length;
@@ -207,6 +223,15 @@ function getNextActivePlayerAfterChanges(oldActive: PlayerId[], activePlayerIds:
   }
 
   return activePlayerIds[0];
+}
+
+function getActivePlayersStartingFromCurrent(snapshot: GameSnapshot): PlayerId[] {
+  const index = snapshot.activePlayerIds.indexOf(snapshot.currentPlayer);
+  if (index < 0) return [...snapshot.activePlayerIds];
+  return [
+    ...snapshot.activePlayerIds.slice(index),
+    ...snapshot.activePlayerIds.slice(0, index)
+  ];
 }
 
 /** El jugador actual se queda sin tiempo en modo banca: pierde la partida o queda eliminado. */

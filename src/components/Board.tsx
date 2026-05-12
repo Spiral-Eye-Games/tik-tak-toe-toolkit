@@ -39,13 +39,13 @@ export function Board({ state, onPlayMove, onVictoryNewGame, onVictoryUndo }: Bo
 
           <BoardEventStrip state={state} />
           <BoardOutcomeStrip state={state} />
-
-          <VictoryModal
-            state={state}
-            onNewGame={onVictoryNewGame}
-            onUndo={onVictoryUndo}
-          />
         </div>
+
+        <VictoryModal
+          state={state}
+          onNewGame={onVictoryNewGame}
+          onUndo={onVictoryUndo}
+        />
       </div>
     </section>
   );

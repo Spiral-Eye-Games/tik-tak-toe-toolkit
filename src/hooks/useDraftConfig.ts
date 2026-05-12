@@ -13,7 +13,7 @@ import type { GameConfig } from "../game/types";
 
 export function useDraftConfig() {
   const [draftConfig, setDraftConfig] = useState<GameConfig>(
-    () => loadLastSettings() ?? sanitizeConfig(DEFAULT_CONFIG)
+    () => sanitizeConfig(loadLastSettings() ?? DEFAULT_CONFIG)
   );
 
   useEffect(() => {
@@ -38,6 +38,12 @@ export function useDraftConfig() {
           Math.max(2, next.roster.length),
           Math.min(DEFAULT_PLAYER_COUNT, next.roster.length)
         );
+      }
+
+      if (next.playerCount <= 2) {
+        next.eliminateLosers = false;
+        next.continueRanking = false;
+        next.eliminateWinners = false;
       }
 
       if (patch.pieceLimitType !== undefined || patch.pieceMoveMode !== undefined) {
@@ -70,6 +76,9 @@ export function useDraftConfig() {
       next.collapseEveryTurns = clampInt(next.collapseEveryTurns, 1, 99, DEFAULT_COLLAPSE_EVERY_TURNS);
       next.collapseEveryUnit = normalizeIntervalUnit(next.collapseEveryUnit, DEFAULT_CONFIG.collapseEveryUnit);
       next.collapseTimes = clampInt(next.collapseTimes, 1, 99, DEFAULT_CONFIG.collapseTimes);
+      next.clockBankSeconds = clampInt(next.clockBankSeconds, 10, 7200, DEFAULT_CONFIG.clockBankSeconds);
+      next.clockRecoverSeconds = clampInt(next.clockRecoverSeconds, 0, 600, DEFAULT_CONFIG.clockRecoverSeconds);
+      next.clockPerTurnSeconds = clampInt(next.clockPerTurnSeconds, 3, 600, DEFAULT_CONFIG.clockPerTurnSeconds);
 
       return next;
     });

@@ -106,6 +106,7 @@ export function sanitizeConfig(config: GameConfig): GameConfig {
   const roster = getDefaultRoster();
   const maxPlayers = roster.length;
   const playerCount = clampInt(config.playerCount, 2, maxPlayers, Math.min(DEFAULT_PLAYER_COUNT, maxPlayers));
+  const canUseRankingOptions = playerCount > 2;
 
   const explicitBrokenUnlimited = typeof config.brokenHoleUnlimited === "boolean";
   const brokenHoleUnlimited = explicitBrokenUnlimited
@@ -160,9 +161,9 @@ export function sanitizeConfig(config: GameConfig): GameConfig {
     collapseKillsPlayers: Boolean(config.collapseKillsPlayers),
     roster,
     playerCount,
-    eliminateLosers: Boolean(config.eliminateLosers),
-    continueRanking: Boolean(config.continueRanking),
-    eliminateWinners: typeof config.eliminateWinners === "boolean" ? config.eliminateWinners : DEFAULT_ELIMINATE_WINNERS,
+    eliminateLosers: canUseRankingOptions && Boolean(config.eliminateLosers),
+    continueRanking: canUseRankingOptions && Boolean(config.continueRanking),
+    eliminateWinners: canUseRankingOptions && (typeof config.eliminateWinners === "boolean" ? config.eliminateWinners : DEFAULT_ELIMINATE_WINNERS),
     clockEnabled,
     clockMode,
     clockBankSeconds: clampInt(config.clockBankSeconds, 10, 7200, DEFAULT_CLOCK_BANK_SECONDS),

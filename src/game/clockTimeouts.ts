@@ -7,7 +7,7 @@ import {
 } from "./clock";
 import { applyScheduledGravityRotation, scheduleGravityRotationIfDue } from "./gravity";
 import { cloneSnapshot, createSnapshot, snapshotToState } from "./history";
-import { advanceTurnAfterNoLine, resolveBankTimeoutLoss } from "./outcomes";
+import { advanceTurnAfterNoLine, resolveActivePlayerLine, resolveBankTimeoutLoss } from "./outcomes";
 import type { GameState } from "./types";
 
 export function applyClockBankTimeout(state: GameState): GameState {
@@ -65,6 +65,11 @@ export function completePendingGravityRotation(state: GameState): GameState {
   const snap = cloneSnapshot(createSnapshot(state));
   const nowMs = Date.now();
   extendClockTurnStartAfterGravityPause(snap, nowMs);
+
+  resolveActivePlayerLine(snap, state.config);
+  if (snap.gameOver) return snapshotToState(state, snap, state.undoStack, state.redoStack);
+
   applyScheduledGravityRotation(snap, state.config);
+  resolveActivePlayerLine(snap, state.config);
   return snapshotToState(state, snap, state.undoStack, state.redoStack);
 }
