@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { buildRulesText } from "../game/formatters";
+import { buildRulesHtml } from "../game/formatters";
 import type { GameState } from "../game/types";
 import { t } from "../i18n";
 
@@ -31,7 +31,7 @@ export function useHelpModal(gameState: GameState) {
     setModal({
       open: true,
       title: t("modal.rulesCurrentTitle"),
-      html: `<p>${buildRulesText(gameState.config)}</p><p>${t("rules.modal.intro", { newGame: newGameStrong })}</p>`
+      html: `${buildRulesHtml(gameState.config)}<p>${t("rules.modal.intro", { newGame: newGameStrong })}</p>`
     });
   }
 

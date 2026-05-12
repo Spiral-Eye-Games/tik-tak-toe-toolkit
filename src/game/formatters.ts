@@ -62,6 +62,140 @@ export function getRestrictionMovementModeText(config: GameConfig): string {
   return t(`rules.restrictions.movement.${config.restrictionMovementMode}`);
 }
 
+function buildList(items: string[]): string {
+  return `<ul>${items.map((item) => `<li>${item}</li>`).join("")}</ul>`;
+}
+
+function buildRulesSection(title: string, items: string[]): string {
+  if (items.length === 0) return "";
+  return `<section class="rules-current-section"><h3>${title}</h3>${buildList(items)}</section>`;
+}
+
+function getIntervalText(amount: number, unit: "turns" | "rounds", turns: number): string {
+  return unit === "rounds"
+    ? t("rules.interval.rounds", { amount, turns })
+    : t("rules.interval.turns", { amount });
+}
+
+export function buildRulesHtml(config: GameConfig): string {
+  const boardItems = [
+    t("rules.current.boardSize", { columns: config.columns, rows: config.rows }),
+    config.lineRule === "lose"
+      ? t("rules.current.objectiveLose", { lineLength: config.lineLength })
+      : t("rules.current.objectiveWin", { lineLength: config.lineLength })
+  ];
+
+  const pieceItems = [
+    config.pieceLimitType === "unlimited"
+      ? t("rules.current.piecesUnlimited")
+      : t("rules.current.piecesLimited", { maxPieces: config.maxPiecesPerPlayer })
+  ];
+
+  if (config.pieceMoveMode !== "blocked") {
+    pieceItems.push(t(`rules.current.moveMode.${config.pieceMoveMode}`));
+  }
+
+  if (config.pieceMoveMode !== "blocked" && config.restrictionMovementMode !== "normal") {
+    pieceItems.push(t("rules.current.movementPattern", {
+      movement: getRestrictionMovementModeText(config)
+    }));
+
+    if (config.restrictionMovementEatEnabled) {
+      pieceItems.push(t("rules.current.movementEat"));
+    } else if (config.restrictionMovementConvertEnabled) {
+      pieceItems.push(t("rules.current.movementConvert"));
+    }
+  }
+
+  const playerItems = [
+    t("rules.current.playerCount", { players: config.playerCount })
+  ];
+
+  if (config.playerCount > 2 && config.lineRule === "lose" && config.eliminateLosers) {
+    playerItems.push(t("rules.current.eliminateLosers"));
+  }
+
+  if (config.playerCount > 2 && config.lineRule === "win" && config.continueRanking) {
+    playerItems.push(t("rules.current.continueRanking"));
+    if (config.eliminateWinners) {
+      playerItems.push(t("rules.current.eliminateWinners"));
+    }
+  }
+
+  const mechanicItems: string[] = [];
+
+  if (config.brokenEnabled) {
+    const resolvedBrokenTurns = getResolvedBrokenHoleTurns(config);
+    mechanicItems.push(resolvedBrokenTurns === 0
+      ? t("rules.current.brokenUntilEnd")
+      : t("rules.current.brokenForTurns", { turns: resolvedBrokenTurns }));
+  }
+
+  if (config.gravityEnabled) {
+    mechanicItems.push(t("rules.current.gravityDirection", {
+      direction: t(`rules.gravity.direction.${config.gravityInitialDirection}`)
+    }));
+
+    if (config.gravityRotateEnabled) {
+      const gravityIntervalText = getIntervalText(
+        config.gravityRotateEveryTurns,
+        config.gravityRotateEveryUnit,
+        getResolvedGravityRotateInterval(config)
+      );
+      mechanicItems.push(t("rules.current.gravityRotation", {
+        intervalText: gravityIntervalText,
+        angle: t(`rules.gravity.rotateAngle.${config.gravityRotateAngle}`),
+        spin: t(`rules.gravity.rotateSpin.${config.gravityRotateSpin}`)
+      }));
+    }
+  }
+
+  if (config.clockEnabled) {
+    mechanicItems.push(config.clockMode === "bank"
+      ? config.clockRecoverSeconds > 0
+        ? t("rules.current.clockBankWithRecover", {
+          total: config.clockBankSeconds,
+          recover: config.clockRecoverSeconds
+        })
+        : t("rules.current.clockBank", { total: config.clockBankSeconds })
+      : t("rules.current.clockPerTurn", { seconds: config.clockPerTurnSeconds }));
+  }
+
+  if (config.restrictionsEnabled && config.restrictionStartBlockedCells.length > 0) {
+    mechanicItems.push(t("rules.current.restrictionStart", {
+      cells: config.restrictionStartBlockedCells.length,
+      turns: getResolvedRestrictionStartTurns(config)
+    }));
+  }
+
+  if (config.collapseEnabled) {
+    const collapseIntervalText = getIntervalText(
+      config.collapseEveryTurns,
+      config.collapseEveryUnit,
+      getResolvedCollapseInterval(config)
+    );
+    mechanicItems.push(t("rules.current.collapse", {
+      type: t(`rules.collapse.type.${config.collapseType}`),
+      intervalText: collapseIntervalText,
+      times: config.collapseTimes
+    }));
+
+    if (config.collapseKillsPlayers) {
+      mechanicItems.push(t("rules.current.collapseKills"));
+    }
+  }
+
+  return `<div class="rules-current"><p>${t("rules.current.intro")}</p>${
+    buildRulesSection(t("rules.current.boardTitle"), boardItems)
+  }${
+    buildRulesSection(t("rules.current.piecesTitle"), pieceItems)
+  }${
+    buildRulesSection(t("rules.current.playersTitle"), playerItems)
+  }${
+    buildRulesSection(t("rules.current.mechanicsTitle"), mechanicItems)
+  }</div>`;
+}
+
 export function buildRulesText(config: GameConfig): string {
   const lineText = config.lineRule === "lose" ? t("rules.lineRule.lose") : t("rules.lineRule.win");
 

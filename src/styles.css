@@ -1244,6 +1244,46 @@ body, #root { height: 100vh; }
 .modal-body li { margin-bottom: 8px; }
 .modal-body strong { color: var(--text); }
 
+.help-modal {
+  width: min(94vw, 640px);
+}
+
+.help-modal-body h3 {
+  margin: 18px 0 8px;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 1000;
+}
+
+.help-modal-body h3:first-child {
+  margin-top: 0;
+}
+
+.rules-current {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.rules-current > p {
+  margin: 0;
+}
+
+.rules-current-section {
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.rules-current-section h3 {
+  margin: 0 0 10px;
+}
+
+.rules-current-section ul {
+  margin: 0;
+}
+
 .preset-modal {
   width: min(94vw, 520px);
 }
@@ -1282,6 +1322,37 @@ body, #root { height: 100vh; }
   line-height: 1.45;
 }
 
+.movement-info-guide,
+.restriction-grid-guide {
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 209, 102, 0.18);
+  background: rgba(255, 209, 102, 0.08);
+}
+
+.movement-info-guide h3 {
+  margin: 0 0 8px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 1000;
+}
+
+.movement-info-guide ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.movement-info-guide li {
+  margin-bottom: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.movement-info-guide li:last-child {
+  margin-bottom: 0;
+}
+
 .movement-info-list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
@@ -1314,6 +1385,19 @@ body, #root { height: 100vh; }
   color: var(--muted);
   font-size: 13px;
   line-height: 1.4;
+}
+
+.restriction-grid-guide {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.restriction-grid-guide strong {
+  color: var(--text);
 }
 
 .restriction-grid {

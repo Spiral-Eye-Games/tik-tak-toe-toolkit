@@ -53,6 +53,14 @@ export function MovementInfoModal({ open, onClose }: MovementInfoModalProps) {
 
           <div className="modal-body movement-info-modal-body">
             <p className="movement-info-intro">{t("movementInfo.intro")}</p>
+            <div className="movement-info-guide">
+              <h3>{t("movementInfo.guideTitle")}</h3>
+              <ul>
+                <li>{t("movementInfo.guideSelect")}</li>
+                <li>{t("movementInfo.guideBlocked")}</li>
+                <li>{t("movementInfo.guideEffects")}</li>
+              </ul>
+            </div>
             <div className="movement-info-list">
               {MOVEMENT_MODES.map((mode) => (
                 <article className="movement-info-item" key={mode}>

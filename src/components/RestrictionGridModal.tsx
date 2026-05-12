@@ -132,6 +132,10 @@ export function RestrictionGridModal({ open, config, onApply, onClose }: Restric
 
           <div className="modal-body restriction-grid-modal-body">
             <p className="restriction-grid-intro">{t("restrictionGrid.intro")}</p>
+            <div className="restriction-grid-guide">
+              <strong>{t("restrictionGrid.guideTitle")}</strong>
+              <span>{t("restrictionGrid.guideBody")}</span>
+            </div>
 
             <div
               className="restriction-grid"

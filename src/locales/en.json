@@ -196,19 +196,23 @@
   "movementInfo": {
     "open": "View movement information",
     "title": "Movement types",
-    "intro": "These modes change how a placed piece can move. If Eat is enabled, pieces can remove enemy pieces according to their pattern. For Checker, Horseman, and Mage, Capture converts the jumped piece into your own piece.",
-    "effects": "Eat and Capture are mutually exclusive. With both off, Checker, Horseman, and Mage can jump an enemy piece without affecting it.",
+    "intro": "These modes change legal destinations when a placed piece is allowed to move.",
+    "guideTitle": "How to read this list",
+    "guideSelect": "First choose one of your pieces; then only destinations compatible with the selected pattern are highlighted.",
+    "guideBlocked": "Pieces, broken cells, and board edges can block line-based movement.",
+    "guideEffects": "Eat removes enemy pieces; Capture converts them. If both are off, jumps do not affect the jumped piece.",
+    "effects": "Eat and Capture are mutually exclusive. Capture only applies to Checker, Horseman, and Mage.",
     "modes": {
       "normal": "Adds no restriction: any legal empty destination remains allowed.",
-      "king": "Moves 1 cell in any direction.",
+      "king": "Moves exactly 1 cell in any direction.",
       "grandKing": "Moves up to 2 cells in any direction.",
       "queen": "Moves in a straight horizontal, vertical, or diagonal line without passing through pieces or broken cells.",
       "rook": "Moves horizontally or vertically without passing through pieces or broken cells.",
-      "pillar": "Moves 1 horizontal or vertical cell.",
+      "pillar": "Moves exactly 1 horizontal or vertical cell.",
       "bishop": "Moves diagonally without passing through pieces or broken cells.",
-      "monk": "Moves 1 diagonal cell.",
+      "monk": "Moves exactly 1 diagonal cell.",
       "knight": "Moves in an L shape like a chess knight.",
-      "neon": "Moves 1 horizontal or vertical cell. If Eat is enabled, it eats 1 diagonal cell.",
+      "neon": "Moves 1 horizontal or vertical cell. If Eat is enabled, it can also eat 1 diagonal cell.",
       "checkers": "Moves 1 diagonal cell. It can jump an enemy piece to the next diagonal cell if that cell is free.",
       "horsemen": "Moves 1 horizontal or vertical cell. It can jump an enemy piece in a straight line if the next cell is free.",
       "mage": "Combines Checker and Horseman: moves or jumps diagonally, horizontally, or vertically."
@@ -308,6 +312,41 @@
       "normal": "No extra movement limit.",
       "enabled": "Movement limited like {{movementText}}."
     },
+    "current": {
+      "intro": "Summary of the rules applied to this match.",
+      "boardTitle": "Match Base",
+      "piecesTitle": "Pieces",
+      "playersTitle": "Players",
+      "mechanicsTitle": "Active Mechanics",
+      "boardSize": "{{columns}} columns by {{rows}} rows board.",
+      "objectiveWin": "The player who makes {{lineLength}} in a row wins.",
+      "objectiveLose": "The player who makes {{lineLength}} in a row loses.",
+      "piecesUnlimited": "Each player can place unlimited pieces.",
+      "piecesLimited": "Each player can have up to {{maxPieces}} live pieces.",
+      "moveMode": {
+        "forcedOldest": "When reaching the piece maximum, the oldest piece must move.",
+        "limitMoveAny": "When reaching the piece maximum, any of your pieces can move.",
+        "limitedFree": "Any of your pieces can move at any time.",
+        "free": "You can choose to move one of your pieces instead of placing a new one."
+      },
+      "movementPattern": "Moved pieces use the {{movement}} pattern.",
+      "movementEat": "Eat is active: enemy pieces reached by the pattern are removed.",
+      "movementConvert": "Capture is active: jumped pieces become your own pieces.",
+      "playerCount": "{{players}} players participate.",
+      "eliminateLosers": "When a player loses, their pieces are removed from the board.",
+      "continueRanking": "The match continues after the first winner to build standings.",
+      "eliminateWinners": "When a player wins a ranking round, their pieces are removed.",
+      "brokenUntilEnd": "Rupture: abandoned cells stay broken until the end.",
+      "brokenForTurns": "Rupture: abandoned cells stay broken for {{turns}} turns.",
+      "gravityDirection": "Gravity: pieces fall toward {{direction}}.",
+      "gravityRotation": "Gravity rotates every {{intervalText}} with {{angle}} step and {{spin}}.",
+      "clockBank": "Clock: each player has a {{total}} s total bank.",
+      "clockBankWithRecover": "Clock: each player has a {{total}} s bank and recovers {{recover}} s after moving.",
+      "clockPerTurn": "Clock: each move has {{seconds}} s.",
+      "restrictionStart": "Opening blocking: {{cells}} cells reject new pieces for {{turns}} turns.",
+      "collapse": "{{type}} collapse every {{intervalText}}, up to {{times}} times.",
+      "collapseKills": "If collapse leaves a player without pieces, that player loses or is eliminated."
+    },
     "summary": "{{columns}} columns x {{rows}} rows. {{lineText}} if you make {{lineLength}} in a row. {{piecesText}}. {{moveText}}. {{movementLimitText}} {{brokenText}}. {{gravityText}} {{collapseText}} {{clockText}} {{restrictionsText}}",
     "modal": {
       "intro": "These are the rules for the current game. If you change values in the sidebar, press {{newGame}} to apply them."
@@ -349,35 +388,35 @@
   "help": {
     "general": {
       "title": "General",
-      "html": "<p>This section defines the basic structure of the game.</p><ul><li><strong>N Columns</strong> controls the board width.</li><li><strong>N Rows</strong> controls the board height.</li><li><strong>Win / Lose</strong> changes the main goal: you can play normal Ta-Te-Ti or misère mode, where completing a line makes you lose.</li><li><strong>N in a row</strong> defines how many aligned pieces activate the condition.</li></ul>"
+      "html": "<p>This is where you define the match foundation: board size, objective, and the line length that decides the result.</p><h3>What you can configure</h3><ul><li><strong>N Columns</strong> and <strong>N Rows</strong> change the board width and height.</li><li><strong>Win / Lose</strong> decides whether completing a line makes you win or lose.</li><li><strong>N in a row</strong> defines how many consecutive pieces trigger that condition.</li></ul><h3>How it changes the game</h3><ul><li>A larger board gives more room for variants with gravity, blocking, or collapse.</li><li>If you choose <strong>Lose</strong>, you play misère mode: completing a line becomes something to avoid.</li><li>The line length must fit on the board; the app limits it according to rows and columns.</li></ul>"
     },
     "pieces": {
       "title": "Pieces",
-      "html": "<p>This section controls how many pieces each player can have and what happens when a piece must move.</p><ul><li><strong>Unlimited disabled</strong>: each player has a limited number of live pieces.</li><li><strong>Unlimited enabled</strong>: players can keep adding pieces without limit.</li><li><strong>Forced</strong>: when reaching the maximum, the next action must move the oldest piece.</li><li><strong>Limit</strong>: when reaching the maximum, the next action must move any of your pieces.</li><li><strong>Free</strong>: with limited pieces, you can move any of your pieces at any time, even before placing all possible pieces.</li><li><strong>Blocked</strong>: with unlimited pieces, you can't move a piece that's already on the board.</li><li><strong>Free</strong>: with unlimited pieces, you can choose to move one of your pieces instead of placing a new one.</li><li><strong>Movement</strong> appears when pieces can move and lets you restrict destinations with special patterns. Eat removes enemy pieces; Capture converts them to your player.</li></ul><p>The number above each piece shows its current order among that player's pieces.</p>"
+      "html": "<p>This is where you decide how many pieces each player has and whether placed pieces can move again.</p><h3>What you can configure</h3><ul><li><strong>Unlimited</strong> on lets players place pieces without a cap; off uses the quantity field.</li><li><strong>Quantity</strong> is the maximum number of live pieces per player when pieces are not unlimited.</li><li><strong>Move pieces</strong> defines when a piece may move: never, only after reaching the limit, or freely.</li><li><strong>Movement</strong> appears when movement is allowed and adds patterns such as King, Rook, Checker, or Knight.</li><li><strong>Eat</strong> removes enemy pieces reached by the pattern; <strong>Capture</strong> converts them to your own pieces when the mode supports it.</li></ul><h3>How it changes the game</h3><ul><li>With few pieces, order matters: the number on each piece shows which one was placed first.</li><li>Forced modes push the match toward recycling pieces; free modes make it more tactical.</li><li>Special patterns change which destinations are legal, so the info button next to <strong>Movement</strong> explains each one.</li></ul>"
     },
     "holes": {
       "title": "Rupture",
-      "html": "<p>When a piece leaves a cell, that cell can become broken (blocked).</p><ul><li>The title toggle enables or disables rupture.</li><li>If disabled, the cell becomes empty when the piece leaves.</li><li>If enabled, the abandoned cell becomes broken.</li><li><strong>Unlimited</strong>: the break lasts until the end of the match (turn count does not apply).</li><li>Without unlimited, <strong>Turns</strong> is the base duration (minimum 1).</li><li><strong>Per player</strong> multiplies that amount by the number of players in the game.</li></ul>"
+      "html": "<p>Rupture makes a cell unusable after a piece leaves it.</p><h3>What you can configure</h3><ul><li>The title switch enables or disables this mechanic.</li><li><strong>Turns</strong> sets how long the rupture lasts from the next turn onward.</li><li><strong>Unlimited</strong> keeps the broken cell blocked until the match ends.</li><li><strong>Per player</strong> multiplies the duration by the number of active players when the match is configured.</li></ul><h3>How it changes the game</h3><ul><li>If disabled, moving a piece leaves the cell immediately available.</li><li>If enabled, movement has a spatial cost: you can close paths or block areas.</li><li>Broken cells also interfere with line movement and gravity.</li></ul>"
     },
     "gravity": {
       "title": "Gravity",
-      "html": "<p>Gravity pulls pieces toward one side of the board (like a sideways Connect 4).</p><ul><li>The title toggle enables or disables this mechanic.</li><li><strong>Initial direction</strong> sets which way is “down” at the start of the match.</li><li>With vertical gravity (up/down), tap any empty cell in that column: the new piece settles at the landing spot (strong arrow). Fainter arrows mark other empty cells in the same column you can use as shortcuts.</li><li>With horizontal gravity (left/right), the same idea applies along the row.</li><li>When moving a piece, tap any empty cell on the board; the piece is placed there, then gravity pulls it and the other pieces along the current direction.</li><li>Broken cells from rupture block movement through that cell.</li><li><strong>Rotate gravity</strong> changes the pull direction every N turns or rounds; one round equals one turn from each player active at the start of the match.</li><li>There is a one-second pause so you can see the board, then all pieces re-settle in the new direction.</li><li><strong>Rotation step</strong> is 90°, 180°, or 270° per tick (or random among those).</li><li><strong>Turn direction</strong> is clockwise or counter-clockwise on the screen (or random each tick).</li></ul>"
+      "html": "<p>Gravity pulls every piece toward one side of the board, as if that side were the floor.</p><h3>What you can configure</h3><ul><li>The title switch enables or disables gravity.</li><li><strong>Initial direction</strong> sets where pieces fall at the start.</li><li><strong>Rotate gravity</strong> can change the direction after a number of turns or rounds.</li><li><strong>Rotation step</strong> chooses how much gravity turns each time: 90°, 180°, 270°, or random.</li><li><strong>Turn direction</strong> sets clockwise, counter-clockwise, or random rotation.</li></ul><h3>How to play with gravity</h3><ul><li>When placing, tap an empty cell in the column or row: the piece falls to its landing spot.</li><li>Strong arrows show where the piece will land; faint arrows are shortcuts in the same fall line.</li><li>When moving a piece, choose an empty cell and then the whole board settles in the current direction.</li><li>Broken cells act as obstacles and can split a column or row into separate segments.</li><li>When gravity rotates, there is a short pause before pieces settle again.</li></ul>"
     },
     "players": {
       "title": "Players",
-      "html": "<p>Set how many players join and customize their marks and colors.</p><ul><li><strong>Number</strong> uses the first players in list order.</li><li>With more than two in <strong>Lose</strong> mode, completing a line removes a player from the turn order; enable <strong>Eliminate losers</strong> to also remove their pieces from the board.</li><li>With more than two in <strong>Win</strong> mode, the first line wins unless <strong>Continue for ranking</strong> is enabled, where winners are removed until the full order is decided.</li><li>With <strong>Continue for ranking</strong> on, <strong>Eliminate winners</strong> clears that player's pieces from the board when they take a round; turn it off to leave their pieces as obstacles.</li></ul>"
+      "html": "<p>This is where you choose how many players join and how matches with more than two players resolve.</p><h3>What you can configure</h3><ul><li><strong>Number of players</strong> uses the first players in the list, in that turn order.</li><li>With more than two players in <strong>Lose</strong> mode, <strong>Eliminate losers</strong> can clear their pieces when they are removed.</li><li>With more than two players in <strong>Win</strong> mode, <strong>Continue for ranking</strong> lets play continue after the first winner.</li><li>If ranking continues, <strong>Eliminate winners</strong> decides whether a winner's pieces are removed or kept as obstacles.</li></ul><h3>How it changes the game</h3><ul><li>In two-player matches, winning or losing ends the match normally.</li><li>In three-or-more-player matches, elimination options decide whether the board partially clears or keeps pieces that affect the remaining players.</li><li>Player marks and colors are edited from the players panel.</li></ul>"
     },
     "clock": {
       "title": "Clock",
-      "html": "<p>The title checkbox turns the clock on or off.</p><ul><li>With the clock off, the match does not track time.</li><li><strong>Total bank</strong>: each player has one total budget for the whole game; unused time on a turn stays for later turns. At 0 you lose (with more than two players you may be removed like losing a line). Optionally you can add seconds after each legal move, capped at the initial bank.</li><li><strong>Per-turn clock</strong>: each turn gets the same allowance; if it hits 0 you only lose that turn and play passes on.</li></ul><p>During the gravity-rotation pause the clock does not run.</p>"
+      "html": "<p>The clock adds time pressure to each player.</p><h3>What you can configure</h3><ul><li>The title switch enables or disables the clock.</li><li><strong>Total bank</strong> gives each player one time budget for the whole match.</li><li><strong>Recover on move</strong> adds seconds after a legal move, without exceeding the initial bank.</li><li><strong>Per-turn clock</strong> resets the same allowance for every move.</li></ul><h3>How it changes the game</h3><ul><li>In total bank mode, if the timer reaches 0, that player loses or is eliminated depending on player count.</li><li>In per-turn mode, if the timer reaches 0, only that move is forfeited and play passes on.</li><li>During the gravity-rotation pause, the clock does not run.</li></ul>"
     },
     "restrictions": {
       "title": "Blocking",
-      "html": "<p>The title checkbox enables blocked cells at the start.</p><ul><li>Painted cells are temporarily blocked for new piece placement.</li><li><strong>Edit blocked cells</strong> opens a grid with the current board size. Tap or drag to paint and unpaint cells.</li><li>The board event shows when those cells will be released.</li></ul>"
+      "html": "<p>Blocking reserves cells that cannot be used at the start of the match.</p><h3>What you can configure</h3><ul><li>The title switch enables or disables opening blocked cells.</li><li><strong>For N</strong> defines how long they stay blocked.</li><li><strong>Unit</strong> lets that time count in turns or rounds.</li><li><strong>Edit blocked cells</strong> opens a grid matching the current board so you can paint and unpaint cells.</li></ul><h3>How it changes the game</h3><ul><li>While blocking lasts, new pieces cannot be placed on painted cells.</li><li>When the countdown ends, those cells become available again.</li><li>The board event indicator shows when blocking will release.</li></ul>"
     },
     "collapse": {
       "title": "Collapse",
-      "html": "<p>Collapse breaks board edges after a configured number of completed turns or rounds.</p><ul><li>The title toggle enables or disables the mechanic.</li><li><strong>Type</strong> defines which edge collapses: left, right, up, down, horizontal (left and right), vertical (top and bottom), or circular (all edges).</li><li>Each repetition advances one layer inward: for example, left breaks a deeper column and circular breaks the next ring.</li><li><strong>Every N</strong> defines the interval and <strong>Unit</strong> chooses whether it counts turns or rounds; one round equals one turn from each player active at the start of the match.</li><li><strong>Times</strong> limits how many collapses may happen during the match.</li><li>Collapsed cells stay broken until the end of the match and destroy any piece on them.</li><li>With <strong>Kill players</strong> enabled, if a player who had pieces is left with none by the collapse, they lose or are eliminated.</li></ul>"
+      "html": "<p>Collapse shrinks the board by breaking edges at scheduled moments.</p><h3>What you can configure</h3><ul><li>The title switch enables or disables the mechanic.</li><li><strong>Type</strong> chooses which edge or edges break: left, right, up, down, horizontal, vertical, or circular.</li><li><strong>Every N</strong> and <strong>Unit</strong> define the interval in turns or rounds.</li><li><strong>Times</strong> limits how many collapses can happen during the match.</li><li><strong>Kill players</strong> decides whether a player left without pieces by collapse loses or keeps playing.</li></ul><h3>How it changes the game</h3><ul><li>Each collapse advances one layer inward; for example, circular breaks the next ring of the board.</li><li>Collapsed cells stay broken until the end of the match.</li><li>If there were pieces on those cells, they are destroyed when the collapse happens.</li><li>The event indicator warns when the next collapse is coming.</li></ul>"
     }
   },
   "board": {
@@ -405,7 +444,9 @@
   },
   "restrictionGrid": {
     "title": "Opening blocked cells",
-    "intro": "Paint the cells where pieces cannot be placed while blocking is active.",
+    "intro": "Paint the cells where pieces cannot be placed while opening blocking is active.",
+    "guideTitle": "Quick use",
+    "guideBody": "Tap a cell to toggle it. You can also press and drag to paint or erase several cells with the same gesture.",
     "cellLabel": "Toggle {{coordinate}}",
     "selectedCount": "{{count}} selected cells",
     "clear": "Clear",
