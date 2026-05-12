@@ -9,7 +9,6 @@ import {
   DEFAULT_GRAVITY_ROTATE_EVERY_TURNS_PER_PLAYER,
   DEFAULT_LIMITED_PIECE_MOVE_MODE,
   DEFAULT_MAX_PIECES_PER_PLAYER,
-  DEFAULT_PLAYER_COLORS,
   DEFAULT_PLAYER_COUNT,
   DEFAULT_ROSTER,
   DEFAULT_UNLIMITED_PIECE_MOVE_MODE
@@ -17,47 +16,8 @@ import {
 import type { ClockMode, GameConfig, GravityDirection, GravityRotateAngle, GravityRotateSpin, PieceMoveMode, RosterPlayer } from "./types";
 import { t } from "../i18n";
 
-type LegacyRosterRow = Partial<RosterPlayer> & { emoji?: string };
-
-function isValidHexColor(value: string): boolean {
-  return /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(value);
-}
-
-/** Normaliza #rgb a #rrggbb para coincidir con `<input type="color">`. */
-function normalizeHexColor(value: string): string {
-  const v = value.trim();
-  if (/^#[0-9a-f]{3}$/i.test(v)) {
-    const r = v[1]!;
-    const g = v[2]!;
-    const b = v[3]!;
-    return `#${r}${r}${g}${g}${b}${b}`.toLowerCase();
-  }
-  return v.toLowerCase();
-}
-
-export function normalizeRoster(roster: RosterPlayer[] | undefined): RosterPlayer[] {
-  if (!Array.isArray(roster) || roster.length < 2) {
-    return DEFAULT_ROSTER.map((r) => ({ ...r }));
-  }
-
-  const seen = new Set<string>();
-  return roster.map((raw, index) => {
-    const entry = raw as LegacyRosterRow;
-    const fromSymbol = typeof entry.symbol === "string" ? entry.symbol.trim() : "";
-    const fromEmoji = typeof entry.emoji === "string" ? entry.emoji.trim() : "";
-    const symbolRaw = (fromSymbol || fromEmoji).slice(0, 8);
-    const fallback = DEFAULT_ROSTER[index % DEFAULT_ROSTER.length];
-    const symbol = symbolRaw || fallback.symbol;
-    const colorRaw = typeof entry.color === "string" ? entry.color.trim() : "";
-    const color = isValidHexColor(colorRaw)
-      ? normalizeHexColor(colorRaw)
-      : DEFAULT_PLAYER_COLORS[index % DEFAULT_PLAYER_COLORS.length];
-
-    let id = typeof entry.id === "string" && entry.id.trim() ? entry.id.trim() : `p${index}`;
-    while (seen.has(id)) id = `${id}_${index}`;
-    seen.add(id);
-    return { id, symbol, color };
-  });
+export function getDefaultRoster(): RosterPlayer[] {
+  return DEFAULT_ROSTER.map((player) => ({ ...player }));
 }
 
 export function clampInt(value: number, min: number, max: number, fallback: number): number {
@@ -122,7 +82,7 @@ export function sanitizeConfig(config: GameConfig): GameConfig {
   const pieceLimitType = config.pieceLimitType;
   const pieceMoveMode = normalizeMoveMode(pieceLimitType, config.pieceMoveMode);
 
-  const roster = normalizeRoster(config.roster);
+  const roster = getDefaultRoster();
   const maxPlayers = roster.length;
   const playerCount = clampInt(config.playerCount, 2, maxPlayers, Math.min(DEFAULT_PLAYER_COUNT, maxPlayers));
 

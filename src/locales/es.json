@@ -96,7 +96,6 @@
     "gravityRotateInfo": "La dirección cambia cada {{turns}} turnos completados (después de resolver líneas y estabilizar el tablero).",
     "gravityRotateInfoPerPlayer": "{{base}} × {{players}} jugadores = {{total}} turnos entre rotaciones.",
     "playerCount": "Cantidad de jugadores",
-    "customizePlayers": "Personalizar jugadores",
     "eliminateLosers": "Eliminar perdedores (sacar fichas al perder la raya)",
     "continueRanking": "Seguir por el ranking (varios ganadores por orden)",
     "eliminateWinners": "Eliminar ganadores (sacar fichas al ganar la raya en ranking)",

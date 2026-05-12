@@ -130,16 +130,11 @@ export function PiecesSettingsSection({ config, onChangeConfig, onHelp }: Sideba
   );
 }
 
-interface PlayersSettingsSectionProps extends SidebarSectionProps {
-  onOpenPlayers: () => void;
-}
-
 export function PlayersSettingsSection({
   config,
   onChangeConfig,
-  onHelp,
-  onOpenPlayers
-}: PlayersSettingsSectionProps) {
+  onHelp
+}: SidebarSectionProps) {
   const playerOptions = Array.from(
     { length: Math.max(0, config.roster.length - 1) },
     (_, index) => index + 2
@@ -147,24 +142,17 @@ export function PlayersSettingsSection({
 
   return (
     <SettingsSection title={t("sections.players")} icon={<UsersRound aria-hidden="true" />} helpKey="players" onHelp={onHelp}>
-      <div className="field-row players-tool-row">
-        <label className="field">
-          {t("fields.playerCount")}
-          <select
-            value={config.playerCount}
-            onChange={(event) => onChangeConfig({ playerCount: Number(event.target.value) })}
-          >
-            {playerOptions.map((value) => (
-              <option key={value} value={value}>{value}</option>
-            ))}
-          </select>
-        </label>
-        <div className="players-customize-cell">
-          <button className="button secondary" type="button" onClick={onOpenPlayers}>
-            {t("fields.customizePlayers")}
-          </button>
-        </div>
-      </div>
+      <label className="field">
+        {t("fields.playerCount")}
+        <select
+          value={config.playerCount}
+          onChange={(event) => onChangeConfig({ playerCount: Number(event.target.value) })}
+        >
+          {playerOptions.map((value) => (
+            <option key={value} value={value}>{value}</option>
+          ))}
+        </select>
+      </label>
 
       {config.lineRule === "lose" && config.playerCount > 2 && (
         <label className="field checkbox boxed">

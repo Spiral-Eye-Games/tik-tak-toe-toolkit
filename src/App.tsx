@@ -17,7 +17,6 @@ export default function App() {
   const {
     draftConfig,
     updateDraftConfig,
-    applyRoster,
     sanitizeDraftConfig,
     replaceDraftConfig
   } = useDraftConfig();
@@ -64,7 +63,6 @@ export default function App() {
           onApplyPreset={applyPreset}
           onHelp={openHelp}
           onRulesHelp={openRulesHelp}
-          onApplyRoster={applyRoster}
         />
 
         <Board

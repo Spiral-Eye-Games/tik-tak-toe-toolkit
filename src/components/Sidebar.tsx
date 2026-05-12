@@ -1,10 +1,9 @@
 import { Info, SlidersHorizontal } from "lucide-react";
 import { useState } from "react";
 import { mustMovePiece } from "../game/rules";
-import type { GameConfig, GameState, RosterPlayer } from "../game/types";
+import type { GameConfig, GameState } from "../game/types";
 import { t } from "../i18n";
 import { MatchStatusBanner, getMatchStatusAriaText } from "./MatchStatusBanner";
-import { PlayersModal } from "./PlayersModal";
 import { PresetModal } from "./PresetModal";
 import {
   BrokenHolesSettingsSection,
@@ -24,7 +23,6 @@ interface SidebarProps {
   onApplyPreset: (config: GameConfig) => void;
   onHelp: (helpKey: string) => void;
   onRulesHelp: () => void;
-  onApplyRoster: (roster: RosterPlayer[]) => void;
 }
 
 export function Sidebar({
@@ -34,10 +32,8 @@ export function Sidebar({
   onNewGame,
   onApplyPreset,
   onHelp,
-  onRulesHelp,
-  onApplyRoster
+  onRulesHelp
 }: SidebarProps) {
-  const [playersModalOpen, setPlayersModalOpen] = useState(false);
   const [presetModalOpen, setPresetModalOpen] = useState(false);
 
   return (
@@ -77,7 +73,6 @@ export function Sidebar({
           config={config}
           onChangeConfig={onChangeConfig}
           onHelp={onHelp}
-          onOpenPlayers={() => setPlayersModalOpen(true)}
         />
         <BrokenHolesSettingsSection config={config} onChangeConfig={onChangeConfig} onHelp={onHelp} />
         <GravitySettingsSection config={config} onChangeConfig={onChangeConfig} onHelp={onHelp} />
@@ -94,12 +89,6 @@ export function Sidebar({
         }}
       />
 
-      <PlayersModal
-        open={playersModalOpen}
-        roster={config.roster}
-        onClose={() => setPlayersModalOpen(false)}
-        onApply={onApplyRoster}
-      />
     </aside>
   );
 }

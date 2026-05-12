@@ -211,10 +211,22 @@ body, #root { height: 100vh; }
 }
 
 .player-mark-glyph {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-weight: 1000;
   line-height: 1;
   text-shadow: 0 1px 10px rgba(0, 0, 0, 0.35);
+}
+
+.player-mark-glyph svg {
+  width: 1em;
+  height: 1em;
+  stroke-width: 2.6;
+}
+
+.player-mark-glyph--heavy-stroke svg {
+  stroke-width: 4;
 }
 
 .player-mark-glyph--compact {
@@ -535,11 +547,6 @@ body, #root { height: 100vh; }
   align-items: end;
 }
 
-.field-row.players-tool-row {
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: end;
-}
-
 .field-row.broken-rupture-row {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   align-items: end;
@@ -554,15 +561,6 @@ body, #root { height: 100vh; }
 .field.checkbox.broken-rupture-check span {
   line-height: 1.25;
   font-size: 12px;
-}
-
-.players-customize-cell {
-  flex-shrink: 0;
-}
-
-.players-customize-cell .button.secondary {
-  white-space: nowrap;
-  padding: 12px 14px;
 }
 
 .field {
@@ -833,35 +831,97 @@ body, #root { height: 100vh; }
   font-size: clamp(13px, 40cqw, 84px);
   font-weight: 1000;
   line-height: 1;
-  box-shadow: inset 0 0 clamp(6px, 16cqw, 20px) rgba(255, 255, 255, 0.08), 0 clamp(4px, 8cqw, 10px) clamp(8px, 20cqw, 28px) rgba(0, 0, 0, 0.28);
+  box-shadow:
+    inset 0 clamp(2px, 4cqw, 5px) clamp(5px, 11cqw, 13px) rgba(255, 255, 255, 0.18),
+    inset 0 clamp(-6px, -11cqw, -3px) clamp(9px, 20cqw, 22px) rgba(0, 0, 0, 0.28),
+    0 clamp(5px, 10cqw, 12px) clamp(10px, 22cqw, 28px) rgba(0, 0, 0, 0.34);
 }
 
 .piece.player-piece {
   color: var(--text);
-  background: rgba(255, 255, 255, 0.06);
-  border: clamp(1px, 1.8cqw, 2px) solid rgba(255, 255, 255, 0.14);
-  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, currentColor 40%, #475569) 0%,
+      color-mix(in srgb, currentColor 34%, #1f2937) 100%
+    );
+  border: clamp(3px, 5cqw, 6px) solid currentColor;
+  text-shadow:
+    0 0 3px rgba(13, 16, 28, 0.78),
+    0 0 7px rgba(13, 16, 28, 0.52),
+    0 3px 10px rgba(0, 0, 0, 0.46);
+}
+
+.piece.player-piece::before {
+  content: "";
+  position: absolute;
+  inset: clamp(4px, 7cqw, 8px);
+  z-index: 0;
+  border-radius: inherit;
+  background: color-mix(in srgb, currentColor 22%, rgba(17, 24, 39, 0.68));
+  box-shadow:
+    inset 0 0 0 clamp(1px, 1.8cqw, 2px) color-mix(in srgb, currentColor 48%, rgba(255, 255, 255, 0.28));
+  pointer-events: none;
+}
+
+.piece.player-piece::after {
+  content: "";
+  position: absolute;
+  inset: clamp(5px, 8cqw, 9px);
+  z-index: 2;
+  border-radius: inherit;
+  border: clamp(1px, 1.5cqw, 2px) solid color-mix(in srgb, currentColor 58%, rgba(255, 255, 255, 0.32));
+  box-shadow: inset 0 0 0 clamp(2px, 4cqw, 4px) rgba(15, 23, 42, 0.16);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.piece-mark {
+  position: relative;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.piece-mark svg {
+  width: clamp(13px, 39cqw, 50px);
+  height: clamp(13px, 39cqw, 50px);
+  stroke-width: 2.75;
+  filter:
+    drop-shadow(0 1px 0 rgba(255, 255, 255, 0.16))
+    drop-shadow(0 0 3px rgba(13, 16, 28, 0.78))
+    drop-shadow(0 0 7px rgba(13, 16, 28, 0.54))
+    drop-shadow(0 4px 8px rgba(0, 0, 0, 0.42));
+}
+
+.piece-mark.player-mark-glyph--heavy-stroke svg {
+  stroke-width: 4.4;
 }
 
 .piece-order {
   position: absolute;
-  right: clamp(-7px, -5cqw, -2px);
-  bottom: clamp(-7px, -5cqw, -2px);
-  min-width: clamp(12px, 22cqw, 28px);
-  height: clamp(12px, 22cqw, 28px);
+  z-index: 4;
+  right: clamp(-6px, -5cqw, -2px);
+  bottom: clamp(-3px, -2cqw, 0px);
+  min-width: clamp(14px, 20cqw, 26px);
+  height: clamp(14px, 20cqw, 26px);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0 clamp(2px, 4cqw, 5px);
-  border-radius: 999px;
-  background: var(--accent);
-  color: #211900;
-  border: clamp(1px, 1.8cqw, 2px) solid rgba(0, 0, 0, 0.35);
-  font-size: clamp(7px, 11cqw, 15px);
+  padding: 0 clamp(2px, 3cqw, 4px);
+  border-radius: 8px;
+  background: rgba(12, 15, 26, 0.94);
+  color: color-mix(in srgb, currentColor 72%, #ffffff);
+  border: clamp(1px, 1.8cqw, 2px) solid currentColor;
+  font-size: clamp(7px, 10cqw, 13px);
   font-weight: 1000;
   line-height: 1;
+  letter-spacing: 0.2px;
   text-shadow: none;
-  box-shadow: 0 clamp(2px, 5cqw, 6px) clamp(5px, 12cqw, 15px) rgba(0, 0, 0, 0.25);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 clamp(2px, 5cqw, 6px) clamp(5px, 12cqw, 15px) rgba(0, 0, 0, 0.38);
 }
 
 .cell.broken {
@@ -1289,73 +1349,6 @@ body, #root { height: 100vh; }
   display: grid;
   gap: 8px;
   padding: 10px 14px 14px;
-}
-
-.players-modal-body {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.players-modal-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.players-modal-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.players-modal-symbol-field {
-  flex: 1;
-  min-width: 0;
-}
-
-.players-modal-symbol-input {
-  width: 100%;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(0, 0, 0, 0.2);
-  color: var(--text);
-  font-size: 22px;
-  font-weight: 800;
-  text-align: center;
-  padding: 10px 12px;
-}
-
-.players-modal-color-input {
-  flex-shrink: 0;
-  width: 48px;
-  height: 48px;
-  padding: 0;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 12px;
-  background: transparent;
-  cursor: pointer;
-}
-
-.players-modal-color-input::-webkit-color-swatch-wrapper {
-  padding: 4px;
-}
-
-.players-modal-color-input::-webkit-color-swatch {
-  border-radius: 8px;
-  border: none;
-}
-
-.players-modal-color-input::-moz-color-swatch {
-  border-radius: 8px;
-  border: none;
-}
-
-.players-modal-footer {
-  padding: 0 20px 20px;
 }
 
 @media (max-width: 860px) {

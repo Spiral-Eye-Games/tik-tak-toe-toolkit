@@ -96,7 +96,6 @@
     "gravityRotateInfo": "The direction changes every {{turns}} completed turns (after board settles).",
     "gravityRotateInfoPerPlayer": "{{base}} × {{players}} players = {{total}} turns between rotations.",
     "playerCount": "Number of players",
-    "customizePlayers": "Customize players",
     "eliminateLosers": "Eliminate losers (remove their pieces when they complete a line)",
     "continueRanking": "Continue for ranking (multiple winners in order)",
     "eliminateWinners": "Eliminate winners (remove their pieces when they complete a line in ranking)",

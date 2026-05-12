@@ -10,6 +10,7 @@ import {
 } from "../game/rules";
 import type { GameState, Piece } from "../game/types";
 import { t } from "../i18n";
+import { PlayerMarkGlyph } from "./PlayerMarkSpan";
 
 type PieceOutKind = "lose" | "win" | null;
 
@@ -100,7 +101,7 @@ function PieceView({ state, piece, outKind }: { state: GameState; piece: Piece; 
 
   return (
     <span className={`piece player-piece${pieceExtra}`} style={{ color: mark.color }}>
-      <span className="piece-mark">{mark.symbol}</span>
+      <PlayerMarkGlyph playerId={piece.owner} symbol={mark.symbol} className="piece-mark" />
       <span className="piece-order">{getPieceOrder(state, piece)}</span>
     </span>
   );

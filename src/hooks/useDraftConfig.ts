@@ -6,9 +6,9 @@ import {
   DEFAULT_MAX_PIECES_PER_PLAYER,
   DEFAULT_PLAYER_COUNT
 } from "../game/defaults";
-import { clampInt, normalizeClockStrategy, normalizeMoveMode, normalizeRoster, sanitizeConfig } from "../game/config";
+import { clampInt, getDefaultRoster, normalizeClockStrategy, normalizeMoveMode, sanitizeConfig } from "../game/config";
 import { loadLastSettings, saveLastSettings } from "../game/sessionCache";
-import type { GameConfig, RosterPlayer } from "../game/types";
+import type { GameConfig } from "../game/types";
 
 export function useDraftConfig() {
   const [draftConfig, setDraftConfig] = useState<GameConfig>(
@@ -24,7 +24,7 @@ export function useDraftConfig() {
       const next: GameConfig = { ...previous, ...patch };
 
       if (patch.roster !== undefined) {
-        next.roster = normalizeRoster(patch.roster);
+        next.roster = getDefaultRoster();
         if (next.playerCount > next.roster.length) {
           next.playerCount = next.roster.length;
         }
@@ -68,10 +68,6 @@ export function useDraftConfig() {
     });
   }
 
-  function applyRoster(nextRoster: RosterPlayer[]) {
-    updateDraftConfig({ roster: nextRoster });
-  }
-
   function sanitizeDraftConfig() {
     const nextConfig = sanitizeConfig(draftConfig);
     setDraftConfig(nextConfig);
@@ -87,7 +83,6 @@ export function useDraftConfig() {
   return {
     draftConfig,
     updateDraftConfig,
-    applyRoster,
     sanitizeDraftConfig,
     replaceDraftConfig
   };
