@@ -1,4 +1,4 @@
-import { getPlayerLabel } from "../game/formatters";
+import { getPlayerLabel, getPlayerMark } from "../game/formatters";
 import type { GameState } from "../game/types";
 import { t } from "../i18n";
 
@@ -29,6 +29,7 @@ export function BoardOutcomeStrip({ state }: { state: GameState }) {
     <aside className="board-outcome-strip" aria-label={t("board.outcomeStripLabel")}>
       {entries.map((entry, index) => {
         const label = getPlayerLabel(state.config, entry.playerId);
+        const mark = getPlayerMark(state.config, entry.playerId);
         const title =
           entry.kind === "eliminated"
             ? t("board.outcomeEliminated", { player: label })
@@ -40,7 +41,9 @@ export function BoardOutcomeStrip({ state }: { state: GameState }) {
             className={`board-outcome-chip board-outcome-chip--${entry.kind}`}
             title={title}
           >
-            <span className="board-outcome-emoji" aria-hidden>{label}</span>
+            <span className="board-outcome-emoji" aria-hidden style={{ color: mark.color }}>
+              {mark.symbol}
+            </span>
           </div>
         );
       })}

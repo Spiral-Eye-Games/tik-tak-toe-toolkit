@@ -121,8 +121,9 @@
   },
   "playersModal": {
     "title": "Players",
-    "intro": "Edit each player's emoji. You can add or remove rows (minimum 2). Order defines who starts first.",
-    "emojiLabel": "Player emoji",
+    "intro": "Edit each player's mark and color. You can add or remove rows (minimum 2). Order defines who starts first.",
+    "symbolLabel": "Player mark",
+    "colorLabel": "Player color",
     "remove": "Remove player",
     "add": "Add player",
     "save": "Save"
@@ -241,7 +242,7 @@
     },
     "players": {
       "title": "Players",
-      "html": "<p>Set how many players join and customize their emojis.</p><ul><li><strong>Number</strong> uses the first players in list order.</li><li>With more than two in <strong>Lose</strong> mode, completing a line removes a player from the turn order; enable <strong>Eliminate losers</strong> to also remove their pieces from the board.</li><li>With more than two in <strong>Win</strong> mode, the first line wins unless <strong>Continue for ranking</strong> is enabled, where winners are removed until the full order is decided.</li><li>With <strong>Continue for ranking</strong> on, <strong>Eliminate winners</strong> clears that player's pieces from the board when they take a round; turn it off to leave their pieces as obstacles.</li></ul>"
+      "html": "<p>Set how many players join and customize their marks and colors.</p><ul><li><strong>Number</strong> uses the first players in list order.</li><li>With more than two in <strong>Lose</strong> mode, completing a line removes a player from the turn order; enable <strong>Eliminate losers</strong> to also remove their pieces from the board.</li><li>With more than two in <strong>Win</strong> mode, the first line wins unless <strong>Continue for ranking</strong> is enabled, where winners are removed until the full order is decided.</li><li>With <strong>Continue for ranking</strong> on, <strong>Eliminate winners</strong> clears that player's pieces from the board when they take a round; turn it off to leave their pieces as obstacles.</li></ul>"
     },
     "clock": {
       "title": "Clock",

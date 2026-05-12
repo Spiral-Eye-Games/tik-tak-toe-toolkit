@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { normalizeRoster } from "../game/config";
+import { DEFAULT_PLAYER_COLORS, DEFAULT_ROSTER } from "../game/defaults";
 import type { RosterPlayer } from "../game/types";
 import { t } from "../i18n";
 import { ModalPortal } from "./ModalPortal";
@@ -29,12 +30,22 @@ export function PlayersModal({ open, roster, onClose, onApply }: PlayersModalPro
 
   if (!open) return null;
 
-  function updateEmoji(index: number, emoji: string) {
+  function updateSymbol(index: number, symbol: string) {
     setDraft((previous) => {
       const next = [...previous];
       const row = next[index];
       if (!row) return previous;
-      next[index] = { ...row, emoji };
+      next[index] = { ...row, symbol };
+      return next;
+    });
+  }
+
+  function updateColor(index: number, color: string) {
+    setDraft((previous) => {
+      const next = [...previous];
+      const row = next[index];
+      if (!row) return previous;
+      next[index] = { ...row, color };
       return next;
     });
   }
@@ -45,7 +56,18 @@ export function PlayersModal({ open, roster, onClose, onApply }: PlayersModalPro
   }
 
   function addRow() {
-    setDraft((previous) => [...previous, { id: createNewPlayerId(previous), emoji: "⭐" }]);
+    setDraft((previous) => {
+      const i = previous.length;
+      const fallback = DEFAULT_ROSTER[i % DEFAULT_ROSTER.length];
+      return [
+        ...previous,
+        {
+          id: createNewPlayerId(previous),
+          symbol: fallback.symbol,
+          color: DEFAULT_PLAYER_COLORS[i % DEFAULT_PLAYER_COLORS.length]
+        }
+      ];
+    });
   }
 
   function handleSave() {
@@ -72,16 +94,23 @@ export function PlayersModal({ open, roster, onClose, onApply }: PlayersModalPro
             <ul className="players-modal-list">
               {draft.map((player, index) => (
                 <li key={player.id} className="players-modal-row">
-                  <label className="players-modal-emoji-field">
+                  <label className="players-modal-symbol-field">
                     <input
-                      className="players-modal-emoji-input"
+                      className="players-modal-symbol-input"
                       type="text"
-                      value={player.emoji}
+                      value={player.symbol}
                       maxLength={8}
-                      onChange={(event) => updateEmoji(index, event.target.value)}
-                      aria-label={t("playersModal.emojiLabel")}
+                      onChange={(event) => updateSymbol(index, event.target.value)}
+                      aria-label={t("playersModal.symbolLabel")}
                     />
                   </label>
+                  <input
+                    className="players-modal-color-input"
+                    type="color"
+                    value={player.color}
+                    onChange={(event) => updateColor(index, event.target.value)}
+                    aria-label={t("playersModal.colorLabel")}
+                  />
                   <button
                     className="button icon danger"
                     type="button"

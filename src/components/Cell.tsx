@@ -1,4 +1,4 @@
-import { getColumnLetter, getGravityArrowSymbol, getPieceOrder, getPlayerLabel } from "../game/formatters";
+import { getColumnLetter, getGravityArrowSymbol, getPieceOrder, getPlayerMark } from "../game/formatters";
 import {
   canAddPiece,
   canSelectPiece,
@@ -90,7 +90,7 @@ export function Cell({ state, row, col, onPlayMove }: CellProps) {
 }
 
 function PieceView({ state, piece, outKind }: { state: GameState; piece: Piece; outKind: PieceOutKind }) {
-  const mark = getPlayerLabel(state.config, piece.owner);
+  const mark = getPlayerMark(state.config, piece.owner);
   const pieceExtra =
     outKind === "lose"
       ? " piece-eliminated-lose"
@@ -99,8 +99,8 @@ function PieceView({ state, piece, outKind }: { state: GameState; piece: Piece; 
         : "";
 
   return (
-    <span className={`piece emoji-piece${pieceExtra}`}>
-      <span className="piece-mark">{mark}</span>
+    <span className={`piece player-piece${pieceExtra}`} style={{ color: mark.color }}>
+      <span className="piece-mark">{mark.symbol}</span>
       <span className="piece-order">{getPieceOrder(state, piece)}</span>
     </span>
   );

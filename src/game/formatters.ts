@@ -17,9 +17,14 @@ export function getGravityArrowSymbol(direction: GravityDirection): string {
   }
 }
 
-export function getPlayerLabel(config: GameConfig, id: PlayerId): string {
+export function getPlayerMark(config: GameConfig, id: PlayerId): { symbol: string; color: string } {
   const found = config.roster.find((player) => player.id === id);
-  return found?.emoji ?? id;
+  if (!found) return { symbol: id, color: "var(--text)" };
+  return { symbol: found.symbol, color: found.color };
+}
+
+export function getPlayerLabel(config: GameConfig, id: PlayerId): string {
+  return getPlayerMark(config, id).symbol;
 }
 
 export function getColumnLetter(col: number): string {

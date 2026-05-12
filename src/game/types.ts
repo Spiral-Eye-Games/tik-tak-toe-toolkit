@@ -2,7 +2,10 @@ export type PlayerId = string;
 
 export interface RosterPlayer {
   id: PlayerId;
-  emoji: string;
+  /** Carácter o cadena corta que identifica la ficha en el tablero (p. ej. letras o símbolos ASCII). */
+  symbol: string;
+  /** Color en hexadecimal (#rrggbb o #rgb) para la marca del jugador. */
+  color: string;
 }
 
 export type LineRule = "lose" | "win";

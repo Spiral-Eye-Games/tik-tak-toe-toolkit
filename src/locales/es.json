@@ -121,8 +121,9 @@
   },
   "playersModal": {
     "title": "Jugadores",
-    "intro": "Editá el emoji de cada jugador. Podés sumar o quitar filas (mínimo 2). El orden define quién entra primero en la partida.",
-    "emojiLabel": "Emoji del jugador",
+    "intro": "Editá la marca y el color de cada jugador. Podés sumar o quitar filas (mínimo 2). El orden define quién entra primero en la partida.",
+    "symbolLabel": "Marca del jugador",
+    "colorLabel": "Color del jugador",
     "remove": "Quitar jugador",
     "add": "Agregar jugador",
     "save": "Guardar"
@@ -241,7 +242,7 @@
     },
     "players": {
       "title": "Jugadores",
-      "html": "<p>Definí cuántos jugadores entran y personalizá sus emojis.</p><ul><li><strong>Cantidad</strong> usa los primeros jugadores de la lista en orden.</li><li>Con más de dos en modo <strong>Perder</strong>, quien forma la raya queda fuera del turno; podés activar <strong>Eliminar perdedores</strong> para que también desaparezcan sus fichas del tablero.</li><li>Con más de dos en modo <strong>Ganar</strong>, el primero en formar la raya gana salvo que actives <strong>Seguir por el ranking</strong>, donde se van retirando ganadores hasta definir el orden completo.</li><li>Con <strong>Seguir por el ranking</strong> activo, <strong>Eliminar ganadores</strong> hace que al ganar una ronda se borren las fichas de ese jugador del tablero; si lo desactivás, siguen como obstáculos.</li></ul>"
+      "html": "<p>Definí cuántos jugadores entran y personalizá sus marcas y colores.</p><ul><li><strong>Cantidad</strong> usa los primeros jugadores de la lista en orden.</li><li>Con más de dos en modo <strong>Perder</strong>, quien forma la raya queda fuera del turno; podés activar <strong>Eliminar perdedores</strong> para que también desaparezcan sus fichas del tablero.</li><li>Con más de dos en modo <strong>Ganar</strong>, el primero en formar la raya gana salvo que actives <strong>Seguir por el ranking</strong>, donde se van retirando ganadores hasta definir el orden completo.</li><li>Con <strong>Seguir por el ranking</strong> activo, <strong>Eliminar ganadores</strong> hace que al ganar una ronda se borren las fichas de ese jugador del tablero; si lo desactivás, siguen como obstáculos.</li></ul>"
     },
     "clock": {
       "title": "Cronómetro",

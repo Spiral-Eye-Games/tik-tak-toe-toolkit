@@ -1,4 +1,4 @@
-import { getPlayerLabel, victoryModalShowsRanking } from "../game/formatters";
+import { getPlayerLabel, getPlayerMark, victoryModalShowsRanking } from "../game/formatters";
 import type { GameState } from "../game/types";
 import { t } from "../i18n";
 
@@ -40,9 +40,13 @@ export function VictoryModal({ state, onNewGame, onUndo }: VictoryModalProps) {
           {summary.type === "winner" && (
             <div className="victory-champion">
               <div className="victory-emoji-row">
-                <span className="victory-emoji" aria-hidden>{getPlayerLabel(config, summary.winnerId)}</span>
+                <span className="victory-emoji" aria-hidden style={{ color: getPlayerMark(config, summary.winnerId).color }}>
+                  {getPlayerMark(config, summary.winnerId).symbol}
+                </span>
                 {summary.loserId !== undefined && (
-                  <span className="victory-emoji" aria-hidden>{getPlayerLabel(config, summary.loserId)}</span>
+                  <span className="victory-emoji" aria-hidden style={{ color: getPlayerMark(config, summary.loserId).color }}>
+                    {getPlayerMark(config, summary.loserId).symbol}
+                  </span>
                 )}
               </div>
               <p className="victory-message">{t("victory.winnerLine", { player: getPlayerLabel(config, summary.winnerId) })}</p>
@@ -57,7 +61,9 @@ export function VictoryModal({ state, onNewGame, onUndo }: VictoryModalProps) {
               {summary.orderedIds.map((id, index) => (
                 <div key={id} className="victory-ranking-row">
                   <span className="victory-rank-num">{t("victory.rankLabel", { place: index + 1 })}</span>
-                  <span className="victory-rank-emoji" aria-hidden>{getPlayerLabel(config, id)}</span>
+                  <span className="victory-rank-emoji" aria-hidden style={{ color: getPlayerMark(config, id).color }}>
+                    {getPlayerMark(config, id).symbol}
+                  </span>
                 </div>
               ))}
             </div>
@@ -65,7 +71,13 @@ export function VictoryModal({ state, onNewGame, onUndo }: VictoryModalProps) {
 
           {summary.type === "ranking" && !showFullRanking && summary.orderedIds.length > 0 && (
             <div className="victory-champion">
-              <span className="victory-emoji" aria-hidden>{getPlayerLabel(config, summary.orderedIds[0])}</span>
+              <span
+                className="victory-emoji"
+                aria-hidden
+                style={{ color: getPlayerMark(config, summary.orderedIds[0]).color }}
+              >
+                {getPlayerMark(config, summary.orderedIds[0]).symbol}
+              </span>
               <p className="victory-message">{t("victory.winnerLine", { player: getPlayerLabel(config, summary.orderedIds[0]) })}</p>
             </div>
           )}

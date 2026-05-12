@@ -23,17 +23,31 @@ export const DEFAULT_GRAVITY_ROTATE_EVERY_TURNS_PER_PLAYER = false;
 /** Pausa en ms antes de aplicar la rotación de gravedad (para ver el tablero estable). */
 export const DEFAULT_GRAVITY_ROTATION_PAUSE_MS = 1000;
 
+/** Paleta por índice para jugadores nuevos o datos sin color válido. */
+export const DEFAULT_PLAYER_COLORS: string[] = [
+  "#2563eb",
+  "#dc2626",
+  "#16a34a",
+  "#ca8a04",
+  "#9333ea",
+  "#ea580c",
+  "#0891b2",
+  "#db2777",
+  "#4f46e5",
+  "#65a30c"
+];
+
 export const DEFAULT_ROSTER: RosterPlayer[] = [
-  { id: "p0", emoji: "🙂" },
-  { id: "p1", emoji: "🐶" },
-  { id: "p2", emoji: "🐱" },
-  { id: "p3", emoji: "🐭" },
-  { id: "p4", emoji: "🐹" },
-  { id: "p5", emoji: "🐰" },
-  { id: "p6", emoji: "🦊" },
-  { id: "p7", emoji: "🐻" },
-  { id: "p8", emoji: "🐼" },
-  { id: "p9", emoji: "🐨" }
+  { id: "p0", symbol: "✖", color: "#2563eb" },
+  { id: "p1", symbol: "⬤", color: "#dc2626" },
+  { id: "p2", symbol: "◼", color: "#16a34a" },
+  { id: "p3", symbol: "▲", color: "#ca8a04" },
+  { id: "p4", symbol: "♠", color: "#9333ea" },
+  { id: "p5", symbol: "♦", color: "#ea580c" },
+  { id: "p6", symbol: "♣", color: "#0891b2" },
+  { id: "p7", symbol: "♥", color: "#db2777" },
+  { id: "p8", symbol: "★", color: "#4f46e5" },
+  { id: "p9", symbol: "☗", color: "#65a30c" }
 ];
 
 export const DEFAULT_PLAYER_COUNT = 2;
