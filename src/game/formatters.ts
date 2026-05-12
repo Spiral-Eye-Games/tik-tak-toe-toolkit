@@ -2,7 +2,7 @@ import { getResolvedBrokenHoleTurns, getResolvedCollapseInterval, getResolvedGra
 import { findPiecePosition } from "./board";
 import { getResolvedRestrictionStartTurns } from "./restrictions";
 import { t } from "../i18n";
-import type { GameConfig, GameEndSummary, GameSnapshot, GravityDirection, Piece, PlayerId } from "./types";
+import type { GameConfig, GameEndSummary, GameSnapshot, GravityDirection, Piece, PlayerIconId, PlayerId } from "./types";
 
 export { findPiecePosition };
 
@@ -21,14 +21,16 @@ export function getGravityArrowSymbol(direction: GravityDirection): string {
   }
 }
 
-export function getPlayerMark(config: GameConfig, id: PlayerId): { symbol: string; color: string } {
+export function getPlayerMark(config: GameConfig, id: PlayerId): { icon: PlayerIconId; color: string } {
   const found = config.roster.find((player) => player.id === id);
-  if (!found) return { symbol: id, color: "var(--text)" };
-  return { symbol: found.symbol, color: found.color };
+  if (!found) return { icon: "circle", color: "var(--text)" };
+  return { icon: found.id, color: found.color };
 }
 
 export function getPlayerLabel(config: GameConfig, id: PlayerId): string {
-  return getPlayerMark(config, id).symbol;
+  const index = config.roster.findIndex((player) => player.id === id);
+  if (index < 0) return t("players.unknown");
+  return t("players.label", { number: index + 1 });
 }
 
 export function getColumnLetter(col: number): string {

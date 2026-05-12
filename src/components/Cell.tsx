@@ -12,7 +12,7 @@ import {
 import { isStartPlacementRestricted } from "../game/restrictions";
 import type { GameState, Piece } from "../game/types";
 import { t } from "../i18n";
-import { PlayerMarkGlyph } from "./PlayerMarkSpan";
+import { PlayerMarkSpan } from "./PlayerMarkSpan";
 
 type PieceOutKind = "lose" | "win" | null;
 
@@ -108,7 +108,7 @@ function PieceView({ state, piece, outKind }: { state: GameState; piece: Piece; 
 
   return (
     <span className={`piece player-piece${pieceExtra}`} style={{ color: mark.color }}>
-      <PlayerMarkGlyph playerId={piece.owner} symbol={mark.symbol} className="piece-mark" />
+      <PlayerMarkSpan config={state.config} playerId={piece.owner} className="piece-mark" />
       <span className="piece-order">{getPieceOrder(state, piece)}</span>
     </span>
   );

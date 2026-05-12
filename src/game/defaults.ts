@@ -30,18 +30,18 @@ export const DEFAULT_COLLAPSE_TIMES = 1;
 export const DEFAULT_COLLAPSE_KILLS_PLAYERS = false;
 
 export const DEFAULT_ROSTER: RosterPlayer[] = [
-  { id: "p0", symbol: "✖", color: "#2f5eed" },
-  { id: "p1", symbol: "⬤", color: "#dc2626" },
-  { id: "p3", symbol: "▲", color: "#10d147" },
-  { id: "p2", symbol: "◼", color: "#b920e8" },
-  { id: "p4", symbol: "♠", color: "#08b1c7" },
-  { id: "p5", symbol: "♦", color: "#ea580c" },
-  { id: "p6", symbol: "♣", color: "#0b9963" },
-  { id: "p7", symbol: "♥", color: "#db2777" },
-  { id: "p10", symbol: "☾", color: "#4989cc" },
-  { id: "p9", symbol: "☀", color: "#f59e0b" },
-  { id: "p11", symbol: "⚡", color: "#bfe02b" },
-  { id: "p8", symbol: "★", color: "#7b2ee6" }
+  { id: "cross", color: "#2f5eed" },
+  { id: "circle", color: "#dc2626" },
+  { id: "triangle", color: "#10d147" },
+  { id: "square", color: "#b920e8" },
+  { id: "spade", color: "#08b1c7" },
+  { id: "diamond", color: "#ea580c" },
+  { id: "club", color: "#0b9963" },
+  { id: "heart", color: "#db2777" },
+  { id: "moon", color: "#4989cc" },
+  { id: "sun", color: "#f59e0b" },
+  { id: "zap", color: "#bfe02b" },
+  { id: "star", color: "#7b2ee6" }
 ];
 
 export const DEFAULT_PLAYER_COUNT = 2;

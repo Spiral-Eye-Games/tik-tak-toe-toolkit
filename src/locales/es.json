@@ -13,6 +13,10 @@
   "buttons": {
     "newGame": "Nuevo Juego"
   },
+  "players": {
+    "label": "Jugador {{number}}",
+    "unknown": "Jugador"
+  },
   "presets": {
     "openTitle": "Presets: cargar o guardar",
     "modalTitle": "Presets",
@@ -143,8 +147,8 @@
   },
   "playersModal": {
     "title": "Jugadores",
-    "intro": "Editá la marca y el color de cada jugador. Podés sumar o quitar filas (mínimo 2). El orden define quién entra primero en la partida.",
-    "symbolLabel": "Marca del jugador",
+    "intro": "Editá el color de cada jugador. Podés sumar o quitar filas (mínimo 2). El orden define quién entra primero en la partida.",
+    "symbolLabel": "Icono del jugador",
     "colorLabel": "Color del jugador",
     "remove": "Quitar jugador",
     "add": "Agregar jugador",
@@ -404,7 +408,7 @@
     },
     "players": {
       "title": "Jugadores",
-      "html": "<p>Acá elegís cuántos jugadores participan y cómo se resuelven partidas con más de dos.</p><h3>Qué podés configurar</h3><ul><li><strong>Cantidad de jugadores</strong> toma los primeros jugadores de la lista, en ese orden de turno.</li><li>Con más de dos jugadores y modo <strong>Perder</strong>, podés activar <strong>Eliminar perdedores</strong> para borrar sus fichas al quedar fuera.</li><li>Con más de dos jugadores y modo <strong>Ganar</strong>, <strong>Seguir por el ranking</strong> permite seguir jugando después del primer ganador.</li><li>Si seguís por ranking, <strong>Eliminar ganadores</strong> decide si las fichas del ganador se retiran o quedan como obstáculos.</li></ul><h3>Cómo impacta en el juego</h3><ul><li>En partidas de dos jugadores, ganar o perder termina la partida normalmente.</li><li>En partidas de tres o más, las opciones de eliminación definen si el tablero se limpia parcialmente o conserva piezas que condicionan al resto.</li><li>Las marcas y colores de jugadores se editan desde el panel de jugadores.</li></ul>"
+      "html": "<p>Acá elegís cuántos jugadores participan y cómo se resuelven partidas con más de dos.</p><h3>Qué podés configurar</h3><ul><li><strong>Cantidad de jugadores</strong> toma los primeros jugadores de la lista, en ese orden de turno.</li><li>Con más de dos jugadores y modo <strong>Perder</strong>, podés activar <strong>Eliminar perdedores</strong> para borrar sus fichas al quedar fuera.</li><li>Con más de dos jugadores y modo <strong>Ganar</strong>, <strong>Seguir por el ranking</strong> permite seguir jugando después del primer ganador.</li><li>Si seguís por ranking, <strong>Eliminar ganadores</strong> decide si las fichas del ganador se retiran o quedan como obstáculos.</li></ul><h3>Cómo impacta en el juego</h3><ul><li>En partidas de dos jugadores, ganar o perder termina la partida normalmente.</li><li>En partidas de tres o más, las opciones de eliminación definen si el tablero se limpia parcialmente o conserva piezas que condicionan al resto.</li><li>Los iconos y colores de jugadores se editan desde el panel de jugadores.</li></ul>"
     },
     "clock": {
       "title": "Cronómetro",

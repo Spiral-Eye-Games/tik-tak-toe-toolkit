@@ -1,10 +1,21 @@
-export type PlayerId = string;
+export type PlayerIconId =
+  | "cross"
+  | "circle"
+  | "triangle"
+  | "square"
+  | "spade"
+  | "diamond"
+  | "club"
+  | "heart"
+  | "moon"
+  | "sun"
+  | "zap"
+  | "star";
+export type PlayerId = PlayerIconId;
 
 export interface RosterPlayer {
   id: PlayerId;
-  /** Carácter o cadena corta que identifica la ficha en el tablero (p. ej. letras o símbolos ASCII). */
-  symbol: string;
-  /** Color en hexadecimal (#rrggbb o #rgb) para la marca del jugador. */
+  /** Color en hexadecimal (#rrggbb o #rgb) para el icono del jugador. */
   color: string;
 }
 

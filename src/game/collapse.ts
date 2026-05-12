@@ -121,7 +121,7 @@ function rebuildPieceHistoryFromBoard(snapshot: GameSnapshot): void {
     }
   }
 
-  for (const playerId of Object.keys(snapshot.pieceHistory)) {
+  for (const playerId of Object.keys(snapshot.pieceHistory) as PlayerId[]) {
     const livingIds = livingIdsByPlayer.get(playerId) ?? new Set<number>();
     snapshot.pieceHistory[playerId] = snapshot.pieceHistory[playerId].filter((pieceId) => livingIds.has(pieceId));
   }

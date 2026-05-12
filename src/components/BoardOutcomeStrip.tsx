@@ -1,13 +1,13 @@
 import { getPlayerLabel } from "../game/formatters";
-import type { GameState } from "../game/types";
+import type { GameState, PlayerId } from "../game/types";
 import { t } from "../i18n";
 import { PlayerMarkSpan } from "./PlayerMarkSpan";
 
 type OutcomeKind = "eliminated" | "round_won";
 
-function buildEntries(state: GameState): Array<{ kind: OutcomeKind; playerId: string }> {
+function buildEntries(state: GameState): Array<{ kind: OutcomeKind; playerId: PlayerId }> {
   const cfg = state.config;
-  const list: Array<{ kind: OutcomeKind; playerId: string }> = [];
+  const list: Array<{ kind: OutcomeKind; playerId: PlayerId }> = [];
 
   if (cfg.lineRule === "lose") {
     for (const id of state.eliminationOrderLose) {

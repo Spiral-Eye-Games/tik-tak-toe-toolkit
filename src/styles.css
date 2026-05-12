@@ -211,17 +211,30 @@ body, #root { height: 100vh; }
 }
 
 .player-mark-glyph {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  display: inline-grid;
+  place-items: center;
+  width: 1em;
+  height: 1em;
   font-weight: 1000;
   line-height: 1;
   text-shadow: 0 1px 10px rgba(0, 0, 0, 0.35);
+  vertical-align: -0.125em;
 }
 
-.player-mark-glyph svg {
+.player-mark-glyph--icon {
+  display: inline-grid;
+  place-items: center;
   width: 1em;
   height: 1em;
+  line-height: 1;
+  vertical-align: -0.125em;
+}
+
+.player-mark-glyph svg,
+.player-mark-glyph--icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
   stroke-width: 2.6;
 }
 
@@ -236,7 +249,7 @@ body, #root { height: 100vh; }
 .match-status-banner {
   display: inline-flex;
   flex-wrap: wrap;
-  align-items: baseline;
+  align-items: center;
   justify-content: center;
   gap: 2px 4px;
   max-width: 100%;
@@ -245,7 +258,7 @@ body, #root { height: 100vh; }
 .match-status-banner--gameover {
   flex-direction: row;
   flex-wrap: wrap;
-  align-items: baseline;
+  align-items: center;
   justify-content: center;
 }
 
@@ -256,7 +269,7 @@ body, #root { height: 100vh; }
 
 .match-status-banner--playing {
   flex-direction: row;
-  align-items: baseline;
+  align-items: center;
 }
 
 .match-status-ranking-line {
