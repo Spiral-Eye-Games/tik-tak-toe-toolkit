@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { DEFAULT_MAX_PIECES_PER_PLAYER } from "../game/defaults";
 import { getMoveModeHelp, getMoveModeOptions, getResolvedBrokenHoleTurns, getResolvedGravityRotateInterval, normalizeClockStrategy } from "../game/config";
+import { mustMovePiece } from "../game/rules";
 import type {
   GameConfig,
+  GameState,
   GravityDirection,
   GravityRotateAngle,
   GravityRotateSpin,
@@ -11,6 +13,7 @@ import type {
   PieceMoveMode,
   RosterPlayer
 } from "../game/types";
+import { MatchStatusBanner, getMatchStatusAriaText } from "./MatchStatusBanner";
 import { PlayersModal } from "./PlayersModal";
 import { PresetModal } from "./PresetModal";
 import { SettingsSection } from "./SettingsSection";
@@ -19,6 +22,7 @@ import { t } from "../i18n";
 
 interface SidebarProps {
   config: GameConfig;
+  liveGame: GameState;
   onChangeConfig: (patch: Partial<GameConfig>) => void;
   onNewGame: () => void;
   onApplyPreset: (config: GameConfig) => void;
@@ -27,7 +31,16 @@ interface SidebarProps {
   onApplyRoster: (roster: RosterPlayer[]) => void;
 }
 
-export function Sidebar({ config, onChangeConfig, onNewGame, onApplyPreset, onHelp, onRulesHelp, onApplyRoster }: SidebarProps) {
+export function Sidebar({
+  config,
+  liveGame,
+  onChangeConfig,
+  onNewGame,
+  onApplyPreset,
+  onHelp,
+  onRulesHelp,
+  onApplyRoster
+}: SidebarProps) {
   const [playersModalOpen, setPlayersModalOpen] = useState(false);
   const [presetModalOpen, setPresetModalOpen] = useState(false);
   const unlimitedPieces = config.pieceLimitType === "unlimited";
@@ -54,6 +67,18 @@ export function Sidebar({ config, onChangeConfig, onNewGame, onApplyPreset, onHe
             </button>
           </Tooltip>
         </div>
+        {liveGame.gameOver && liveGame.gameEndSummary && (
+          <div
+            className="sidebar-match-outcome"
+            role="status"
+            aria-label={getMatchStatusAriaText(liveGame, mustMovePiece)}
+          >
+            <div className="sidebar-match-outcome-title">{t("sidebar.matchOutcome")}</div>
+            <div className="sidebar-match-outcome-body">
+              <MatchStatusBanner state={liveGame} mustMove={mustMovePiece} compactRanking={false} />
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="sidebar-content">

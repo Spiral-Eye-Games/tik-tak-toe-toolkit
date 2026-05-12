@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { Board } from "./components/Board";
 import { HelpModal } from "./components/HelpModal";
+import { MatchStatusBanner } from "./components/MatchStatusBanner";
 import { Sidebar } from "./components/Sidebar";
 import { TopBar } from "./components/TopBar";
 import {
@@ -12,6 +13,7 @@ import {
   DEFAULT_PLAYER_COUNT
 } from "./game/defaults";
 import { clampInt, normalizeClockStrategy, normalizeMoveMode, normalizeRoster, sanitizeConfig } from "./game/config";
+import { loadLastSettings, saveLastSettings } from "./game/sessionCache";
 import { formatClockSecondsForDisplay, getClockRemainingSeconds, isClockEnabled } from "./game/clock";
 import { buildRulesText, getStatusText } from "./game/formatters";
 import { createInitialGameState, gameReducer } from "./game/reducer";
@@ -26,8 +28,10 @@ interface ModalState {
 }
 
 export default function App() {
-  const [draftConfig, setDraftConfig] = useState<GameConfig>(() => sanitizeConfig(DEFAULT_CONFIG));
-  const [gameState, dispatch] = useReducer(gameReducer, DEFAULT_CONFIG, createInitialGameState);
+  const [draftConfig, setDraftConfig] = useState<GameConfig>(
+    () => loadLastSettings() ?? sanitizeConfig(DEFAULT_CONFIG)
+  );
+  const [gameState, dispatch] = useReducer(gameReducer, draftConfig, createInitialGameState);
   const [modal, setModal] = useState<ModalState>(() => ({
     open: false,
     title: t("modal.helpTitle"),
@@ -46,6 +50,10 @@ export default function App() {
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
   }, []);
+
+  useEffect(() => {
+    saveLastSettings(draftConfig);
+  }, [draftConfig]);
 
   useEffect(() => {
     if (gameState.pendingGravityRotationTarget === null) return;
@@ -88,7 +96,7 @@ export default function App() {
     return t("topbar.clock", { seconds: formatClockSecondsForDisplay(remaining) });
   }, [gameState, clockPulse]);
 
-  const status = useMemo(
+  const statusAriaLabel = useMemo(
     () => getStatusText(gameState, gameState.config, mustMovePiece),
     [gameState]
   );
@@ -176,17 +184,20 @@ export default function App() {
   return (
     <div className="app">
       <TopBar
-        status={status}
+        statusAriaLabel={statusAriaLabel}
         clockText={topbarClockText}
         canUndo={gameState.undoStack.length > 0}
         canRedo={gameState.redoStack.length > 0}
         onUndo={() => dispatch({ type: "undo" })}
         onRedo={() => dispatch({ type: "redo" })}
-      />
+      >
+        <MatchStatusBanner state={gameState} mustMove={mustMovePiece} compactRanking />
+      </TopBar>
 
       <main className="layout">
         <Sidebar
           config={draftConfig}
+          liveGame={gameState}
           onChangeConfig={updateDraftConfig}
           onNewGame={startNewGame}
           onApplyPreset={applyPreset}

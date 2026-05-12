@@ -213,7 +213,13 @@
     "turnMustMove": "Turn of {{currentPlayer}}: move a piece.",
     "turnForcedFirst": "Turn of {{currentPlayer}}: move piece #1.",
     "moving": "Moving {{currentPlayer}} #{{order}}. Choose destination or tap the piece to cancel.",
-    "gravityRotationPause": "Gravity will rotate in a moment…"
+    "gravityRotationPause": "Gravity will rotate in a moment…",
+    "turnLead": "Turn of ",
+    "turnPlainSuffix": "",
+    "turnMustMoveSuffix": ": move a piece.",
+    "turnForcedFirstSuffix": ": move piece #1.",
+    "movingLead": "Moving ",
+    "movingAfterMark": "#{{order}}. Choose destination or tap the piece to cancel."
   },
   "gameOver": {
     "lose": "{{player}} formed {{lineLength}} in a row and lost.",
@@ -221,7 +227,17 @@
     "draw": "Draw: no legal moves left.",
     "survivorWin": "{{player}} is the last one standing and wins!",
     "rankingComplete": "Final ranking is set.",
-    "clockBankOut": "{{loser}} ran out of time. {{winner}} wins."
+    "clockBankOut": "{{loser}} ran out of time. {{winner}} wins.",
+    "winAfterMark": " formed {{lineLength}} in a row and won.",
+    "loseAfterMark": " formed {{lineLength}} in a row and lost.",
+    "survivorBeforeMark": "",
+    "survivorAfterMark": " is the last one standing and wins!",
+    "clockMid": " ran out of time. ",
+    "clockWinBeforeMark": "",
+    "clockWinAfterMark": " wins."
+  },
+  "sidebar": {
+    "matchOutcome": "Match result"
   },
   "help": {
     "general": {

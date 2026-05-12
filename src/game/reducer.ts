@@ -390,7 +390,7 @@ function resolveBankTimeoutLoss(snapshot: GameSnapshot, config: GameConfig): voi
     snapshot.lineCells = [];
     const loserId = timedOutId;
     const winnerId = snapshot.activePlayerIds.find((id) => id !== loserId);
-    snapshot.gameEndSummary = winnerId ? { type: "winner", winnerId, loserId } : { type: "draw" };
+    snapshot.gameEndSummary = winnerId ? { type: "winner", winnerId, loserId, endKind: "clock_bank" } : { type: "draw" };
     snapshot.statusMessage = winnerId
       ? t("gameOver.clockBankOut", { loser: label(loserId), winner: label(winnerId) })
       : t("gameOver.draw");

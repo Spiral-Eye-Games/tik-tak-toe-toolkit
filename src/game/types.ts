@@ -75,7 +75,7 @@ export type PieceHistory = Record<PlayerId, number[]>;
 
 export type GameEndSummary =
   | { type: "draw" }
-  | { type: "winner"; winnerId: PlayerId; loserId?: PlayerId }
+  | { type: "winner"; winnerId: PlayerId; loserId?: PlayerId; endKind?: "clock_bank" }
   | { type: "ranking"; orderedIds: PlayerId[] };
 
 export interface GameSnapshot {

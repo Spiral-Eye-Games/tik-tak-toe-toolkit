@@ -213,7 +213,13 @@
     "turnMustMove": "Turno de {{currentPlayer}}: mové una ficha.",
     "turnForcedFirst": "Turno de {{currentPlayer}}: mové la ficha #1.",
     "moving": "Moviendo {{currentPlayer}} #{{order}}. Elegí destino o tocá la ficha para cancelar.",
-    "gravityRotationPause": "La gravedad va a rotar en un momento…"
+    "gravityRotationPause": "La gravedad va a rotar en un momento…",
+    "turnLead": "Turno de ",
+    "turnPlainSuffix": "",
+    "turnMustMoveSuffix": ": mové una ficha.",
+    "turnForcedFirstSuffix": ": mové la ficha #1.",
+    "movingLead": "Moviendo ",
+    "movingAfterMark": "#{{order}}. Elegí destino o tocá la ficha para cancelar."
   },
   "gameOver": {
     "lose": "{{player}} formó {{lineLength}} en raya y perdió.",
@@ -221,7 +227,17 @@
     "draw": "Empate: no quedan movimientos legales.",
     "survivorWin": "¡{{player}} es el último en pie y gana!",
     "rankingComplete": "Ranking final listo.",
-    "clockBankOut": "{{loser}} se quedó sin tiempo. Gana {{winner}}."
+    "clockBankOut": "{{loser}} se quedó sin tiempo. Gana {{winner}}.",
+    "winAfterMark": " formó {{lineLength}} en raya y ganó.",
+    "loseAfterMark": " formó {{lineLength}} en raya y perdió.",
+    "survivorBeforeMark": "¡",
+    "survivorAfterMark": " es el último en pie y gana!",
+    "clockMid": " se quedó sin tiempo. ",
+    "clockWinBeforeMark": "Gana ",
+    "clockWinAfterMark": "."
+  },
+  "sidebar": {
+    "matchOutcome": "Resultado de la partida"
   },
   "help": {
     "general": {
