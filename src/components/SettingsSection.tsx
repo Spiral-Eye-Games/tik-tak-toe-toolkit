@@ -95,7 +95,7 @@ export function SettingsSection({
         <span className="section-icon">{icon}</span>
         <span className="section-title-wrap"><span className="section-title">{title}</span></span>
         {titleToggle}
-        <Tooltip text={t("actions.explainSection", { section: title })}>
+        <Tooltip text={t("actions.info")}>
           <button
             className="help-button"
             type="button"

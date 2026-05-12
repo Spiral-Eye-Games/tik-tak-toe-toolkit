@@ -1,0 +1,26 @@
+---
+description: Mantener la arquitectura modular de React y del motor de juego.
+alwaysApply: true
+---
+
+# Arquitectura del proyecto
+
+Al modificar la app, respetá estas capas y responsabilidades:
+
+1. **UI React**: `src/components/` debe renderizar y disparar callbacks. Evitá agregar reglas de juego complejas en JSX.
+2. **Orquestación de página**: `src/App.tsx` debe componer layout y wiring. Lógica reutilizable de página va en `src/hooks/`.
+3. **Motor del juego**: `src/game/` contiene lógica pura por mecánica:
+   - `board.ts`: tablero, geometría y búsqueda de piezas.
+   - `placement.ts`: agregar, seleccionar y mover fichas.
+   - `lines.ts`: detección de líneas.
+   - `brokenHoles.ts`: casillas rotas.
+   - `gravity.ts`: gravedad y rotación.
+   - `clock.ts` / `clockTimeouts.ts`: reloj y vencimientos.
+   - `outcomes.ts`: victoria, derrota, ranking y empate.
+   - `history.ts`: snapshots, undo/redo e historial de fichas.
+   - `moves.ts`: resolución de jugadas.
+4. **Fachadas estables**: mantené `src/game/rules.ts` como re-export/compatibilidad para reglas públicas y `src/game/reducer.ts` como switch de acciones, no como lugar para acumular mecánicas nuevas.
+5. **Tipos y defaults**: cambios de contrato van en `src/game/types.ts`; valores base en `src/game/defaults.ts`; sanitización/derivados de config en `src/game/config.ts`.
+6. **Presentación del dominio**: textos, símbolos, etiquetas y resúmenes visibles relacionados al juego van en `src/game/formatters.ts` y deben respetar la regla de i18n.
+
+Si agregás una mecánica nueva, creá o extendé un módulo específico en `src/game/` y conectalo desde `moves.ts`, `outcomes.ts`, `clockTimeouts.ts` o `reducer.ts` según corresponda. No mezcles UI, traducciones y mutaciones del estado del juego en el mismo archivo.

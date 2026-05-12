@@ -1,6 +1,9 @@
 import { getResolvedBrokenHoleTurns, getResolvedGravityRotateInterval } from "./config";
+import { findPiecePosition } from "./board";
 import { t } from "../i18n";
-import type { Board, GameConfig, GameEndSummary, GameSnapshot, GravityDirection, Piece, PlayerId } from "./types";
+import type { GameConfig, GameEndSummary, GameSnapshot, GravityDirection, Piece, PlayerId } from "./types";
+
+export { findPiecePosition };
 
 export function getGravityArrowSymbol(direction: GravityDirection): string {
   switch (direction) {
@@ -136,15 +139,6 @@ export function getStatusText(snapshot: GameSnapshot, config: GameConfig, mustMo
   }
 
   return t("status.turn", { currentPlayer: currentLabel });
-}
-
-export function findPiecePosition(board: Board, pieceId: number): { row: number; col: number } | null {
-  for (let row = 0; row < board.length; row++) {
-    for (let col = 0; col < board[row].length; col++) {
-      if (board[row][col].piece?.id === pieceId) return { row, col };
-    }
-  }
-  return null;
 }
 
 export function victoryModalShowsRanking(config: GameConfig, summary: GameEndSummary): boolean {

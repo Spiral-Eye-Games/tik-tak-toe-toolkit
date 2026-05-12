@@ -6,6 +6,7 @@
     "undo": "Deshacer",
     "redo": "Rehacer",
     "close": "Cerrar",
+    "info": "Info",
     "explainSection": "Explicar {{section}}",
     "viewRulesCurrent": "Ver reglas actuales"
   },
