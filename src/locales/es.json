@@ -68,7 +68,8 @@
     "holes": "Ruptura",
     "gravity": "Gravedad",
     "collapse": "Colapso",
-    "clock": "Cronómetro"
+    "clock": "Cronómetro",
+    "blocking": "Bloqueo"
   },
   "fields": {
     "columns": "N Columnas",
@@ -113,7 +114,19 @@
     "clockRecoverSeconds": "Recuperar al mover (s)",
     "clockPerTurnSeconds": "Tiempo por turno (s)",
     "clockHintBank": "Tiempo total acumulado entre turnos; al llegar a 0 perdés. La recuperación se suma al terminar cada movimiento (tope: la banca inicial).",
-    "clockHintPerTurn": "Cada jugador tiene el mismo tiempo en cada turno; al agotarse pierde el turno (sin colocar ni mover)."
+    "clockHintPerTurn": "Cada jugador tiene el mismo tiempo en cada turno; al agotarse pierde el turno (sin colocar ni mover).",
+    "blockingEnabled": "Activar bloqueo",
+    "restrictionStartEvery": "Durante N",
+    "editRestrictionStartGrid": "Editar casillas bloqueadas",
+    "restrictionStartGridSummary": "{{count}} casillas bloqueadas al inicio.",
+    "restrictionStartInfoTurns": "Bloquea las casillas pintadas durante los primeros {{amount}} turnos.",
+    "restrictionStartInfoRounds": "{{amount}} rondas × {{players}} jugadores = {{turns}} turnos con casillas bloqueadas.",
+    "restrictionMovementType": "Movimiento",
+    "restrictionMovementHint": "Normal no cambia nada. Comer elimina fichas enemigas; Capturar las convierte a tu jugador.",
+    "restrictionMovementEat": "Comer",
+    "restrictionMovementEatTooltip": "Permite eliminar fichas enemigas según el patrón del movimiento. Se desactiva si activás Capturar.",
+    "restrictionMovementConvert": "Capturar",
+    "restrictionMovementConvertTooltip": "Solo para Dama, Caballero y Mago: convierte la ficha saltada en una ficha propia. Se desactiva si activás Comer."
   },
   "clock": {
     "modes": {
@@ -160,6 +173,45 @@
     "help": {
       "limited": "Con máximo de fichas: podés obligar movimiento al llegar al máximo o permitir movimiento libre antes de llenarlas.",
       "unlimited": "Con fichas ilimitadas: podés bloquear el movimiento o permitir mover fichas en cualquier momento."
+    }
+  },
+  "restrictions": {
+    "startBlockedCell": "Bloq.",
+    "movement": {
+      "normal": "Normal",
+      "king": "Rey",
+      "grandKing": "Gran rey",
+      "queen": "Reina",
+      "rook": "Torre",
+      "pillar": "Pilar",
+      "bishop": "Alfil",
+      "monk": "Monje",
+      "knight": "Caballo",
+      "neon": "Neón",
+      "checkers": "Dama",
+      "horsemen": "Caballero",
+      "mage": "Mago"
+    }
+  },
+  "movementInfo": {
+    "open": "Ver información de movimientos",
+    "title": "Tipos de movimiento",
+    "intro": "Estos modos modifican cómo puede moverse una ficha ya colocada. Si Comer está activo, las piezas pueden eliminar fichas enemigas según su patrón. En Dama, Caballero y Mago, Capturar convierte la ficha saltada en una ficha propia.",
+    "effects": "Comer y Capturar son excluyentes. Con ambos apagados, Dama, Caballero y Mago pueden saltar una ficha enemiga sin afectarla.",
+    "modes": {
+      "normal": "No agrega restricciones: cualquier destino legal vacío sigue permitido.",
+      "king": "Mueve 1 casilla en cualquier dirección.",
+      "grandKing": "Mueve hasta 2 casillas en cualquier dirección.",
+      "queen": "Mueve en línea recta u horizontal, vertical o diagonal, sin atravesar fichas ni casillas rotas.",
+      "rook": "Mueve en horizontal o vertical, sin atravesar fichas ni casillas rotas.",
+      "pillar": "Mueve 1 casilla horizontal o vertical.",
+      "bishop": "Mueve en diagonal, sin atravesar fichas ni casillas rotas.",
+      "monk": "Mueve 1 casilla en diagonal.",
+      "knight": "Mueve en L como el caballo de ajedrez.",
+      "neon": "Mueve 1 casilla horizontal o vertical. Si Comer está activo, come 1 casilla en diagonal.",
+      "checkers": "Mueve 1 casilla en diagonal. Puede saltar una ficha enemiga a la siguiente casilla diagonal si está libre.",
+      "horsemen": "Mueve 1 casilla horizontal o vertical. Puede saltar una ficha enemiga en línea recta si la siguiente casilla está libre.",
+      "mage": "Combina Dama y Caballero: mueve o salta en diagonal, horizontal o vertical."
     }
   },
   "rules": {
@@ -231,7 +283,32 @@
       "bankWithRecover": "Banca total: {{total}} s por jugador; recuperación al mover: +{{recover}} s (hasta el tope inicial).",
       "perTurn": "Reloj por turno: {{seconds}} s por jugada; al agotarse pierde el turno."
     },
-    "summary": "{{columns}} columnas x {{rows}} filas. {{lineText}} si formás {{lineLength}} en raya. {{piecesText}}. {{moveText}}. {{brokenText}}. {{gravityText}} {{collapseText}} {{clockText}}",
+    "restrictions": {
+      "disabled": "Bloqueo desactivado.",
+      "enabled": "Bloqueo: {{startText}}",
+      "startDisabled": "sin casillas bloqueadas.",
+      "startEnabled": "durante {{turns}} turnos no se puede colocar en {{cells}} casillas pintadas.",
+      "movement": {
+        "normal": "normal",
+        "king": "rey",
+        "grandKing": "gran rey",
+        "queen": "reina",
+        "rook": "torre",
+        "pillar": "pilar",
+        "bishop": "alfil",
+        "monk": "monje",
+        "knight": "caballo",
+        "neon": "neón",
+        "checkers": "dama",
+        "horsemen": "caballero",
+        "mage": "mago"
+      }
+    },
+    "movementLimit": {
+      "normal": "Sin límite extra de movimiento.",
+      "enabled": "Movimiento limitado como {{movementText}}."
+    },
+    "summary": "{{columns}} columnas x {{rows}} filas. {{lineText}} si formás {{lineLength}} en raya. {{piecesText}}. {{moveText}}. {{movementLimitText}} {{brokenText}}. {{gravityText}} {{collapseText}} {{clockText}} {{restrictionsText}}",
     "modal": {
       "intro": "Estas son las reglas de la partida actual. Si modificás valores en la sidebar, presioná {{newGame}} para aplicarlos."
     }
@@ -276,7 +353,7 @@
     },
     "pieces": {
       "title": "Fichas",
-      "html": "<p>Esta sección controla cuántas fichas puede tener cada jugador y qué pasa cuando una ficha debe moverse.</p><ul><li><strong>Ilimitadas desactivado</strong>: cada jugador tiene una cantidad limitada de fichas vivas.</li><li><strong>Ilimitadas activado</strong>: los jugadores pueden seguir agregando fichas sin límite.</li><li><strong>Obligado</strong>: al llegar al máximo, la próxima acción debe mover la ficha más vieja.</li><li><strong>Límite</strong>: al llegar al máximo, la próxima acción debe mover cualquier ficha propia.</li><li><strong>Libre</strong>: con fichas limitadas, se puede mover cualquier ficha propia en cualquier momento, incluso antes de colocar todas las fichas posibles.</li><li><strong>Bloqueadas</strong>: con fichas ilimitadas, no se puede mover una ficha ya colocada.</li><li><strong>Libre</strong>: con fichas ilimitadas, se puede elegir mover una ficha propia en vez de colocar una nueva.</li></ul><p>El número sobre cada ficha muestra su orden actual dentro de las fichas de ese jugador.</p>"
+      "html": "<p>Esta sección controla cuántas fichas puede tener cada jugador y qué pasa cuando una ficha debe moverse.</p><ul><li><strong>Ilimitadas desactivado</strong>: cada jugador tiene una cantidad limitada de fichas vivas.</li><li><strong>Ilimitadas activado</strong>: los jugadores pueden seguir agregando fichas sin límite.</li><li><strong>Obligado</strong>: al llegar al máximo, la próxima acción debe mover la ficha más vieja.</li><li><strong>Límite</strong>: al llegar al máximo, la próxima acción debe mover cualquier ficha propia.</li><li><strong>Libre</strong>: con fichas limitadas, se puede mover cualquier ficha propia en cualquier momento, incluso antes de colocar todas las fichas posibles.</li><li><strong>Bloqueadas</strong>: con fichas ilimitadas, no se puede mover una ficha ya colocada.</li><li><strong>Libre</strong>: con fichas ilimitadas, se puede elegir mover una ficha propia en vez de colocar una nueva.</li><li><strong>Movimiento</strong> aparece cuando las fichas pueden moverse y permite restringir el destino con patrones especiales. Comer elimina fichas enemigas; Capturar las convierte para tu jugador.</li></ul><p>El número sobre cada ficha muestra su orden actual dentro de las fichas de ese jugador.</p>"
     },
     "holes": {
       "title": "Ruptura",
@@ -294,6 +371,10 @@
       "title": "Cronómetro",
       "html": "<p>El casillero del título activa o desactiva el cronómetro.</p><ul><li>Con el cronómetro desactivado, la partida no mide tiempo.</li><li><strong>Banca total</strong>: cada jugador tiene un mismo tiempo total para toda la partida; lo que no usás en un turno queda para los siguientes. Si llega a 0, perdés (en varios jugadores podés quedar fuera como al perder una raya). Opcionalmente podés sumar segundos al terminar cada movimiento válido, hasta el tope de la banca inicial.</li><li><strong>Reloj por turno</strong>: en cada turno tenés el mismo cupo de segundos; si se acaba, perdés solo esa jugada y pasa el turno.</li></ul><p>Durante la pausa de rotación de gravedad el reloj no avanza.</p>"
     },
+    "restrictions": {
+      "title": "Bloqueo",
+      "html": "<p>El casillero del título activa casillas bloqueadas al inicio.</p><ul><li>Las casillas pintadas quedan bloqueadas temporalmente para colocar fichas nuevas.</li><li><strong>Editar casillas bloqueadas</strong> abre una grilla con el tamaño actual del tablero. Tocá o arrastrá para pintar y despintar casillas.</li><li>El evento del tablero muestra cuándo se liberan esas casillas.</li></ul>"
+    },
     "collapse": {
       "title": "Colapso",
       "html": "<p>El colapso rompe bordes del tablero cada cierta cantidad de turnos o rondas completadas.</p><ul><li>El toggle del título activa o desactiva la mecánica.</li><li><strong>Tipo</strong> define qué borde colapsa: izquierda, derecha, arriba, abajo, horizontal (izquierda y derecha), vertical (arriba y abajo) o circular (todos los bordes).</li><li>Cada repetición avanza una capa hacia adentro: por ejemplo, izquierda rompe una columna más profunda y circular rompe el siguiente anillo.</li><li><strong>Cada N</strong> define el intervalo y <strong>Unidad</strong> elige si se cuenta en turnos o rondas; una ronda equivale a un turno de cada jugador activo al iniciar la partida.</li><li><strong>Veces</strong> limita cuántos colapsos pueden ocurrir durante la partida.</li><li>Las casillas colapsadas quedan rotas hasta el final de la partida y destruyen cualquier ficha que tuvieran.</li><li>Con <strong>Matar jugadores</strong> activo, si un jugador que tenía fichas queda sin ninguna por el colapso, pierde o queda eliminado.</li></ul>"
@@ -308,6 +389,7 @@
       "collapseIn": "Colapso en {{amount}} {{unit}}",
       "gravityIn": "Cambio de gravedad en {{amount}} {{unit}}",
       "gravityNow": "Cambio de gravedad ahora",
+      "restrictionStartIn": "Bloqueo libre en {{amount}} {{unit}}",
       "eventIn": "en {{amount}} {{unit}}",
       "now": "ahora",
       "units": {
@@ -320,6 +402,15 @@
   },
   "broken": {
     "permanent": "ROTO"
+  },
+  "restrictionGrid": {
+    "title": "Casillas bloqueadas al inicio",
+    "intro": "Pintá las casillas donde no se podrán colocar fichas mientras dure el bloqueo.",
+    "cellLabel": "Alternar {{coordinate}}",
+    "selectedCount": "{{count}} casillas seleccionadas",
+    "clear": "Limpiar",
+    "invert": "Invertir",
+    "apply": "Aplicar"
   }
 }
 

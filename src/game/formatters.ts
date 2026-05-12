@@ -1,5 +1,6 @@
 import { getResolvedBrokenHoleTurns, getResolvedCollapseInterval, getResolvedGravityRotateInterval } from "./config";
 import { findPiecePosition } from "./board";
+import { getResolvedRestrictionStartTurns } from "./restrictions";
 import { t } from "../i18n";
 import type { GameConfig, GameEndSummary, GameSnapshot, GravityDirection, Piece, PlayerId } from "./types";
 
@@ -57,6 +58,10 @@ export function getPieceMoveModeText(config: GameConfig): string {
   }
 }
 
+export function getRestrictionMovementModeText(config: GameConfig): string {
+  return t(`rules.restrictions.movement.${config.restrictionMovementMode}`);
+}
+
 export function buildRulesText(config: GameConfig): string {
   const lineText = config.lineRule === "lose" ? t("rules.lineRule.lose") : t("rules.lineRule.win");
 
@@ -105,6 +110,23 @@ export function buildRulesText(config: GameConfig): string {
           : t("rules.clock.bankNoRecover", { total: config.clockBankSeconds })
         : t("rules.clock.perTurn", { seconds: config.clockPerTurnSeconds });
 
+  const hasStartRestriction = config.restrictionStartBlockedCells.length > 0;
+  const restrictionsText = !config.restrictionsEnabled
+    ? t("rules.restrictions.disabled")
+    : t("rules.restrictions.enabled", {
+      startText: hasStartRestriction
+        ? t("rules.restrictions.startEnabled", {
+          turns: getResolvedRestrictionStartTurns(config),
+          cells: config.restrictionStartBlockedCells.length
+        })
+        : t("rules.restrictions.startDisabled")
+    });
+  const movementLimitText = config.pieceMoveMode === "blocked" || config.restrictionMovementMode === "normal"
+    ? t("rules.movementLimit.normal")
+    : t("rules.movementLimit.enabled", {
+      movementText: getRestrictionMovementModeText(config)
+    });
+
   const collapseIntervalText = config.collapseEveryUnit === "rounds"
     ? t("rules.interval.rounds", {
       amount: config.collapseEveryTurns,
@@ -128,9 +150,11 @@ export function buildRulesText(config: GameConfig): string {
     lineLength: config.lineLength,
     piecesText,
     moveText,
+    movementLimitText,
     brokenText,
     gravityText,
     clockText,
+    restrictionsText,
     collapseText
   });
 }

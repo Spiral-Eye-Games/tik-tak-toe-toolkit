@@ -68,7 +68,8 @@
     "holes": "Rupture",
     "gravity": "Gravity",
     "collapse": "Collapse",
-    "clock": "Clock"
+    "clock": "Clock",
+    "blocking": "Blocking"
   },
   "fields": {
     "columns": "N Columns",
@@ -113,7 +114,19 @@
     "clockRecoverSeconds": "Recover on move (s)",
     "clockPerTurnSeconds": "Time per turn (s)",
     "clockHintBank": "Total time carried across turns; at 0 you lose. Recovery adds seconds after each completed move (capped at the initial bank).",
-    "clockHintPerTurn": "Each turn resets to the same allowance; at 0 you forfeit the turn (no place or move)."
+    "clockHintPerTurn": "Each turn resets to the same allowance; at 0 you forfeit the turn (no place or move).",
+    "blockingEnabled": "Enable blocking",
+    "restrictionStartEvery": "For N",
+    "editRestrictionStartGrid": "Edit blocked cells",
+    "restrictionStartGridSummary": "{{count}} cells blocked at the start.",
+    "restrictionStartInfoTurns": "Blocks painted cells during the first {{amount}} turns.",
+    "restrictionStartInfoRounds": "{{amount}} rounds × {{players}} players = {{turns}} turns with blocked cells.",
+    "restrictionMovementType": "Movement",
+    "restrictionMovementHint": "Normal changes nothing. Eat removes enemy pieces; Capture converts them to your player.",
+    "restrictionMovementEat": "Eat",
+    "restrictionMovementEatTooltip": "Allows removing enemy pieces according to the movement pattern. Turns off if you enable Capture.",
+    "restrictionMovementConvert": "Capture",
+    "restrictionMovementConvertTooltip": "Only for Checker, Horseman, and Mage: converts the jumped piece into your own piece. Turns off if you enable Eat."
   },
   "clock": {
     "modes": {
@@ -160,6 +173,45 @@
     "help": {
       "limited": "With a max number of pieces: you can force movement when you reach the limit, or allow free movement before filling up.",
       "unlimited": "With unlimited pieces: you can block movement or allow moving pieces at any time."
+    }
+  },
+  "restrictions": {
+    "startBlockedCell": "Block",
+    "movement": {
+      "normal": "Normal",
+      "king": "King",
+      "grandKing": "Grand king",
+      "queen": "Queen",
+      "rook": "Rook",
+      "pillar": "Pillar",
+      "bishop": "Bishop",
+      "monk": "Monk",
+      "knight": "Knight",
+      "neon": "Neon",
+      "checkers": "Checker",
+      "horsemen": "Horseman",
+      "mage": "Mage"
+    }
+  },
+  "movementInfo": {
+    "open": "View movement information",
+    "title": "Movement types",
+    "intro": "These modes change how a placed piece can move. If Eat is enabled, pieces can remove enemy pieces according to their pattern. For Checker, Horseman, and Mage, Capture converts the jumped piece into your own piece.",
+    "effects": "Eat and Capture are mutually exclusive. With both off, Checker, Horseman, and Mage can jump an enemy piece without affecting it.",
+    "modes": {
+      "normal": "Adds no restriction: any legal empty destination remains allowed.",
+      "king": "Moves 1 cell in any direction.",
+      "grandKing": "Moves up to 2 cells in any direction.",
+      "queen": "Moves in a straight horizontal, vertical, or diagonal line without passing through pieces or broken cells.",
+      "rook": "Moves horizontally or vertically without passing through pieces or broken cells.",
+      "pillar": "Moves 1 horizontal or vertical cell.",
+      "bishop": "Moves diagonally without passing through pieces or broken cells.",
+      "monk": "Moves 1 diagonal cell.",
+      "knight": "Moves in an L shape like a chess knight.",
+      "neon": "Moves 1 horizontal or vertical cell. If Eat is enabled, it eats 1 diagonal cell.",
+      "checkers": "Moves 1 diagonal cell. It can jump an enemy piece to the next diagonal cell if that cell is free.",
+      "horsemen": "Moves 1 horizontal or vertical cell. It can jump an enemy piece in a straight line if the next cell is free.",
+      "mage": "Combines Checker and Horseman: moves or jumps diagonally, horizontally, or vertically."
     }
   },
   "rules": {
@@ -231,7 +283,32 @@
       "bankWithRecover": "Total bank: {{total}} s per player; recover on move: +{{recover}} s (capped at the initial bank).",
       "perTurn": "Per-turn clock: {{seconds}} s per move; at 0 you forfeit the turn."
     },
-    "summary": "{{columns}} columns x {{rows}} rows. {{lineText}} if you make {{lineLength}} in a row. {{piecesText}}. {{moveText}}. {{brokenText}}. {{gravityText}} {{collapseText}} {{clockText}}",
+    "restrictions": {
+      "disabled": "blocking disabled.",
+      "enabled": "Blocking: {{startText}}",
+      "startDisabled": "no blocked cells.",
+      "startEnabled": "for {{turns}} turns, pieces cannot be placed on {{cells}} painted cells.",
+      "movement": {
+        "normal": "normal",
+        "king": "king",
+        "grandKing": "grand king",
+        "queen": "queen",
+        "rook": "rook",
+        "pillar": "pillar",
+        "bishop": "bishop",
+        "monk": "monk",
+        "knight": "knight",
+        "neon": "neon",
+        "checkers": "checker",
+        "horsemen": "horseman",
+        "mage": "mage"
+      }
+    },
+    "movementLimit": {
+      "normal": "No extra movement limit.",
+      "enabled": "Movement limited like {{movementText}}."
+    },
+    "summary": "{{columns}} columns x {{rows}} rows. {{lineText}} if you make {{lineLength}} in a row. {{piecesText}}. {{moveText}}. {{movementLimitText}} {{brokenText}}. {{gravityText}} {{collapseText}} {{clockText}} {{restrictionsText}}",
     "modal": {
       "intro": "These are the rules for the current game. If you change values in the sidebar, press {{newGame}} to apply them."
     }
@@ -276,7 +353,7 @@
     },
     "pieces": {
       "title": "Pieces",
-      "html": "<p>This section controls how many pieces each player can have and what happens when a piece must move.</p><ul><li><strong>Unlimited disabled</strong>: each player has a limited number of live pieces.</li><li><strong>Unlimited enabled</strong>: players can keep adding pieces without limit.</li><li><strong>Forced</strong>: when reaching the maximum, the next action must move the oldest piece.</li><li><strong>Limit</strong>: when reaching the maximum, the next action must move any of your pieces.</li><li><strong>Free</strong>: with limited pieces, you can move any of your pieces at any time, even before placing all possible pieces.</li><li><strong>Blocked</strong>: with unlimited pieces, you can't move a piece that's already on the board.</li><li><strong>Free</strong>: with unlimited pieces, you can choose to move one of your pieces instead of placing a new one.</li></ul><p>The number above each piece shows its current order among that player's pieces.</p>"
+      "html": "<p>This section controls how many pieces each player can have and what happens when a piece must move.</p><ul><li><strong>Unlimited disabled</strong>: each player has a limited number of live pieces.</li><li><strong>Unlimited enabled</strong>: players can keep adding pieces without limit.</li><li><strong>Forced</strong>: when reaching the maximum, the next action must move the oldest piece.</li><li><strong>Limit</strong>: when reaching the maximum, the next action must move any of your pieces.</li><li><strong>Free</strong>: with limited pieces, you can move any of your pieces at any time, even before placing all possible pieces.</li><li><strong>Blocked</strong>: with unlimited pieces, you can't move a piece that's already on the board.</li><li><strong>Free</strong>: with unlimited pieces, you can choose to move one of your pieces instead of placing a new one.</li><li><strong>Movement</strong> appears when pieces can move and lets you restrict destinations with special patterns. Eat removes enemy pieces; Capture converts them to your player.</li></ul><p>The number above each piece shows its current order among that player's pieces.</p>"
     },
     "holes": {
       "title": "Rupture",
@@ -294,6 +371,10 @@
       "title": "Clock",
       "html": "<p>The title checkbox turns the clock on or off.</p><ul><li>With the clock off, the match does not track time.</li><li><strong>Total bank</strong>: each player has one total budget for the whole game; unused time on a turn stays for later turns. At 0 you lose (with more than two players you may be removed like losing a line). Optionally you can add seconds after each legal move, capped at the initial bank.</li><li><strong>Per-turn clock</strong>: each turn gets the same allowance; if it hits 0 you only lose that turn and play passes on.</li></ul><p>During the gravity-rotation pause the clock does not run.</p>"
     },
+    "restrictions": {
+      "title": "Blocking",
+      "html": "<p>The title checkbox enables blocked cells at the start.</p><ul><li>Painted cells are temporarily blocked for new piece placement.</li><li><strong>Edit blocked cells</strong> opens a grid with the current board size. Tap or drag to paint and unpaint cells.</li><li>The board event shows when those cells will be released.</li></ul>"
+    },
     "collapse": {
       "title": "Collapse",
       "html": "<p>Collapse breaks board edges after a configured number of completed turns or rounds.</p><ul><li>The title toggle enables or disables the mechanic.</li><li><strong>Type</strong> defines which edge collapses: left, right, up, down, horizontal (left and right), vertical (top and bottom), or circular (all edges).</li><li>Each repetition advances one layer inward: for example, left breaks a deeper column and circular breaks the next ring.</li><li><strong>Every N</strong> defines the interval and <strong>Unit</strong> chooses whether it counts turns or rounds; one round equals one turn from each player active at the start of the match.</li><li><strong>Times</strong> limits how many collapses may happen during the match.</li><li>Collapsed cells stay broken until the end of the match and destroy any piece on them.</li><li>With <strong>Kill players</strong> enabled, if a player who had pieces is left with none by the collapse, they lose or are eliminated.</li></ul>"
@@ -308,6 +389,7 @@
       "collapseIn": "Collapse in {{amount}} {{unit}}",
       "gravityIn": "Gravity change in {{amount}} {{unit}}",
       "gravityNow": "Gravity change now",
+      "restrictionStartIn": "Blocking releases in {{amount}} {{unit}}",
       "eventIn": "in {{amount}} {{unit}}",
       "now": "now",
       "units": {
@@ -320,6 +402,15 @@
   },
   "broken": {
     "permanent": "BROKEN"
+  },
+  "restrictionGrid": {
+    "title": "Opening blocked cells",
+    "intro": "Paint the cells where pieces cannot be placed while blocking is active.",
+    "cellLabel": "Toggle {{coordinate}}",
+    "selectedCount": "{{count}} selected cells",
+    "clear": "Clear",
+    "invert": "Invert",
+    "apply": "Apply"
   }
 }
 

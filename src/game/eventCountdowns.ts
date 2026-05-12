@@ -1,7 +1,8 @@
 import { getResolvedCollapseInterval, getResolvedGravityRotateInterval } from "./config";
+import { getResolvedRestrictionStartTurns, isRestrictionStartActive } from "./restrictions";
 import type { GameConfig, GameSnapshot, IntervalUnit } from "./types";
 
-export type BoardEventCountdownKind = "collapse" | "gravity";
+export type BoardEventCountdownKind = "collapse" | "gravity" | "restrictionStart";
 
 export interface BoardEventCountdown {
   kind: BoardEventCountdownKind;
@@ -53,6 +54,18 @@ export function getBoardEventCountdowns(snapshot: GameSnapshot, config: GameConf
           ? getRemainingTurnsUntilNextInterval(snapshot.turnNumber, interval)
           : 0,
         config.gravityRotateEveryUnit,
+        config
+      ));
+    }
+  }
+
+  if (isRestrictionStartActive(snapshot, config)) {
+    const releaseInTurns = getResolvedRestrictionStartTurns(config) - snapshot.turnNumber;
+    if (releaseInTurns > 0) {
+      countdowns.push(buildCountdown(
+        "restrictionStart",
+        releaseInTurns,
+        config.restrictionStartUnit,
         config
       ));
     }

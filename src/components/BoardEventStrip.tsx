@@ -1,4 +1,4 @@
-import { ArrowDown, ChevronsLeftRight } from "lucide-react";
+import { ArrowDown, ChevronsLeftRight, LockOpen } from "lucide-react";
 import { getBoardEventCountdowns, type BoardEventCountdown } from "../game/eventCountdowns";
 import type { GameState } from "../game/types";
 import { t } from "../i18n";
@@ -16,6 +16,13 @@ function getEventText(event: BoardEventCountdown): string {
 
   if (event.kind === "collapse") {
     return t("board.events.collapseIn", {
+      amount: event.displayAmount,
+      unit
+    });
+  }
+
+  if (event.kind === "restrictionStart") {
+    return t("board.events.restrictionStartIn", {
       amount: event.displayAmount,
       unit
     });
@@ -42,6 +49,10 @@ function getVisibleEventText(event: BoardEventCountdown): string {
 function EventIcon({ kind }: { kind: BoardEventCountdown["kind"] }) {
   if (kind === "collapse") {
     return <ChevronsLeftRight aria-hidden="true" />;
+  }
+
+  if (kind === "restrictionStart") {
+    return <LockOpen aria-hidden="true" />;
   }
 
   return <ArrowDown aria-hidden="true" />;

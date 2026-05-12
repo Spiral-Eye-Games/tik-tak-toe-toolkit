@@ -17,6 +17,26 @@ export type GravityRotateAngle = "90" | "180" | "270" | "random";
 export type GravityRotateSpin = "cw" | "ccw" | "random";
 export type CollapseType = "left" | "right" | "up" | "down" | "horizontal" | "vertical" | "circular";
 export type IntervalUnit = "turns" | "rounds";
+export type RestrictionStartZone = "edges" | "corners" | "center";
+export type RestrictionMovementMode =
+  | "normal"
+  | "king"
+  | "grandKing"
+  | "queen"
+  | "rook"
+  | "pillar"
+  | "bishop"
+  | "monk"
+  | "knight"
+  | "neon"
+  | "checkers"
+  | "horsemen"
+  | "mage";
+
+export interface BoardPosition {
+  row: number;
+  col: number;
+}
 
 /** `bank`: tiempo total compartido entre turnos. `perTurn`: tiempo que se restablece cada turno. */
 export type ClockMode = "bank" | "perTurn";
@@ -59,6 +79,13 @@ export interface GameConfig {
   clockRecoverSeconds: number;
   /** Modo por turno: segundos por jugada; al agotarse pierde el turno. */
   clockPerTurnSeconds: number;
+  restrictionsEnabled: boolean;
+  restrictionStartTurns: number;
+  restrictionStartUnit: IntervalUnit;
+  restrictionStartBlockedCells: BoardPosition[];
+  restrictionMovementMode: RestrictionMovementMode;
+  restrictionMovementEatEnabled: boolean;
+  restrictionMovementConvertEnabled: boolean;
 }
 
 export interface Piece {
@@ -70,11 +97,6 @@ export interface BoardCell {
   piece: Piece | null;
   brokenTurns: number | null;
   brokenCreatedOnTurn: number | null;
-}
-
-export interface BoardPosition {
-  row: number;
-  col: number;
 }
 
 export type Board = BoardCell[][];

@@ -12,7 +12,8 @@ import {
   GeneralSettingsSection,
   GravitySettingsSection,
   PiecesSettingsSection,
-  PlayersSettingsSection
+  PlayersSettingsSection,
+  RestrictionsSettingsSection
 } from "./SidebarSections";
 import { Tooltip } from "./Tooltip";
 
@@ -75,10 +76,11 @@ export function Sidebar({
           onChangeConfig={onChangeConfig}
           onHelp={onHelp}
         />
-        <BrokenHolesSettingsSection config={config} onChangeConfig={onChangeConfig} onHelp={onHelp} />
-        <GravitySettingsSection config={config} onChangeConfig={onChangeConfig} onHelp={onHelp} />
-        <CollapseSettingsSection config={config} onChangeConfig={onChangeConfig} onHelp={onHelp} />
         <ClockSettingsSection config={config} onChangeConfig={onChangeConfig} onHelp={onHelp} />
+        <RestrictionsSettingsSection config={config} onChangeConfig={onChangeConfig} onHelp={onHelp} />
+        <GravitySettingsSection config={config} onChangeConfig={onChangeConfig} onHelp={onHelp} />
+        <BrokenHolesSettingsSection config={config} onChangeConfig={onChangeConfig} onHelp={onHelp} />
+        <CollapseSettingsSection config={config} onChangeConfig={onChangeConfig} onHelp={onHelp} />
       </div>
 
       <PresetModal

@@ -1,15 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import type { ChangeEvent, FocusEvent, InputHTMLAttributes } from "react";
-import { ArrowDown, ChevronsLeftRight, CircleDot, CircleOff, Grid3X3, Timer, UsersRound } from "lucide-react";
+import { ArrowDown, ChevronsLeftRight, CircleDot, CircleOff, Grid3X3, Info, Lock, Timer, UsersRound } from "lucide-react";
 import { DEFAULT_MAX_PIECES_PER_PLAYER } from "../game/defaults";
 import {
-  getMoveModeHelp,
   getMoveModeOptions,
   getResolvedBrokenHoleTurns,
   getResolvedCollapseInterval,
   getResolvedGravityRotateInterval,
   normalizeClockStrategy
 } from "../game/config";
+import { getResolvedRestrictionStartTurns, movementSupportsConversion } from "../game/restrictions";
 import type {
   CollapseType,
   GameConfig,
@@ -19,10 +19,14 @@ import type {
   IntervalUnit,
   LineRule,
   PieceLimitType,
-  PieceMoveMode
+  PieceMoveMode,
+  RestrictionMovementMode
 } from "../game/types";
 import { t } from "../i18n";
+import { MovementInfoModal } from "./MovementInfoModal";
+import { RestrictionGridModal } from "./RestrictionGridModal";
 import { SettingsSection } from "./SettingsSection";
+import { Tooltip } from "./Tooltip";
 
 interface SidebarSectionProps {
   config: GameConfig;
@@ -192,6 +196,7 @@ export function GeneralSettingsSection({ config, onChangeConfig, onHelp }: Sideb
 export function PiecesSettingsSection({ config, onChangeConfig, onHelp }: SidebarSectionProps) {
   const unlimitedPieces = config.pieceLimitType === "unlimited";
   const moveModeOptions = getMoveModeOptions(config.pieceLimitType);
+  const [movementInfoOpen, setMovementInfoOpen] = useState(false);
 
   return (
     <SettingsSection title={t("sections.pieces")} icon={<CircleDot aria-hidden="true" />} helpKey="pieces" defaultOpen onHelp={onHelp}>
@@ -228,8 +233,83 @@ export function PiecesSettingsSection({ config, onChangeConfig, onHelp }: Sideba
             <option key={option.value} value={option.value}>{option.label}</option>
           ))}
         </select>
-        <span className="field-help">{getMoveModeHelp(config.pieceLimitType)}</span>
       </label>
+
+      {config.pieceMoveMode !== "blocked" && (
+        <>
+          <label className="field">
+            {t("fields.restrictionMovementType")}
+            <div className="select-with-info">
+              <select
+                value={config.restrictionMovementMode}
+                onChange={(event) => onChangeConfig({ restrictionMovementMode: event.target.value as RestrictionMovementMode })}
+              >
+              {([
+                "normal",
+                "king",
+                "grandKing",
+                "queen",
+                "rook",
+                "pillar",
+                "bishop",
+                "monk",
+                "knight",
+                "neon",
+                "checkers",
+                "horsemen",
+                "mage"
+              ] as RestrictionMovementMode[]).map((mode) => (
+                  <option key={mode} value={mode}>{t(`restrictions.movement.${mode}`)}</option>
+                ))}
+              </select>
+              <button
+                className="help-button movement-info-button"
+                type="button"
+                aria-label={t("movementInfo.open")}
+                title={t("movementInfo.open")}
+                onClick={() => setMovementInfoOpen(true)}
+              >
+                <Info aria-hidden="true" />
+              </button>
+            </div>
+          </label>
+
+          {config.restrictionMovementMode !== "normal" && (
+            <div className="field-row movement-effect-row">
+              <Tooltip text={t("fields.restrictionMovementEatTooltip")} className="movement-effect-tooltip" passAriaLabel={false}>
+                <label className="field checkbox boxed">
+                  <span>{t("fields.restrictionMovementEat")}</span>
+                  <input
+                    type="checkbox"
+                    checked={config.restrictionMovementEatEnabled}
+                    onChange={(event) => onChangeConfig({
+                      restrictionMovementEatEnabled: event.target.checked,
+                      restrictionMovementConvertEnabled: event.target.checked ? false : config.restrictionMovementConvertEnabled
+                    })}
+                  />
+                </label>
+              </Tooltip>
+
+              {movementSupportsConversion(config.restrictionMovementMode) && (
+                <Tooltip text={t("fields.restrictionMovementConvertTooltip")} className="movement-effect-tooltip" passAriaLabel={false}>
+                  <label className="field checkbox boxed">
+                    <span>{t("fields.restrictionMovementConvert")}</span>
+                    <input
+                      type="checkbox"
+                      checked={config.restrictionMovementConvertEnabled}
+                      onChange={(event) => onChangeConfig({
+                        restrictionMovementConvertEnabled: event.target.checked,
+                        restrictionMovementEatEnabled: event.target.checked ? false : config.restrictionMovementEatEnabled
+                      })}
+                    />
+                  </label>
+                </Tooltip>
+              )}
+            </div>
+          )}
+        </>
+      )}
+      <MovementInfoModal open={movementInfoOpen} onClose={() => setMovementInfoOpen(false)} />
     </SettingsSection>
   );
 }
@@ -644,6 +724,88 @@ export function ClockSettingsSection({ config, onChangeConfig, onHelp }: Sidebar
           <span className="field-help">{t("fields.clockHintPerTurn")}</span>
         </>
       )}
+    </SettingsSection>
+  );
+}
+
+export function RestrictionsSettingsSection({ config, onChangeConfig, onHelp }: SidebarSectionProps) {
+  const [gridModalOpen, setGridModalOpen] = useState(false);
+
+  return (
+    <SettingsSection
+      title={t("sections.blocking")}
+      icon={<Lock aria-hidden="true" />}
+      helpKey="restrictions"
+      onHelp={onHelp}
+      toggleExpanded={config.restrictionsEnabled}
+      titleToggle={
+        <label className="section-toggle" title={t("fields.blockingEnabled")} onClick={(event) => event.stopPropagation()}>
+          <input
+            type="checkbox"
+            checked={config.restrictionsEnabled}
+            onChange={(event) => onChangeConfig({ restrictionsEnabled: event.target.checked })}
+          />
+        </label>
+      }
+    >
+      {config.restrictionsEnabled && (
+        <>
+          <div className="field-row">
+            <label className="field">
+              {t("fields.restrictionStartEvery")}
+              <NumericDraftInput
+                min={1}
+                max={99}
+                step={1}
+                value={config.restrictionStartTurns}
+                onCommit={(value) => onChangeConfig({ restrictionStartTurns: value })}
+              />
+            </label>
+
+            <label className="field">
+              {t("fields.intervalUnit")}
+              <select
+                value={config.restrictionStartUnit}
+                onChange={(event) => onChangeConfig({ restrictionStartUnit: event.target.value as IntervalUnit })}
+              >
+                <option value="turns">{t("intervalUnits.turns")}</option>
+                <option value="rounds">{t("intervalUnits.rounds")}</option>
+              </select>
+            </label>
+          </div>
+
+          <div className="restriction-grid-summary">
+            <button
+              className="button secondary full"
+              type="button"
+              onClick={() => setGridModalOpen(true)}
+            >
+              {t("fields.editRestrictionStartGrid")}
+            </button>
+            <span className="field-help">
+              {t("fields.restrictionStartGridSummary", { count: config.restrictionStartBlockedCells.length })}
+            </span>
+          </div>
+
+          <span className="field-help">
+            {config.restrictionStartUnit === "rounds"
+              ? t("fields.restrictionStartInfoRounds", {
+                amount: config.restrictionStartTurns,
+                players: config.playerCount,
+                turns: getResolvedRestrictionStartTurns(config)
+              })
+              : t("fields.restrictionStartInfoTurns", {
+                amount: config.restrictionStartTurns
+              })}
+          </span>
+        </>
+      )}
+      <RestrictionGridModal
+        open={gridModalOpen}
+        config={config}
+        onApply={(blockedCells) => onChangeConfig({ restrictionStartBlockedCells: blockedCells })}
+        onClose={() => setGridModalOpen(false)}
+      />
     </SettingsSection>
   );
 }

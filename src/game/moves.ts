@@ -12,7 +12,8 @@ import {
   isLegalMoveDestination,
   isLegalPlacementDestination
 } from "./rules";
-import type { GameState } from "./types";
+import { getRestrictedMoveCaptures, getRestrictedMoveConversions } from "./restrictions";
+import type { BoardPosition, GameSnapshot, GameState, PlayerId } from "./types";
 
 export function playMove(state: GameState, clickedRow: number, clickedCol: number): GameState {
   if (state.gameOver) return state;
@@ -90,6 +91,18 @@ function moveSelectedPiece(state: GameState, clickedRow: number, clickedCol: num
   }
 
   if (!isLegalMoveDestination(state, state.config, clickedRow, clickedCol)) return state;
+  const capturedPositions = getRestrictedMoveCaptures(
+    state.board,
+    state.config,
+    source,
+    { row: clickedRow, col: clickedCol }
+  );
+  const convertedPositions = getRestrictedMoveConversions(
+    state.board,
+    state.config,
+    source,
+    { row: clickedRow, col: clickedCol }
+  );
 
   const previousSnapshot = createSnapshot(state);
   const next = cloneSnapshot(previousSnapshot);
@@ -100,6 +113,9 @@ function moveSelectedPiece(state: GameState, clickedRow: number, clickedCol: num
 
   next.turnNumber++;
   next.statusMessage = "";
+
+  removeCapturedPieces(next, capturedPositions);
+  convertCapturedPieces(next, convertedPositions, next.currentPlayer);
 
   const piece = next.board[nextSource.row][nextSource.col].piece;
   if (piece === null) return state;
@@ -124,4 +140,32 @@ function moveSelectedPiece(state: GameState, clickedRow: number, clickedCol: num
   }
 
   return snapshotToState(state, next, [...state.undoStack, previousSnapshot], []);
+}
+
+function removeCapturedPieces(snapshot: GameSnapshot, positions: BoardPosition[]): void {
+  for (const position of positions) {
+    const piece = snapshot.board[position.row]?.[position.col]?.piece;
+    if (!piece) continue;
+
+    snapshot.board[position.row][position.col].piece = null;
+    removePieceFromHistory(snapshot, piece.owner, piece.id);
+  }
+}
+
+function removePieceFromHistory(snapshot: GameSnapshot, player: PlayerId, pieceId: number): void {
+  const history = snapshot.pieceHistory[player];
+  if (!history) return;
+  const index = history.indexOf(pieceId);
+  if (index >= 0) history.splice(index, 1);
+}
+
+function convertCapturedPieces(snapshot: GameSnapshot, positions: BoardPosition[], newOwner: PlayerId): void {
+  for (const position of positions) {
+    const piece = snapshot.board[position.row]?.[position.col]?.piece;
+    if (!piece || piece.owner === newOwner) continue;
+
+    removePieceFromHistory(snapshot, piece.owner, piece.id);
+    piece.owner = newOwner;
+    snapshot.pieceHistory[newOwner]?.push(piece.id);
+  }
 }

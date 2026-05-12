@@ -1,7 +1,8 @@
 import { findPiecePosition } from "./board";
 import { isBroken } from "./brokenHoles";
 import { isVerticalGravity, scanColumnLanding, scanRowLanding } from "./gravity";
-import type { Board, GameConfig, GameSnapshot, GravityDirection, Piece, PlayerId } from "./types";
+import { isRestrictedMovementLegal, isStartPlacementRestricted } from "./restrictions";
+import type { GameConfig, GameSnapshot, GravityDirection, Piece, PlayerId } from "./types";
 
 export function canAddPiece(snapshot: GameSnapshot, config: GameConfig, player: PlayerId): boolean {
   if (config.pieceLimitType === "unlimited") return true;
@@ -50,28 +51,31 @@ export function canSelectPiece(snapshot: GameSnapshot, config: GameConfig, piece
 
 export function isLegalPlacementDestination(snapshot: GameSnapshot, config: GameConfig, row: number, col: number): boolean {
   if (config.gravityEnabled) {
-    return isGravityPlacementClick(snapshot.board, config, snapshot.gravityDirection, row, col);
+    return isGravityPlacementClick(snapshot, config, snapshot.gravityDirection, row, col);
   }
 
   const cell = snapshot.board[row][col];
-  return cell.piece === null && !isBroken(cell);
+  return cell.piece === null && !isBroken(cell) && !isStartPlacementRestricted(snapshot, config, row, col);
 }
 
 /** Casilla vacía en la columna (gravedad vertical) o fila (horizontal) donde hay un hueco de caída válido. */
 export function isGravityPlacementClick(
-  board: Board,
+  snapshot: GameSnapshot,
   config: GameConfig,
   direction: GravityDirection,
   row: number,
   col: number
 ): boolean {
+  const board = snapshot.board;
   const cell = board[row][col];
   if (isBroken(cell) || cell.piece !== null) return false;
 
   if (isVerticalGravity(direction)) {
-    return scanColumnLanding(board, config, direction, col, null) !== null;
+    const landingRow = scanColumnLanding(board, config, direction, col, null);
+    return landingRow !== null && !isStartPlacementRestricted(snapshot, config, landingRow, col);
   }
-  return scanRowLanding(board, config, direction, row, null) !== null;
+  const landingCol = scanRowLanding(board, config, direction, row, null);
+  return landingCol !== null && !isStartPlacementRestricted(snapshot, config, row, landingCol);
 }
 
 export function isLegalMoveDestination(snapshot: GameSnapshot, config: GameConfig, row: number, col: number): boolean {
@@ -83,9 +87,8 @@ export function isLegalMoveDestination(snapshot: GameSnapshot, config: GameConfi
 
   const targetCell = snapshot.board[row][col];
   if (isBroken(targetCell)) return false;
-  if (targetCell.piece !== null) return false;
 
-  return true;
+  return isRestrictedMovementLegal(snapshot.board, config, source, { row, col });
 }
 
 export function isCellClickable(snapshot: GameSnapshot, config: GameConfig, row: number, col: number): boolean {
@@ -106,18 +109,19 @@ export function isCellClickable(snapshot: GameSnapshot, config: GameConfig, row:
 }
 
 export function isGravityLandingCell(
-  board: Board,
+  snapshot: GameSnapshot,
   config: GameConfig,
   direction: GravityDirection,
   row: number,
   col: number
 ): boolean {
+  const board = snapshot.board;
   if (isVerticalGravity(direction)) {
     const landRow = scanColumnLanding(board, config, direction, col, null);
-    return landRow !== null && landRow === row;
+    return landRow !== null && landRow === row && !isStartPlacementRestricted(snapshot, config, row, col);
   }
   const landCol = scanRowLanding(board, config, direction, row, null);
-  return landCol !== null && landCol === col;
+  return landCol !== null && landCol === col && !isStartPlacementRestricted(snapshot, config, row, col);
 }
 
 export function hasLegalMove(snapshot: GameSnapshot, config: GameConfig): boolean {
@@ -125,12 +129,14 @@ export function hasLegalMove(snapshot: GameSnapshot, config: GameConfig): boolea
     const d = snapshot.gravityDirection;
     if (isVerticalGravity(d)) {
       for (let col = 0; col < config.columns; col++) {
-        if (scanColumnLanding(snapshot.board, config, d, col, null) !== null) return true;
+        const row = scanColumnLanding(snapshot.board, config, d, col, null);
+        if (row !== null && !isStartPlacementRestricted(snapshot, config, row, col)) return true;
       }
       return false;
     }
     for (let row = 0; row < config.rows; row++) {
-      if (scanRowLanding(snapshot.board, config, d, row, null) !== null) return true;
+      const col = scanRowLanding(snapshot.board, config, d, row, null);
+      if (col !== null && !isStartPlacementRestricted(snapshot, config, row, col)) return true;
     }
     return false;
   }
@@ -138,7 +144,7 @@ export function hasLegalMove(snapshot: GameSnapshot, config: GameConfig): boolea
   for (let row = 0; row < config.rows; row++) {
     for (let col = 0; col < config.columns; col++) {
       const cell = snapshot.board[row][col];
-      if (cell.piece === null && !isBroken(cell)) return true;
+      if (cell.piece === null && !isBroken(cell) && !isStartPlacementRestricted(snapshot, config, row, col)) return true;
     }
   }
 

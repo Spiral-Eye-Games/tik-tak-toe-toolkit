@@ -1,4 +1,4 @@
-import type { ClockMode, CollapseType, GameConfig, GravityDirection, IntervalUnit, PieceMoveMode, RosterPlayer } from "./types";
+import type { ClockMode, CollapseType, GameConfig, GravityDirection, IntervalUnit, PieceMoveMode, RestrictionMovementMode, RosterPlayer } from "./types";
 
 /** Tablero clásico 3×3, ganar con 3 en raya, fichas ilimitadas sin movimiento. */
 export const DEFAULT_COLUMNS = 3;
@@ -54,6 +54,13 @@ export const DEFAULT_CLOCK_MODE: ClockMode = "bank";
 export const DEFAULT_CLOCK_BANK_SECONDS = 300;
 export const DEFAULT_CLOCK_RECOVER_SECONDS = 0;
 export const DEFAULT_CLOCK_PER_TURN_SECONDS = 30;
+export const DEFAULT_RESTRICTIONS_ENABLED = false;
+export const DEFAULT_RESTRICTION_START_TURNS = 1;
+export const DEFAULT_RESTRICTION_START_UNIT: IntervalUnit = "turns";
+export const DEFAULT_RESTRICTION_START_BLOCKED_CELLS = [{ row: 1, col: 1 }];
+export const DEFAULT_RESTRICTION_MOVEMENT_MODE: RestrictionMovementMode = "normal";
+export const DEFAULT_RESTRICTION_MOVEMENT_EAT_ENABLED = false;
+export const DEFAULT_RESTRICTION_MOVEMENT_CONVERT_ENABLED = false;
 
 export const DRAW_IF_NO_LEGAL_MOVES = true;
 
@@ -91,5 +98,12 @@ export const DEFAULT_CONFIG: GameConfig = {
   clockMode: DEFAULT_CLOCK_MODE,
   clockBankSeconds: DEFAULT_CLOCK_BANK_SECONDS,
   clockRecoverSeconds: DEFAULT_CLOCK_RECOVER_SECONDS,
-  clockPerTurnSeconds: DEFAULT_CLOCK_PER_TURN_SECONDS
+  clockPerTurnSeconds: DEFAULT_CLOCK_PER_TURN_SECONDS,
+  restrictionsEnabled: DEFAULT_RESTRICTIONS_ENABLED,
+  restrictionStartTurns: DEFAULT_RESTRICTION_START_TURNS,
+  restrictionStartUnit: DEFAULT_RESTRICTION_START_UNIT,
+  restrictionStartBlockedCells: DEFAULT_RESTRICTION_START_BLOCKED_CELLS.map((position) => ({ ...position })),
+  restrictionMovementMode: DEFAULT_RESTRICTION_MOVEMENT_MODE,
+  restrictionMovementEatEnabled: DEFAULT_RESTRICTION_MOVEMENT_EAT_ENABLED,
+  restrictionMovementConvertEnabled: DEFAULT_RESTRICTION_MOVEMENT_CONVERT_ENABLED
 };

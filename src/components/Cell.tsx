@@ -9,6 +9,7 @@ import {
   isGravityPlacementClick,
   isLegalMoveDestination
 } from "../game/rules";
+import { isStartPlacementRestricted } from "../game/restrictions";
 import type { GameState, Piece } from "../game/types";
 import { t } from "../i18n";
 import { PlayerMarkGlyph } from "./PlayerMarkSpan";
@@ -46,17 +47,18 @@ export function Cell({ state, row, col, onPlayMove }: CellProps) {
   const gravityLanding =
     state.config.gravityEnabled &&
     !state.gameOver &&
-    isGravityLandingCell(state.board, state.config, state.gravityDirection, row, col);
+    isGravityLandingCell(state, state.config, state.gravityDirection, row, col);
   const gravityLineHint =
     state.config.gravityEnabled &&
     !state.gameOver &&
     state.selectedPieceId === null &&
     canAddPiece(state, state.config, state.currentPlayer) &&
-    isGravityPlacementClick(state.board, state.config, state.gravityDirection, row, col) &&
+    isGravityPlacementClick(state, state.config, state.gravityDirection, row, col) &&
     !gravityLanding;
 
   const pieceOutKind = getPieceOutKind(state, piece);
   const collapseNext = !isBroken(cell) && isNextCollapsePosition(state, state.config, row, col);
+  const startRestricted = !piece && isStartPlacementRestricted(state, state.config, row, col);
 
   const classNames = ["cell"];
   if (piece) classNames.push("occupied-piece");
@@ -66,6 +68,7 @@ export function Cell({ state, row, col, onPlayMove }: CellProps) {
   if (canSelectPiece(state, state.config, piece)) classNames.push("movable");
   if (state.selectedPieceId !== null && isLegalMoveDestination(state, state.config, row, col)) classNames.push("move-target");
   if (isBroken(cell)) classNames.push("broken");
+  if (startRestricted) classNames.push("start-restricted");
   if (collapseNext) classNames.push("collapse-next");
   if (state.lineCells.some((position) => position.row === row && position.col === col)) {
     classNames.push(state.config.lineRule === "win" ? "winning-line" : "losing");
@@ -77,6 +80,7 @@ export function Cell({ state, row, col, onPlayMove }: CellProps) {
       type="button"
       disabled={!clickable}
       data-broken-label={isBroken(cell) ? getBrokenLabel(cell.brokenTurns) : undefined}
+      data-restricted-label={startRestricted ? t("restrictions.startBlockedCell") : undefined}
       onClick={() => onPlayMove(row, col)}
     >
       <span className="coord-label">{coordinate}</span>

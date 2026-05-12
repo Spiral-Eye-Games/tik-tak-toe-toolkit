@@ -14,11 +14,19 @@ import {
   DEFAULT_LIMITED_PIECE_MOVE_MODE,
   DEFAULT_MAX_PIECES_PER_PLAYER,
   DEFAULT_PLAYER_COUNT,
+  DEFAULT_RESTRICTION_START_TURNS,
+  DEFAULT_RESTRICTION_START_UNIT,
   DEFAULT_ROSTER,
   DEFAULT_UNLIMITED_PIECE_MOVE_MODE
 } from "./defaults";
 import type { ClockMode, CollapseType, GameConfig, GravityDirection, GravityRotateAngle, GravityRotateSpin, IntervalUnit, PieceMoveMode, RosterPlayer } from "./types";
 import { t } from "../i18n";
+import {
+  buildLegacyRestrictionStartBlockedCells,
+  movementSupportsConversion,
+  normalizeRestrictionMovementMode,
+  normalizeRestrictionStartBlockedCells
+} from "./restrictions";
 
 export function getDefaultRoster(): RosterPlayer[] {
   return DEFAULT_ROSTER.map((player) => ({ ...player }));
@@ -131,6 +139,32 @@ export function sanitizeConfig(config: GameConfig): GameConfig {
     looseConfig.collapseEveryUnit,
     looseConfig.collapseEveryTurnsPerPlayer ? "rounds" : DEFAULT_COLLAPSE_EVERY_UNIT
   );
+  const restrictionStartUnit = normalizeIntervalUnit(
+    config.restrictionStartUnit,
+    DEFAULT_RESTRICTION_START_UNIT
+  );
+  const looseRestrictionConfig = config as GameConfig & {
+    restrictionStartZones?: unknown;
+    restrictionStartThickness?: unknown;
+  };
+  const normalizedBlockedCells = normalizeRestrictionStartBlockedCells(
+    config.restrictionStartBlockedCells,
+    rows,
+    columns
+  );
+  const restrictionStartBlockedCells = normalizedBlockedCells.length > 0
+    ? normalizedBlockedCells
+    : buildLegacyRestrictionStartBlockedCells(
+      rows,
+      columns,
+      looseRestrictionConfig.restrictionStartZones,
+      looseRestrictionConfig.restrictionStartThickness
+    );
+  const restrictionMovementMode = normalizeRestrictionMovementMode(config.restrictionMovementMode);
+  const restrictionMovementConvertEnabled =
+    movementSupportsConversion(restrictionMovementMode) && Boolean(config.restrictionMovementConvertEnabled);
+  const restrictionMovementEatEnabled =
+    !restrictionMovementConvertEnabled && restrictionMovementMode !== "normal" && Boolean(config.restrictionMovementEatEnabled);
 
   return {
     columns,
@@ -168,7 +202,14 @@ export function sanitizeConfig(config: GameConfig): GameConfig {
     clockMode,
     clockBankSeconds: clampInt(config.clockBankSeconds, 10, 7200, DEFAULT_CLOCK_BANK_SECONDS),
     clockRecoverSeconds: clampInt(config.clockRecoverSeconds, 0, 600, DEFAULT_CLOCK_RECOVER_SECONDS),
-    clockPerTurnSeconds: clampInt(config.clockPerTurnSeconds, 3, 600, DEFAULT_CLOCK_PER_TURN_SECONDS)
+    clockPerTurnSeconds: clampInt(config.clockPerTurnSeconds, 3, 600, DEFAULT_CLOCK_PER_TURN_SECONDS),
+    restrictionsEnabled: Boolean(config.restrictionsEnabled),
+    restrictionStartTurns: clampInt(config.restrictionStartTurns, 1, 99, DEFAULT_RESTRICTION_START_TURNS),
+    restrictionStartUnit,
+    restrictionStartBlockedCells,
+    restrictionMovementMode,
+    restrictionMovementEatEnabled,
+    restrictionMovementConvertEnabled
   };
 }
 

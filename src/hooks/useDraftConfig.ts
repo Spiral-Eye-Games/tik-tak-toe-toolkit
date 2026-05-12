@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 import {
+  DEFAULT_CONFIG,
   DEFAULT_BROKEN_HOLE_TURNS,
   DEFAULT_COLLAPSE_EVERY_TURNS,
-  DEFAULT_CONFIG,
   DEFAULT_GRAVITY_ROTATE_EVERY_TURNS,
   DEFAULT_MAX_PIECES_PER_PLAYER,
-  DEFAULT_PLAYER_COUNT
+  DEFAULT_PLAYER_COUNT,
+  DEFAULT_RESTRICTION_START_TURNS
 } from "../game/defaults";
 import { clampInt, getDefaultRoster, normalizeClockStrategy, normalizeCollapseType, normalizeIntervalUnit, normalizeMoveMode, sanitizeConfig } from "../game/config";
+import { movementSupportsConversion, normalizeRestrictionMovementMode, normalizeRestrictionStartBlockedCells } from "../game/restrictions";
 import { loadLastSettings, saveLastSettings } from "../game/sessionCache";
 import type { GameConfig } from "../game/types";
 
@@ -79,6 +81,30 @@ export function useDraftConfig() {
       next.clockBankSeconds = clampInt(next.clockBankSeconds, 10, 7200, DEFAULT_CONFIG.clockBankSeconds);
       next.clockRecoverSeconds = clampInt(next.clockRecoverSeconds, 0, 600, DEFAULT_CONFIG.clockRecoverSeconds);
       next.clockPerTurnSeconds = clampInt(next.clockPerTurnSeconds, 3, 600, DEFAULT_CONFIG.clockPerTurnSeconds);
+      next.restrictionsEnabled = Boolean(next.restrictionsEnabled);
+      next.restrictionStartTurns = clampInt(
+        next.restrictionStartTurns,
+        1,
+        99,
+        DEFAULT_RESTRICTION_START_TURNS
+      );
+      next.restrictionStartUnit = normalizeIntervalUnit(next.restrictionStartUnit, DEFAULT_CONFIG.restrictionStartUnit);
+      next.restrictionStartBlockedCells = normalizeRestrictionStartBlockedCells(
+        next.restrictionStartBlockedCells,
+        next.rows,
+        next.columns
+      );
+      next.restrictionMovementMode = normalizeRestrictionMovementMode(next.restrictionMovementMode);
+      if (next.restrictionMovementMode === "normal") {
+        next.restrictionMovementEatEnabled = false;
+        next.restrictionMovementConvertEnabled = false;
+      }
+      if (!movementSupportsConversion(next.restrictionMovementMode)) {
+        next.restrictionMovementConvertEnabled = false;
+      }
+      if (next.restrictionMovementConvertEnabled) {
+        next.restrictionMovementEatEnabled = false;
+      }
 
       return next;
     });
