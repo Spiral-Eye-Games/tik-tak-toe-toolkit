@@ -1,4 +1,4 @@
-import { getResolvedBrokenHoleTurns, getResolvedGravityRotateInterval } from "./config";
+import { getResolvedBrokenHoleTurns, getResolvedCollapseInterval, getResolvedGravityRotateInterval } from "./config";
 import { findPiecePosition } from "./board";
 import { t } from "../i18n";
 import type { GameConfig, GameEndSummary, GameSnapshot, GravityDirection, Piece, PlayerId } from "./types";
@@ -73,12 +73,19 @@ export function buildRulesText(config: GameConfig): string {
       ? t("rules.broken.untilEnd")
       : t("rules.broken.forTurns", { turns: resolvedBrokenTurns });
 
+  const gravityIntervalText = config.gravityRotateEveryUnit === "rounds"
+    ? t("rules.interval.rounds", {
+      amount: config.gravityRotateEveryTurns,
+      turns: getResolvedGravityRotateInterval(config)
+    })
+    : t("rules.interval.turns", { amount: config.gravityRotateEveryTurns });
+
   const gravityText = !config.gravityEnabled
     ? t("rules.gravity.disabled")
     : config.gravityRotateEnabled
       ? t("rules.gravity.enabledWithRotation", {
         direction: t(`rules.gravity.direction.${config.gravityInitialDirection}`),
-        interval: getResolvedGravityRotateInterval(config),
+        intervalText: gravityIntervalText,
         angle: t(`rules.gravity.rotateAngle.${config.gravityRotateAngle}`),
         spin: t(`rules.gravity.rotateSpin.${config.gravityRotateSpin}`)
       })
@@ -98,6 +105,22 @@ export function buildRulesText(config: GameConfig): string {
           : t("rules.clock.bankNoRecover", { total: config.clockBankSeconds })
         : t("rules.clock.perTurn", { seconds: config.clockPerTurnSeconds });
 
+  const collapseIntervalText = config.collapseEveryUnit === "rounds"
+    ? t("rules.interval.rounds", {
+      amount: config.collapseEveryTurns,
+      turns: getResolvedCollapseInterval(config)
+    })
+    : t("rules.interval.turns", { amount: config.collapseEveryTurns });
+
+  const collapseText = !config.collapseEnabled
+    ? t("rules.collapse.disabled")
+    : t("rules.collapse.enabled", {
+      type: t(`rules.collapse.type.${config.collapseType}`),
+      intervalText: collapseIntervalText,
+      times: config.collapseTimes,
+      killsText: config.collapseKillsPlayers ? t("rules.collapse.kills") : t("rules.collapse.noKills")
+    });
+
   return t("rules.summary", {
     columns: config.columns,
     rows: config.rows,
@@ -107,7 +130,8 @@ export function buildRulesText(config: GameConfig): string {
     moveText,
     brokenText,
     gravityText,
-    clockText
+    clockText,
+    collapseText
   });
 }
 

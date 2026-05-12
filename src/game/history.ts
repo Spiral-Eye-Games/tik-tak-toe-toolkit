@@ -17,6 +17,7 @@ export function createSnapshot(state: GameSnapshot): GameSnapshot {
     selectedPieceId: state.selectedPieceId,
     gravityDirection: state.gravityDirection,
     pendingGravityRotationTarget: state.pendingGravityRotationTarget ?? null,
+    collapseCount: state.collapseCount,
     clockTurnStartedAtMs: state.clockTurnStartedAtMs,
     clockBankRemaining: state.clockBankRemaining ? { ...state.clockBankRemaining } : null,
     clockPauseStartedAtMs: state.clockPauseStartedAtMs ?? null

@@ -67,6 +67,7 @@
     "pieces": "Fichas",
     "holes": "Ruptura",
     "gravity": "Gravedad",
+    "collapse": "Colapso",
     "clock": "Cronómetro"
   },
   "fields": {
@@ -91,10 +92,17 @@
     "gravityRotate": "Rotar gravedad",
     "gravityRotateAngle": "Paso de rotación",
     "gravityRotateSpin": "Sentido de giro",
-    "gravityRotateEvery": "Cada N turnos",
-    "gravityRotatePerPlayer": "Por jugador",
-    "gravityRotateInfo": "La dirección cambia cada {{turns}} turnos completados (después de resolver líneas y estabilizar el tablero).",
-    "gravityRotateInfoPerPlayer": "{{base}} × {{players}} jugadores = {{total}} turnos entre rotaciones.",
+    "gravityRotateEvery": "Cada N",
+    "intervalUnit": "Unidad",
+    "gravityRotateInfoTurns": "La dirección cambia cada {{amount}} turnos completados (después de resolver líneas y estabilizar el tablero).",
+    "gravityRotateInfoRounds": "{{amount}} rondas × {{players}} jugadores = {{turns}} turnos entre rotaciones.",
+    "collapseEnabled": "Activar colapso",
+    "collapseType": "Tipo",
+    "collapseEvery": "Cada N",
+    "collapseTimes": "Veces",
+    "collapseKillsPlayers": "Matar jugadores",
+    "collapseInfoTurns": "Colapsa cada {{amount}} turnos completados, hasta {{times}} veces.",
+    "collapseInfoRounds": "{{amount}} rondas × {{players}} jugadores = {{turns}} turnos entre colapsos, hasta {{times}} veces.",
     "playerCount": "Cantidad de jugadores",
     "eliminateLosers": "Eliminar perdedores (sacar fichas al perder la raya)",
     "continueRanking": "Seguir por el ranking (varios ganadores por orden)",
@@ -112,6 +120,10 @@
       "bank": "Banca total",
       "perTurn": "Reloj por turno"
     }
+  },
+  "intervalUnits": {
+    "turns": "Turnos",
+    "rounds": "Rondas"
   },
   "topbar": {
     "clock": "{{seconds}} s"
@@ -159,6 +171,10 @@
       "unlimited": "fichas ilimitadas",
       "limited": "máximo {{maxPieces}} fichas por jugador"
     },
+    "interval": {
+      "turns": "{{amount}} turnos",
+      "rounds": "{{amount}} rondas ({{turns}} turnos)"
+    },
     "broken": {
       "disabled": "sin ruptura en casillas abandonadas",
       "untilEnd": "las casillas rotas duran hasta el final de la partida",
@@ -167,7 +183,7 @@
     "gravity": {
       "disabled": "Gravedad desactivada",
       "enabledDirected": "Gravedad activada (inicialmente hacia {{direction}})",
-      "enabledWithRotation": "Gravedad activada (inicio {{direction}}; cada {{interval}} turnos: {{angle}}, {{spin}})",
+      "enabledWithRotation": "Gravedad activada (inicio {{direction}}; cada {{intervalText}}: {{angle}}, {{spin}})",
       "direction": {
         "down": "Abajo",
         "up": "Arriba",
@@ -186,6 +202,21 @@
         "random": "Sentido de giro aleatorio"
       }
     },
+    "collapse": {
+      "disabled": "Colapso desactivado.",
+      "enabled": "Colapso {{type}} cada {{intervalText}}, {{times}} veces; {{killsText}}.",
+      "kills": "los jugadores sin fichas por el colapso pierden",
+      "noKills": "los jugadores sin fichas por el colapso siguen jugando",
+      "type": {
+        "left": "Izquierda",
+        "right": "Derecha",
+        "up": "Arriba",
+        "down": "Abajo",
+        "horizontal": "Horizontal",
+        "vertical": "Vertical",
+        "circular": "Circular"
+      }
+    },
     "moveModeText": {
       "forcedOldest": "Al llegar al máximo, se mueve la primera ficha colocada",
       "limitMoveAny": "Al llegar al máximo, se mueve cualquier ficha propia",
@@ -200,7 +231,7 @@
       "bankWithRecover": "Banca total: {{total}} s por jugador; recuperación al mover: +{{recover}} s (hasta el tope inicial).",
       "perTurn": "Reloj por turno: {{seconds}} s por jugada; al agotarse pierde el turno."
     },
-    "summary": "{{columns}} columnas x {{rows}} filas. {{lineText}} si formás {{lineLength}} en raya. {{piecesText}}. {{moveText}}. {{brokenText}}. {{gravityText}} {{clockText}}",
+    "summary": "{{columns}} columnas x {{rows}} filas. {{lineText}} si formás {{lineLength}} en raya. {{piecesText}}. {{moveText}}. {{brokenText}}. {{gravityText}} {{collapseText}} {{clockText}}",
     "modal": {
       "intro": "Estas son las reglas de la partida actual. Si modificás valores en la sidebar, presioná {{newGame}} para aplicarlos."
     }
@@ -225,11 +256,13 @@
     "survivorWin": "¡{{player}} es el último en pie y gana!",
     "rankingComplete": "Ranking final listo.",
     "clockBankOut": "{{loser}} se quedó sin tiempo. Gana {{winner}}.",
+    "collapseOut": "{{loser}} se quedó sin fichas por el colapso. Gana {{winner}}.",
     "winAfterMark": " formó {{lineLength}} en raya y ganó.",
     "loseAfterMark": " formó {{lineLength}} en raya y perdió.",
     "survivorBeforeMark": "¡",
     "survivorAfterMark": " es el último en pie y gana!",
     "clockMid": " se quedó sin tiempo. ",
+    "collapseMid": " se quedó sin fichas por el colapso. ",
     "clockWinBeforeMark": "Gana ",
     "clockWinAfterMark": "."
   },
@@ -251,7 +284,7 @@
     },
     "gravity": {
       "title": "Gravedad",
-      "html": "<p>La gravedad tira las fichas hacia un costado del tablero (como un Conecta 4 lateral).</p><ul><li>El toggle del título activa o desactiva esta mecánica.</li><li><strong>Dirección inicial</strong> define qué lado es “abajo” al empezar la partida.</li><li>Con gravedad vertical (arriba/abajo), tocá cualquier casilla vacía de esa columna: la ficha nueva cae al punto de aterrizaje (flecha marcada). Flechas más tenues marcan otras casillas vacías de la misma columna como atajo.</li><li>Con gravedad horizontal (izquierda/derecha), lo mismo a lo largo de la fila.</li><li>Al mover una ficha, tocá cualquier casilla vacía del tablero; la ficha se coloca ahí y después la gravedad la tira junto con el resto en la dirección actual.</li><li>Las casillas rotas por ruptura bloquean el paso.</li><li><strong>Rotar gravedad</strong> cambia el sentido de la caída cada N turnos; hay una pausa de un segundo para ver el tablero y después todas las fichas se reacomodan en la nueva dirección.</li><li><strong>Paso de rotación</strong> es 90°, 180° o 270° por vez (o aleatorio entre esos).</li><li><strong>Sentido de giro</strong> es horario o antihorario en pantalla (o aleatorio en cada tick).</li><li><strong>Por jugador</strong> multiplica N por la cantidad de jugadores, igual que la duración de ruptura.</li></ul>"
+      "html": "<p>La gravedad tira las fichas hacia un costado del tablero (como un Conecta 4 lateral).</p><ul><li>El toggle del título activa o desactiva esta mecánica.</li><li><strong>Dirección inicial</strong> define qué lado es “abajo” al empezar la partida.</li><li>Con gravedad vertical (arriba/abajo), tocá cualquier casilla vacía de esa columna: la ficha nueva cae al punto de aterrizaje (flecha marcada). Flechas más tenues marcan otras casillas vacías de la misma columna como atajo.</li><li>Con gravedad horizontal (izquierda/derecha), lo mismo a lo largo de la fila.</li><li>Al mover una ficha, tocá cualquier casilla vacía del tablero; la ficha se coloca ahí y después la gravedad la tira junto con el resto en la dirección actual.</li><li>Las casillas rotas por ruptura bloquean el paso.</li><li><strong>Rotar gravedad</strong> cambia el sentido de la caída cada N turnos o rondas; una ronda equivale a un turno de cada jugador activo al iniciar la partida.</li><li>Hay una pausa de un segundo para ver el tablero y después todas las fichas se reacomodan en la nueva dirección.</li><li><strong>Paso de rotación</strong> es 90°, 180° o 270° por vez (o aleatorio entre esos).</li><li><strong>Sentido de giro</strong> es horario o antihorario en pantalla (o aleatorio en cada tick).</li></ul>"
     },
     "players": {
       "title": "Jugadores",
@@ -260,12 +293,30 @@
     "clock": {
       "title": "Cronómetro",
       "html": "<p>El casillero del título activa o desactiva el cronómetro.</p><ul><li>Con el cronómetro desactivado, la partida no mide tiempo.</li><li><strong>Banca total</strong>: cada jugador tiene un mismo tiempo total para toda la partida; lo que no usás en un turno queda para los siguientes. Si llega a 0, perdés (en varios jugadores podés quedar fuera como al perder una raya). Opcionalmente podés sumar segundos al terminar cada movimiento válido, hasta el tope de la banca inicial.</li><li><strong>Reloj por turno</strong>: en cada turno tenés el mismo cupo de segundos; si se acaba, perdés solo esa jugada y pasa el turno.</li></ul><p>Durante la pausa de rotación de gravedad el reloj no avanza.</p>"
+    },
+    "collapse": {
+      "title": "Colapso",
+      "html": "<p>El colapso rompe bordes del tablero cada cierta cantidad de turnos o rondas completadas.</p><ul><li>El toggle del título activa o desactiva la mecánica.</li><li><strong>Tipo</strong> define qué borde colapsa: izquierda, derecha, arriba, abajo, horizontal (izquierda y derecha), vertical (arriba y abajo) o circular (todos los bordes).</li><li>Cada repetición avanza una capa hacia adentro: por ejemplo, izquierda rompe una columna más profunda y circular rompe el siguiente anillo.</li><li><strong>Cada N</strong> define el intervalo y <strong>Unidad</strong> elige si se cuenta en turnos o rondas; una ronda equivale a un turno de cada jugador activo al iniciar la partida.</li><li><strong>Veces</strong> limita cuántos colapsos pueden ocurrir durante la partida.</li><li>Las casillas colapsadas quedan rotas hasta el final de la partida y destruyen cualquier ficha que tuvieran.</li><li>Con <strong>Matar jugadores</strong> activo, si un jugador que tenía fichas queda sin ninguna por el colapso, pierde o queda eliminado.</li></ul>"
     }
   },
   "board": {
     "outcomeStripLabel": "Resultados en la partida",
     "outcomeEliminated": "{{player}} eliminado",
-    "outcomeRoundWin": "{{player}} ganó la ronda"
+    "outcomeRoundWin": "{{player}} ganó la ronda",
+    "events": {
+      "label": "Próximos eventos de la partida",
+      "collapseIn": "Colapso en {{amount}} {{unit}}",
+      "gravityIn": "Cambio de gravedad en {{amount}} {{unit}}",
+      "gravityNow": "Cambio de gravedad ahora",
+      "eventIn": "en {{amount}} {{unit}}",
+      "now": "ahora",
+      "units": {
+        "turnSingular": "Turno",
+        "turnPlural": "Turnos",
+        "roundSingular": "Ronda",
+        "roundPlural": "Rondas"
+      }
+    }
   },
   "broken": {
     "permanent": "ROTO"

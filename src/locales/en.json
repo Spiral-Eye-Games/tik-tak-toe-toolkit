@@ -67,6 +67,7 @@
     "pieces": "Pieces",
     "holes": "Rupture",
     "gravity": "Gravity",
+    "collapse": "Collapse",
     "clock": "Clock"
   },
   "fields": {
@@ -91,10 +92,17 @@
     "gravityRotate": "Rotate gravity",
     "gravityRotateAngle": "Rotation step",
     "gravityRotateSpin": "Turn direction",
-    "gravityRotateEvery": "Every N turns",
-    "gravityRotatePerPlayer": "Per player",
-    "gravityRotateInfo": "The direction changes every {{turns}} completed turns (after board settles).",
-    "gravityRotateInfoPerPlayer": "{{base}} × {{players}} players = {{total}} turns between rotations.",
+    "gravityRotateEvery": "Every N",
+    "intervalUnit": "Unit",
+    "gravityRotateInfoTurns": "The direction changes every {{amount}} completed turns (after board settles).",
+    "gravityRotateInfoRounds": "{{amount}} rounds × {{players}} players = {{turns}} turns between rotations.",
+    "collapseEnabled": "Enable collapse",
+    "collapseType": "Type",
+    "collapseEvery": "Every N",
+    "collapseTimes": "Times",
+    "collapseKillsPlayers": "Kill players",
+    "collapseInfoTurns": "Collapses every {{amount}} completed turns, up to {{times}} times.",
+    "collapseInfoRounds": "{{amount}} rounds × {{players}} players = {{turns}} turns between collapses, up to {{times}} times.",
     "playerCount": "Number of players",
     "eliminateLosers": "Eliminate losers (remove their pieces when they complete a line)",
     "continueRanking": "Continue for ranking (multiple winners in order)",
@@ -112,6 +120,10 @@
       "bank": "Total bank",
       "perTurn": "Per-turn clock"
     }
+  },
+  "intervalUnits": {
+    "turns": "Turns",
+    "rounds": "Rounds"
   },
   "topbar": {
     "clock": "{{seconds}} s"
@@ -159,6 +171,10 @@
       "unlimited": "unlimited pieces",
       "limited": "maximum {{maxPieces}} pieces per player"
     },
+    "interval": {
+      "turns": "{{amount}} turns",
+      "rounds": "{{amount}} rounds ({{turns}} turns)"
+    },
     "broken": {
       "disabled": "no rupture on abandoned cells",
       "untilEnd": "broken cells last until the end of the match",
@@ -167,7 +183,7 @@
     "gravity": {
       "disabled": "gravity disabled",
       "enabledDirected": "gravity enabled (initially toward {{direction}})",
-      "enabledWithRotation": "gravity enabled (start {{direction}}; every {{interval}} turns: {{angle}}, {{spin}})",
+      "enabledWithRotation": "gravity enabled (start {{direction}}; every {{intervalText}}: {{angle}}, {{spin}})",
       "direction": {
         "down": "down",
         "up": "up",
@@ -186,6 +202,21 @@
         "random": "random turn direction"
       }
     },
+    "collapse": {
+      "disabled": "collapse disabled.",
+      "enabled": "{{type}} collapse every {{intervalText}}, {{times}} times; {{killsText}}.",
+      "kills": "players left without pieces by the collapse lose",
+      "noKills": "players left without pieces by the collapse keep playing",
+      "type": {
+        "left": "left",
+        "right": "right",
+        "up": "up",
+        "down": "down",
+        "horizontal": "horizontal",
+        "vertical": "vertical",
+        "circular": "circular"
+      }
+    },
     "moveModeText": {
       "forcedOldest": "When you reach the maximum, the first placed piece moves",
       "limitMoveAny": "When you reach the maximum, any of your pieces moves",
@@ -200,7 +231,7 @@
       "bankWithRecover": "Total bank: {{total}} s per player; recover on move: +{{recover}} s (capped at the initial bank).",
       "perTurn": "Per-turn clock: {{seconds}} s per move; at 0 you forfeit the turn."
     },
-    "summary": "{{columns}} columns x {{rows}} rows. {{lineText}} if you make {{lineLength}} in a row. {{piecesText}}. {{moveText}}. {{brokenText}}. {{gravityText}} {{clockText}}",
+    "summary": "{{columns}} columns x {{rows}} rows. {{lineText}} if you make {{lineLength}} in a row. {{piecesText}}. {{moveText}}. {{brokenText}}. {{gravityText}} {{collapseText}} {{clockText}}",
     "modal": {
       "intro": "These are the rules for the current game. If you change values in the sidebar, press {{newGame}} to apply them."
     }
@@ -225,11 +256,13 @@
     "survivorWin": "{{player}} is the last one standing and wins!",
     "rankingComplete": "Final ranking is set.",
     "clockBankOut": "{{loser}} ran out of time. {{winner}} wins.",
+    "collapseOut": "{{loser}} was left without pieces by the collapse. {{winner}} wins.",
     "winAfterMark": " formed {{lineLength}} in a row and won.",
     "loseAfterMark": " formed {{lineLength}} in a row and lost.",
     "survivorBeforeMark": "",
     "survivorAfterMark": " is the last one standing and wins!",
     "clockMid": " ran out of time. ",
+    "collapseMid": " was left without pieces by the collapse. ",
     "clockWinBeforeMark": "",
     "clockWinAfterMark": " wins."
   },
@@ -251,7 +284,7 @@
     },
     "gravity": {
       "title": "Gravity",
-      "html": "<p>Gravity pulls pieces toward one side of the board (like a sideways Connect 4).</p><ul><li>The title toggle enables or disables this mechanic.</li><li><strong>Initial direction</strong> sets which way is “down” at the start of the match.</li><li>With vertical gravity (up/down), tap any empty cell in that column: the new piece settles at the landing spot (strong arrow). Fainter arrows mark other empty cells in the same column you can use as shortcuts.</li><li>With horizontal gravity (left/right), the same idea applies along the row.</li><li>When moving a piece, tap any empty cell on the board; the piece is placed there, then gravity pulls it and the other pieces along the current direction.</li><li>Broken cells from rupture block movement through that cell.</li><li><strong>Rotate gravity</strong> changes the pull direction every N completed turns; there is a one-second pause so you can see the board, then all pieces re-settle in the new direction.</li><li><strong>Rotation step</strong> is 90°, 180°, or 270° per tick (or random among those).</li><li><strong>Turn direction</strong> is clockwise or counter-clockwise on the screen (or random each tick).</li><li><strong>Per player</strong> multiplies N by the number of players, same idea as rupture duration.</li></ul>"
+      "html": "<p>Gravity pulls pieces toward one side of the board (like a sideways Connect 4).</p><ul><li>The title toggle enables or disables this mechanic.</li><li><strong>Initial direction</strong> sets which way is “down” at the start of the match.</li><li>With vertical gravity (up/down), tap any empty cell in that column: the new piece settles at the landing spot (strong arrow). Fainter arrows mark other empty cells in the same column you can use as shortcuts.</li><li>With horizontal gravity (left/right), the same idea applies along the row.</li><li>When moving a piece, tap any empty cell on the board; the piece is placed there, then gravity pulls it and the other pieces along the current direction.</li><li>Broken cells from rupture block movement through that cell.</li><li><strong>Rotate gravity</strong> changes the pull direction every N turns or rounds; one round equals one turn from each player active at the start of the match.</li><li>There is a one-second pause so you can see the board, then all pieces re-settle in the new direction.</li><li><strong>Rotation step</strong> is 90°, 180°, or 270° per tick (or random among those).</li><li><strong>Turn direction</strong> is clockwise or counter-clockwise on the screen (or random each tick).</li></ul>"
     },
     "players": {
       "title": "Players",
@@ -260,12 +293,30 @@
     "clock": {
       "title": "Clock",
       "html": "<p>The title checkbox turns the clock on or off.</p><ul><li>With the clock off, the match does not track time.</li><li><strong>Total bank</strong>: each player has one total budget for the whole game; unused time on a turn stays for later turns. At 0 you lose (with more than two players you may be removed like losing a line). Optionally you can add seconds after each legal move, capped at the initial bank.</li><li><strong>Per-turn clock</strong>: each turn gets the same allowance; if it hits 0 you only lose that turn and play passes on.</li></ul><p>During the gravity-rotation pause the clock does not run.</p>"
+    },
+    "collapse": {
+      "title": "Collapse",
+      "html": "<p>Collapse breaks board edges after a configured number of completed turns or rounds.</p><ul><li>The title toggle enables or disables the mechanic.</li><li><strong>Type</strong> defines which edge collapses: left, right, up, down, horizontal (left and right), vertical (top and bottom), or circular (all edges).</li><li>Each repetition advances one layer inward: for example, left breaks a deeper column and circular breaks the next ring.</li><li><strong>Every N</strong> defines the interval and <strong>Unit</strong> chooses whether it counts turns or rounds; one round equals one turn from each player active at the start of the match.</li><li><strong>Times</strong> limits how many collapses may happen during the match.</li><li>Collapsed cells stay broken until the end of the match and destroy any piece on them.</li><li>With <strong>Kill players</strong> enabled, if a player who had pieces is left with none by the collapse, they lose or are eliminated.</li></ul>"
     }
   },
   "board": {
     "outcomeStripLabel": "Match results",
     "outcomeEliminated": "{{player}} eliminated",
-    "outcomeRoundWin": "{{player}} won the round"
+    "outcomeRoundWin": "{{player}} won the round",
+    "events": {
+      "label": "Upcoming match events",
+      "collapseIn": "Collapse in {{amount}} {{unit}}",
+      "gravityIn": "Gravity change in {{amount}} {{unit}}",
+      "gravityNow": "Gravity change now",
+      "eventIn": "in {{amount}} {{unit}}",
+      "now": "now",
+      "units": {
+        "turnSingular": "Turn",
+        "turnPlural": "Turns",
+        "roundSingular": "Round",
+        "roundPlural": "Rounds"
+      }
+    }
   },
   "broken": {
     "permanent": "BROKEN"

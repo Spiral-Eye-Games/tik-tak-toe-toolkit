@@ -1,3 +1,4 @@
+import { isNextCollapsePosition } from "../game/collapse";
 import { getColumnLetter, getGravityArrowSymbol, getPieceOrder, getPlayerMark } from "../game/formatters";
 import {
   canAddPiece,
@@ -55,6 +56,7 @@ export function Cell({ state, row, col, onPlayMove }: CellProps) {
     !gravityLanding;
 
   const pieceOutKind = getPieceOutKind(state, piece);
+  const collapseNext = !isBroken(cell) && isNextCollapsePosition(state, state.config, row, col);
 
   const classNames = ["cell"];
   if (piece) classNames.push("occupied-piece");
@@ -64,6 +66,7 @@ export function Cell({ state, row, col, onPlayMove }: CellProps) {
   if (canSelectPiece(state, state.config, piece)) classNames.push("movable");
   if (state.selectedPieceId !== null && isLegalMoveDestination(state, state.config, row, col)) classNames.push("move-target");
   if (isBroken(cell)) classNames.push("broken");
+  if (collapseNext) classNames.push("collapse-next");
   if (state.lineCells.some((position) => position.row === row && position.col === col)) {
     classNames.push(state.config.lineRule === "win" ? "winning-line" : "losing");
   }

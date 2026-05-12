@@ -1,4 +1,5 @@
 import { clearClockPauseIfNoPendingGravity } from "./clock";
+import { applyCollapseIfDue } from "./collapse";
 import { getPlayerLabel } from "./formatters";
 import { scheduleGravityRotationIfDue } from "./gravity";
 import { t } from "../i18n";
@@ -6,8 +7,6 @@ import {
   applyGravity,
   findLine,
   getDefaultSelectedPieceIdForcedOldest,
-  getNextActivePlayer,
-  getNextTurnAfterPlayerRemoved,
   removeAllPiecesForPlayer,
   shouldDrawIfNoLegalMoves,
   tickBrokenHoles
@@ -15,10 +14,15 @@ import {
 import type { BoardPosition, GameConfig, GameSnapshot, PlayerId } from "./types";
 
 export function advanceTurnAfterNoLine(snapshot: GameSnapshot, config: GameConfig): void {
+  const oldActive = [...snapshot.activePlayerIds];
+  const completedPlayer = snapshot.currentPlayer;
   tickBrokenHoles(snapshot.board, config, snapshot.turnNumber);
+  applyCollapseIfDue(snapshot, config);
+  if (snapshot.gameOver) return;
+
   if (config.gravityEnabled) applyGravity(snapshot.board, config, snapshot.gravityDirection);
 
-  snapshot.currentPlayer = getNextActivePlayer(snapshot.activePlayerIds, snapshot.currentPlayer);
+  snapshot.currentPlayer = getNextActivePlayerAfterChanges(oldActive, snapshot.activePlayerIds, completedPlayer);
   snapshot.selectedPieceId = getDefaultSelectedPieceIdForcedOldest(snapshot, config);
 
   if (shouldDrawIfNoLegalMoves(snapshot, config)) {
@@ -176,16 +180,33 @@ function advanceAfterPlayerRemoved(
   oldActive: PlayerId[],
   removedId: PlayerId
 ): void {
-  snapshot.currentPlayer = getNextTurnAfterPlayerRemoved(oldActive, removedId);
   snapshot.selectedPieceId = getDefaultSelectedPieceIdForcedOldest(snapshot, config);
   tickBrokenHoles(snapshot.board, config, snapshot.turnNumber);
+  applyCollapseIfDue(snapshot, config);
+  if (snapshot.gameOver) return;
+
   if (config.gravityEnabled) applyGravity(snapshot.board, config, snapshot.gravityDirection);
+  snapshot.currentPlayer = getNextActivePlayerAfterChanges(oldActive, snapshot.activePlayerIds, removedId);
+  snapshot.selectedPieceId = getDefaultSelectedPieceIdForcedOldest(snapshot, config);
 
   if (shouldDrawIfNoLegalMoves(snapshot, config)) {
     snapshot.gameOver = true;
     snapshot.gameEndSummary = { type: "draw" };
     snapshot.statusMessage = t("gameOver.draw");
   }
+}
+
+function getNextActivePlayerAfterChanges(oldActive: PlayerId[], activePlayerIds: PlayerId[], afterPlayerId: PlayerId): PlayerId {
+  if (activePlayerIds.length === 0) return afterPlayerId;
+  const startIndex = oldActive.indexOf(afterPlayerId);
+  if (startIndex < 0) return activePlayerIds[0];
+
+  for (let step = 1; step <= oldActive.length; step++) {
+    const candidate = oldActive[(startIndex + step) % oldActive.length];
+    if (activePlayerIds.includes(candidate)) return candidate;
+  }
+
+  return activePlayerIds[0];
 }
 
 /** El jugador actual se queda sin tiempo en modo banca: pierde la partida o queda eliminado. */

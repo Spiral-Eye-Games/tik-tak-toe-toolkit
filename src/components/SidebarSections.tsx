@@ -1,19 +1,22 @@
 import { useEffect, useRef, useState } from "react";
 import type { ChangeEvent, FocusEvent, InputHTMLAttributes } from "react";
-import { ArrowDown, CircleDot, CircleOff, Grid3X3, Timer, UsersRound } from "lucide-react";
+import { ArrowDown, ChevronsLeftRight, CircleDot, CircleOff, Grid3X3, Timer, UsersRound } from "lucide-react";
 import { DEFAULT_MAX_PIECES_PER_PLAYER } from "../game/defaults";
 import {
   getMoveModeHelp,
   getMoveModeOptions,
   getResolvedBrokenHoleTurns,
+  getResolvedCollapseInterval,
   getResolvedGravityRotateInterval,
   normalizeClockStrategy
 } from "../game/config";
 import type {
+  CollapseType,
   GameConfig,
   GravityDirection,
   GravityRotateAngle,
   GravityRotateSpin,
+  IntervalUnit,
   LineRule,
   PieceLimitType,
   PieceMoveMode
@@ -407,7 +410,7 @@ export function GravitySettingsSection({ config, onChangeConfig, onHelp }: Sideb
             </label>
           </div>
 
-          <div className="field-row toggle-and-number">
+          <div className="field-row">
             <label className="field">
               {t("fields.gravityRotateEvery")}
               <NumericDraftInput
@@ -419,29 +422,131 @@ export function GravitySettingsSection({ config, onChangeConfig, onHelp }: Sideb
               />
             </label>
 
-            <label className="field checkbox boxed">
-              <span>{t("fields.gravityRotatePerPlayer")}</span>
-              <input
-                type="checkbox"
-                checked={config.gravityRotateEveryTurnsPerPlayer}
-                onChange={(event) =>
-                  onChangeConfig({ gravityRotateEveryTurnsPerPlayer: event.target.checked })
-                }
-              />
+            <label className="field">
+              {t("fields.intervalUnit")}
+              <select
+                value={config.gravityRotateEveryUnit}
+                onChange={(event) => onChangeConfig({ gravityRotateEveryUnit: event.target.value as IntervalUnit })}
+              >
+                <option value="turns">{t("intervalUnits.turns")}</option>
+                <option value="rounds">{t("intervalUnits.rounds")}</option>
+              </select>
             </label>
           </div>
 
           <span className="field-help">
-            {config.gravityRotateEveryTurnsPerPlayer
-              ? t("fields.gravityRotateInfoPerPlayer", {
-                base: config.gravityRotateEveryTurns,
+            {config.gravityRotateEveryUnit === "rounds"
+              ? t("fields.gravityRotateInfoRounds", {
+                amount: config.gravityRotateEveryTurns,
                 players: config.playerCount,
-                total: getResolvedGravityRotateInterval(config)
+                turns: getResolvedGravityRotateInterval(config)
               })
-              : t("fields.gravityRotateInfo", { turns: getResolvedGravityRotateInterval(config) })}
+              : t("fields.gravityRotateInfoTurns", { amount: config.gravityRotateEveryTurns })}
           </span>
         </>
       )}
+    </SettingsSection>
+  );
+}
+
+export function CollapseSettingsSection({ config, onChangeConfig, onHelp }: SidebarSectionProps) {
+  return (
+    <SettingsSection
+      title={t("sections.collapse")}
+      icon={<ChevronsLeftRight aria-hidden="true" />}
+      helpKey="collapse"
+      onHelp={onHelp}
+      toggleExpanded={config.collapseEnabled}
+      titleToggle={
+        <label className="section-toggle" title={t("fields.collapseEnabled")} onClick={(event) => event.stopPropagation()}>
+          <input
+            type="checkbox"
+            checked={config.collapseEnabled}
+            onChange={(event) => onChangeConfig({ collapseEnabled: event.target.checked })}
+          />
+        </label>
+      }
+    >
+      <label className="field">
+        {t("fields.collapseType")}
+        <select
+          disabled={!config.collapseEnabled}
+          value={config.collapseType}
+          onChange={(event) => onChangeConfig({ collapseType: event.target.value as CollapseType })}
+        >
+          <option value="left">{t("rules.collapse.type.left")}</option>
+          <option value="right">{t("rules.collapse.type.right")}</option>
+          <option value="up">{t("rules.collapse.type.up")}</option>
+          <option value="down">{t("rules.collapse.type.down")}</option>
+          <option value="horizontal">{t("rules.collapse.type.horizontal")}</option>
+          <option value="vertical">{t("rules.collapse.type.vertical")}</option>
+          <option value="circular">{t("rules.collapse.type.circular")}</option>
+        </select>
+      </label>
+
+      <div className="field-row">
+        <label className="field">
+          {t("fields.collapseEvery")}
+          <NumericDraftInput
+            min={1}
+            max={99}
+            step={1}
+            disabled={!config.collapseEnabled}
+            value={config.collapseEveryTurns}
+            onCommit={(value) => onChangeConfig({ collapseEveryTurns: value })}
+          />
+        </label>
+
+        <label className="field">
+          {t("fields.intervalUnit")}
+          <select
+            disabled={!config.collapseEnabled}
+            value={config.collapseEveryUnit}
+            onChange={(event) => onChangeConfig({ collapseEveryUnit: event.target.value as IntervalUnit })}
+          >
+            <option value="turns">{t("intervalUnits.turns")}</option>
+            <option value="rounds">{t("intervalUnits.rounds")}</option>
+          </select>
+        </label>
+      </div>
+
+      <div className="field-row toggle-and-number">
+        <label className="field">
+          {t("fields.collapseTimes")}
+          <NumericDraftInput
+            min={1}
+            max={99}
+            step={1}
+            disabled={!config.collapseEnabled}
+            value={config.collapseTimes}
+            onCommit={(value) => onChangeConfig({ collapseTimes: value })}
+          />
+        </label>
+
+        <label className="field checkbox boxed">
+          <span>{t("fields.collapseKillsPlayers")}</span>
+          <input
+            type="checkbox"
+            disabled={!config.collapseEnabled}
+            checked={config.collapseKillsPlayers}
+            onChange={(event) => onChangeConfig({ collapseKillsPlayers: event.target.checked })}
+          />
+        </label>
+      </div>
+
+      <span className="field-help">
+        {config.collapseEveryUnit === "rounds"
+          ? t("fields.collapseInfoRounds", {
+            amount: config.collapseEveryTurns,
+            players: config.playerCount,
+            turns: getResolvedCollapseInterval(config),
+            times: config.collapseTimes
+          })
+          : t("fields.collapseInfoTurns", {
+            amount: config.collapseEveryTurns,
+            times: config.collapseTimes
+          })}
+      </span>
     </SettingsSection>
   );
 }

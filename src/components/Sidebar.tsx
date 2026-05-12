@@ -8,6 +8,7 @@ import { PresetModal } from "./PresetModal";
 import {
   BrokenHolesSettingsSection,
   ClockSettingsSection,
+  CollapseSettingsSection,
   GeneralSettingsSection,
   GravitySettingsSection,
   PiecesSettingsSection,
@@ -76,6 +77,7 @@ export function Sidebar({
         />
         <BrokenHolesSettingsSection config={config} onChangeConfig={onChangeConfig} onHelp={onHelp} />
         <GravitySettingsSection config={config} onChangeConfig={onChangeConfig} onHelp={onHelp} />
+        <CollapseSettingsSection config={config} onChangeConfig={onChangeConfig} onHelp={onHelp} />
         <ClockSettingsSection config={config} onChangeConfig={onChangeConfig} onHelp={onHelp} />
       </div>
 

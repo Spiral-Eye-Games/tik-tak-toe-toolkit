@@ -28,6 +28,18 @@ function renderGameOverBanner(state: GameState): ReactNode {
       );
     }
 
+    if (summary.endKind === "collapse" && summary.loserId !== undefined && summary.winnerId) {
+      return (
+        <>
+          <PlayerMarkSpan config={cfg} playerId={summary.loserId} />
+          {t("gameOver.collapseMid")}
+          {t("gameOver.clockWinBeforeMark")}
+          <PlayerMarkSpan config={cfg} playerId={summary.winnerId} />
+          {t("gameOver.clockWinAfterMark")}
+        </>
+      );
+    }
+
     if (cfg.lineRule === "win") {
       return (
         <>

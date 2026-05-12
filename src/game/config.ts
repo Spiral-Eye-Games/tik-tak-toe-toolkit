@@ -1,4 +1,8 @@
 import {
+  DEFAULT_COLLAPSE_EVERY_TURNS,
+  DEFAULT_COLLAPSE_EVERY_UNIT,
+  DEFAULT_COLLAPSE_TIMES,
+  DEFAULT_COLLAPSE_TYPE,
   DEFAULT_CLOCK_BANK_SECONDS,
   DEFAULT_CLOCK_PER_TURN_SECONDS,
   DEFAULT_CLOCK_RECOVER_SECONDS,
@@ -6,14 +10,14 @@ import {
   DEFAULT_BROKEN_HOLE_TURNS,
   DEFAULT_GRAVITY_INITIAL_DIRECTION,
   DEFAULT_GRAVITY_ROTATE_EVERY_TURNS,
-  DEFAULT_GRAVITY_ROTATE_EVERY_TURNS_PER_PLAYER,
+  DEFAULT_GRAVITY_ROTATE_EVERY_UNIT,
   DEFAULT_LIMITED_PIECE_MOVE_MODE,
   DEFAULT_MAX_PIECES_PER_PLAYER,
   DEFAULT_PLAYER_COUNT,
   DEFAULT_ROSTER,
   DEFAULT_UNLIMITED_PIECE_MOVE_MODE
 } from "./defaults";
-import type { ClockMode, GameConfig, GravityDirection, GravityRotateAngle, GravityRotateSpin, PieceMoveMode, RosterPlayer } from "./types";
+import type { ClockMode, CollapseType, GameConfig, GravityDirection, GravityRotateAngle, GravityRotateSpin, IntervalUnit, PieceMoveMode, RosterPlayer } from "./types";
 import { t } from "../i18n";
 
 export function getDefaultRoster(): RosterPlayer[] {
@@ -36,6 +40,8 @@ export function getResolvedBrokenHoleTurns(config: GameConfig): number {
 const GRAVITY_DIRECTIONS: GravityDirection[] = ["down", "up", "left", "right"];
 const GRAVITY_ROTATE_ANGLES: GravityRotateAngle[] = ["90", "180", "270", "random"];
 const GRAVITY_ROTATE_SPINS: GravityRotateSpin[] = ["cw", "ccw", "random"];
+const COLLAPSE_TYPES: CollapseType[] = ["left", "right", "up", "down", "horizontal", "vertical", "circular"];
+const INTERVAL_UNITS: IntervalUnit[] = ["turns", "rounds"];
 
 export function normalizeGravityDirection(value: unknown): GravityDirection {
   return GRAVITY_DIRECTIONS.includes(value as GravityDirection) ? (value as GravityDirection) : DEFAULT_GRAVITY_INITIAL_DIRECTION;
@@ -47,6 +53,14 @@ export function normalizeGravityRotateAngle(value: unknown): GravityRotateAngle 
 
 export function normalizeGravityRotateSpin(value: unknown): GravityRotateSpin {
   return GRAVITY_ROTATE_SPINS.includes(value as GravityRotateSpin) ? (value as GravityRotateSpin) : "cw";
+}
+
+export function normalizeCollapseType(value: unknown): CollapseType {
+  return COLLAPSE_TYPES.includes(value as CollapseType) ? (value as CollapseType) : DEFAULT_COLLAPSE_TYPE;
+}
+
+export function normalizeIntervalUnit(value: unknown, fallback: IntervalUnit = "turns"): IntervalUnit {
+  return INTERVAL_UNITS.includes(value as IntervalUnit) ? (value as IntervalUnit) : fallback;
 }
 
 /** Modo de conteo cuando el cronómetro está activo (solo `bank` | `perTurn`). */
@@ -72,7 +86,14 @@ function resolveClockEnabledAndMode(config: GameConfig): { clockEnabled: boolean
 export function getResolvedGravityRotateInterval(config: GameConfig): number {
   if (!config.gravityEnabled || !config.gravityRotateEnabled) return 0;
   const base = clampInt(config.gravityRotateEveryTurns, 1, 99, DEFAULT_GRAVITY_ROTATE_EVERY_TURNS);
-  return config.gravityRotateEveryTurnsPerPlayer ? base * config.playerCount : base;
+  return config.gravityRotateEveryUnit === "rounds" ? base * config.playerCount : base;
+}
+
+/** Effective turn interval for board collapse (0 if disabled or exhausted). */
+export function getResolvedCollapseInterval(config: GameConfig): number {
+  if (!config.collapseEnabled) return 0;
+  const base = clampInt(config.collapseEveryTurns, 1, 99, DEFAULT_COLLAPSE_EVERY_TURNS);
+  return config.collapseEveryUnit === "rounds" ? base * config.playerCount : base;
 }
 
 export function sanitizeConfig(config: GameConfig): GameConfig {
@@ -97,6 +118,18 @@ export function sanitizeConfig(config: GameConfig): GameConfig {
   const brokenHoleTurns = clampInt(baseBrokenTurnsRaw, 1, 99, DEFAULT_BROKEN_HOLE_TURNS);
 
   const { clockEnabled, clockMode } = resolveClockEnabledAndMode(config);
+  const looseConfig = config as GameConfig & {
+    gravityRotateEveryTurnsPerPlayer?: boolean;
+    collapseEveryTurnsPerPlayer?: boolean;
+  };
+  const gravityRotateEveryUnit = normalizeIntervalUnit(
+    looseConfig.gravityRotateEveryUnit,
+    looseConfig.gravityRotateEveryTurnsPerPlayer ? "rounds" : DEFAULT_GRAVITY_ROTATE_EVERY_UNIT
+  );
+  const collapseEveryUnit = normalizeIntervalUnit(
+    looseConfig.collapseEveryUnit,
+    looseConfig.collapseEveryTurnsPerPlayer ? "rounds" : DEFAULT_COLLAPSE_EVERY_UNIT
+  );
 
   return {
     columns,
@@ -118,7 +151,13 @@ export function sanitizeConfig(config: GameConfig): GameConfig {
     gravityRotateAngle: normalizeGravityRotateAngle(config.gravityRotateAngle),
     gravityRotateSpin: normalizeGravityRotateSpin(config.gravityRotateSpin),
     gravityRotateEveryTurns: clampInt(config.gravityRotateEveryTurns, 1, 99, DEFAULT_GRAVITY_ROTATE_EVERY_TURNS),
-    gravityRotateEveryTurnsPerPlayer: Boolean(config.gravityRotateEveryTurnsPerPlayer),
+    gravityRotateEveryUnit,
+    collapseEnabled: Boolean(config.collapseEnabled),
+    collapseType: normalizeCollapseType(config.collapseType),
+    collapseEveryTurns: clampInt(config.collapseEveryTurns, 1, 99, DEFAULT_COLLAPSE_EVERY_TURNS),
+    collapseEveryUnit,
+    collapseTimes: clampInt(config.collapseTimes, 1, 99, DEFAULT_COLLAPSE_TIMES),
+    collapseKillsPlayers: Boolean(config.collapseKillsPlayers),
     roster,
     playerCount,
     eliminateLosers: Boolean(config.eliminateLosers),

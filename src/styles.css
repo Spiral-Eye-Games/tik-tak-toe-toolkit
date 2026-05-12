@@ -717,6 +717,30 @@ body, #root { height: 100vh; }
   background: radial-gradient(circle at center, rgba(255, 209, 102, 0.12), transparent 58%), linear-gradient(145deg, rgba(255, 255, 255, 0.075), transparent 42%), var(--cell);
 }
 
+.cell.collapse-next {
+  border-color: rgba(255, 123, 123, 0.72);
+  background:
+    repeating-linear-gradient(45deg, rgba(255, 123, 123, 0.16), rgba(255, 123, 123, 0.16) 7px, transparent 7px, transparent 15px),
+    radial-gradient(circle at center, rgba(255, 123, 123, 0.12), transparent 62%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.075), transparent 42%),
+    var(--cell);
+  box-shadow:
+    0 clamp(4px, 9cqw, 12px) clamp(8px, 16cqw, 22px) rgba(0, 0, 0, 0.24),
+    inset 0 0 0 clamp(2px, 3cqw, 4px) rgba(255, 123, 123, 0.18);
+}
+
+.cell.collapse-next::before {
+  border-color: rgba(255, 170, 170, 0.26);
+}
+
+.cell.collapse-next.occupied-piece {
+  background:
+    repeating-linear-gradient(45deg, rgba(255, 123, 123, 0.2), rgba(255, 123, 123, 0.2) 7px, transparent 7px, transparent 15px),
+    radial-gradient(circle at center, rgba(255, 209, 102, 0.14), transparent 58%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.075), transparent 42%),
+    var(--cell);
+}
+
 .cell.cell-eliminated-lose {
   outline: 2px dashed rgba(255, 120, 120, 0.5);
   background: radial-gradient(circle at center, rgba(255, 80, 80, 0.1), transparent 55%), linear-gradient(145deg, rgba(255, 255, 255, 0.05), transparent 42%), var(--cell);
@@ -787,6 +811,61 @@ body, #root { height: 100vh; }
 .board-outcome-emoji {
   font-size: clamp(20px, 3.5vmin, 26px);
   line-height: 1;
+}
+
+.board-event-strip {
+  position: absolute;
+  top: clamp(10px, 2vmin, 22px);
+  left: clamp(6px, 1.5vmin, 14px);
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  width: clamp(112px, 14vmin, 170px);
+  pointer-events: none;
+}
+
+.board-event-chip {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text);
+  font-size: clamp(10px, 1.55vmin, 13px);
+  font-weight: 900;
+  line-height: 1.2;
+  text-wrap: balance;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(8px);
+}
+
+.board-event-icon {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+}
+
+.board-event-icon svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 3;
+}
+
+.board-event-chip--collapse {
+  background: linear-gradient(165deg, rgba(118, 38, 48, 0.92), rgba(42, 14, 20, 0.88));
+  border-color: rgba(255, 130, 130, 0.35);
+}
+
+.board-event-chip--gravity {
+  background: linear-gradient(165deg, rgba(40, 68, 122, 0.92), rgba(18, 28, 58, 0.88));
+  border-color: rgba(120, 170, 255, 0.35);
 }
 
 .coord-label {

@@ -72,7 +72,7 @@ function buildBuiltinConfig(id: BuiltinPresetId): GameConfig {
         gravityRotateAngle: "90",
         gravityRotateSpin: "cw",
         gravityRotateEveryTurns: 1,
-        gravityRotateEveryTurnsPerPlayer: true
+        gravityRotateEveryUnit: "rounds"
       });
     default: {
       const _exhaustive: never = id;

@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import type { GameState } from "../game/types";
+import { BoardEventStrip } from "./BoardEventStrip";
 import { BoardOutcomeStrip } from "./BoardOutcomeStrip";
 import { Cell } from "./Cell";
 import { VictoryModal } from "./VictoryModal";
@@ -36,6 +37,7 @@ export function Board({ state, onPlayMove, onVictoryNewGame, onVictoryUndo }: Bo
             )}
           </section>
 
+          <BoardEventStrip state={state} />
           <BoardOutcomeStrip state={state} />
 
           <VictoryModal

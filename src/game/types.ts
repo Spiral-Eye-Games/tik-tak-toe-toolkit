@@ -15,6 +15,8 @@ export type PieceMoveMode = "forcedOldest" | "limitMoveAny" | "limitedFree" | "b
 export type GravityDirection = "down" | "up" | "left" | "right";
 export type GravityRotateAngle = "90" | "180" | "270" | "random";
 export type GravityRotateSpin = "cw" | "ccw" | "random";
+export type CollapseType = "left" | "right" | "up" | "down" | "horizontal" | "vertical" | "circular";
+export type IntervalUnit = "turns" | "rounds";
 
 /** `bank`: tiempo total compartido entre turnos. `perTurn`: tiempo que se restablece cada turno. */
 export type ClockMode = "bank" | "perTurn";
@@ -37,7 +39,13 @@ export interface GameConfig {
   gravityRotateAngle: GravityRotateAngle;
   gravityRotateSpin: GravityRotateSpin;
   gravityRotateEveryTurns: number;
-  gravityRotateEveryTurnsPerPlayer: boolean;
+  gravityRotateEveryUnit: IntervalUnit;
+  collapseEnabled: boolean;
+  collapseType: CollapseType;
+  collapseEveryTurns: number;
+  collapseEveryUnit: IntervalUnit;
+  collapseTimes: number;
+  collapseKillsPlayers: boolean;
   roster: RosterPlayer[];
   playerCount: number;
   eliminateLosers: boolean;
@@ -75,7 +83,7 @@ export type PieceHistory = Record<PlayerId, number[]>;
 
 export type GameEndSummary =
   | { type: "draw" }
-  | { type: "winner"; winnerId: PlayerId; loserId?: PlayerId; endKind?: "clock_bank" }
+  | { type: "winner"; winnerId: PlayerId; loserId?: PlayerId; endKind?: "clock_bank" | "collapse" }
   | { type: "ranking"; orderedIds: PlayerId[] };
 
 export interface GameSnapshot {
@@ -95,6 +103,8 @@ export interface GameSnapshot {
   gravityDirection: GravityDirection;
   /** Si no es null, tras el último turno quedó programada una rotación de gravedad (se aplica tras la pausa en UI). */
   pendingGravityRotationTarget: GravityDirection | null;
+  /** Cantidad de colapsos ya aplicados en la partida. */
+  collapseCount: number;
   /** Inicio del turno actual del reloj (ms desde epoch). */
   clockTurnStartedAtMs: number;
   /** Solo modo banca: segundos restantes por jugador al inicio del turno actual (el activo se agota con el tiempo real). */

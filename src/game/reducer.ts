@@ -35,6 +35,7 @@ export function createInitialGameState(configInput: GameConfig): GameState {
     selectedPieceId: null,
     gravityDirection: config.gravityInitialDirection,
     pendingGravityRotationTarget: null,
+    collapseCount: 0,
     clockTurnStartedAtMs: nowMs,
     clockBankRemaining,
     clockPauseStartedAtMs: null,

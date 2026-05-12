@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import {
   DEFAULT_BROKEN_HOLE_TURNS,
+  DEFAULT_COLLAPSE_EVERY_TURNS,
   DEFAULT_CONFIG,
   DEFAULT_GRAVITY_ROTATE_EVERY_TURNS,
   DEFAULT_MAX_PIECES_PER_PLAYER,
   DEFAULT_PLAYER_COUNT
 } from "../game/defaults";
-import { clampInt, getDefaultRoster, normalizeClockStrategy, normalizeMoveMode, sanitizeConfig } from "../game/config";
+import { clampInt, getDefaultRoster, normalizeClockStrategy, normalizeCollapseType, normalizeIntervalUnit, normalizeMoveMode, sanitizeConfig } from "../game/config";
 import { loadLastSettings, saveLastSettings } from "../game/sessionCache";
 import type { GameConfig } from "../game/types";
 
@@ -63,6 +64,12 @@ export function useDraftConfig() {
 
       next.clockEnabled = Boolean(next.clockEnabled);
       next.clockMode = normalizeClockStrategy(next.clockMode);
+      next.gravityRotateEveryUnit = normalizeIntervalUnit(next.gravityRotateEveryUnit, DEFAULT_CONFIG.gravityRotateEveryUnit);
+      next.collapseEnabled = Boolean(next.collapseEnabled);
+      next.collapseType = normalizeCollapseType(next.collapseType);
+      next.collapseEveryTurns = clampInt(next.collapseEveryTurns, 1, 99, DEFAULT_COLLAPSE_EVERY_TURNS);
+      next.collapseEveryUnit = normalizeIntervalUnit(next.collapseEveryUnit, DEFAULT_CONFIG.collapseEveryUnit);
+      next.collapseTimes = clampInt(next.collapseTimes, 1, 99, DEFAULT_CONFIG.collapseTimes);
 
       return next;
     });
