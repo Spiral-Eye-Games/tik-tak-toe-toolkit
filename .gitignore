@@ -21,6 +21,7 @@ pnpm-debug.log
 
 # TypeScript
 .tsbuildinfo
+.tsbuild-node
 
 # IDE  Editor
 .vscode
