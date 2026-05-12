@@ -1,3 +1,5 @@
+import { useEffect, useRef, useState } from "react";
+import type { ChangeEvent, FocusEvent, InputHTMLAttributes } from "react";
 import { ArrowDown, CircleDot, CircleOff, Grid3X3, Timer, UsersRound } from "lucide-react";
 import { DEFAULT_MAX_PIECES_PER_PLAYER } from "../game/defaults";
 import {
@@ -25,6 +27,88 @@ interface SidebarSectionProps {
   onHelp: (helpKey: string) => void;
 }
 
+interface NumericDraftInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "type" | "value" | "onChange"> {
+  value: number;
+  onCommit: (value: number) => void;
+  commitDelayMs?: number;
+}
+
+function NumericDraftInput({
+  value,
+  onCommit,
+  commitDelayMs = 700,
+  disabled,
+  onBlur,
+  ...props
+}: NumericDraftInputProps) {
+  const [draftValue, setDraftValue] = useState(String(value));
+  const commitTimeoutRef = useRef<number | undefined>(undefined);
+
+  useEffect(() => {
+    setDraftValue(String(value));
+  }, [value]);
+
+  useEffect(() => {
+    return () => {
+      window.clearTimeout(commitTimeoutRef.current);
+    };
+  }, []);
+
+  function clearPendingCommit() {
+    window.clearTimeout(commitTimeoutRef.current);
+    commitTimeoutRef.current = undefined;
+  }
+
+  function parseDraft(valueToParse: string) {
+    const trimmedValue = valueToParse.trim();
+    if (trimmedValue === "" || trimmedValue === "-" || trimmedValue === "+") return null;
+
+    const parsedValue = Number(trimmedValue);
+    return Number.isFinite(parsedValue) ? parsedValue : null;
+  }
+
+  function scheduleCommit(nextDraftValue: string) {
+    clearPendingCommit();
+    const parsedValue = parseDraft(nextDraftValue);
+    if (parsedValue === null || disabled) return;
+
+    commitTimeoutRef.current = window.setTimeout(() => {
+      onCommit(parsedValue);
+      commitTimeoutRef.current = undefined;
+    }, commitDelayMs);
+  }
+
+  function handleChange(event: ChangeEvent<HTMLInputElement>) {
+    const nextDraftValue = event.target.value;
+    setDraftValue(nextDraftValue);
+    scheduleCommit(nextDraftValue);
+  }
+
+  function handleBlur(event: FocusEvent<HTMLInputElement>) {
+    clearPendingCommit();
+    const parsedValue = parseDraft(event.target.value);
+
+    if (parsedValue === null || disabled) {
+      setDraftValue(String(value));
+    } else {
+      onCommit(parsedValue);
+    }
+
+    onBlur?.(event);
+  }
+
+  return (
+    <input
+      {...props}
+      type="number"
+      disabled={disabled}
+      value={draftValue}
+      onChange={handleChange}
+      onBlur={handleBlur}
+    />
+  );
+}
+
 export function GeneralSettingsSection({ config, onChangeConfig, onHelp }: SidebarSectionProps) {
   const lineMax = Math.max(config.columns, config.rows);
 
@@ -33,25 +117,23 @@ export function GeneralSettingsSection({ config, onChangeConfig, onHelp }: Sideb
       <div className="field-row">
         <label className="field">
           {t("fields.columns")}
-          <input
-            type="number"
+          <NumericDraftInput
             min={3}
             max={12}
             step={1}
             value={config.columns}
-            onChange={(event) => onChangeConfig({ columns: Number(event.target.value) })}
+            onCommit={(value) => onChangeConfig({ columns: value })}
           />
         </label>
 
         <label className="field">
           {t("fields.rows")}
-          <input
-            type="number"
+          <NumericDraftInput
             min={3}
             max={12}
             step={1}
             value={config.rows}
-            onChange={(event) => onChangeConfig({ rows: Number(event.target.value) })}
+            onCommit={(value) => onChangeConfig({ rows: value })}
           />
         </label>
       </div>
@@ -70,13 +152,12 @@ export function GeneralSettingsSection({ config, onChangeConfig, onHelp }: Sideb
 
         <label className="field">
           {t("fields.lineLength")}
-          <input
-            type="number"
+          <NumericDraftInput
             min={2}
             max={lineMax}
             step={1}
             value={config.lineLength}
-            onChange={(event) => onChangeConfig({ lineLength: Number(event.target.value) })}
+            onCommit={(value) => onChangeConfig({ lineLength: value })}
           />
         </label>
       </div>
@@ -102,14 +183,13 @@ export function PiecesSettingsSection({ config, onChangeConfig, onHelp }: Sideba
 
         <label className="field">
           {t("fields.quantity")}
-          <input
-            type="number"
+          <NumericDraftInput
             min={1}
             max={99}
             step={1}
             disabled={unlimitedPieces}
             value={config.maxPiecesPerPlayer || DEFAULT_MAX_PIECES_PER_PLAYER}
-            onChange={(event) => onChangeConfig({ maxPiecesPerPlayer: Number(event.target.value) })}
+            onCommit={(value) => onChangeConfig({ maxPiecesPerPlayer: value })}
           />
         </label>
       </div>
@@ -211,14 +291,13 @@ export function BrokenHolesSettingsSection({ config, onChangeConfig, onHelp }: S
       <div className="field-row broken-rupture-row">
         <label className="field">
           {t("fields.turns")}
-          <input
-            type="number"
+          <NumericDraftInput
             min={1}
             max={99}
             step={1}
             disabled={!config.brokenEnabled || config.brokenHoleUnlimited}
             value={config.brokenHoleTurns}
-            onChange={(event) => onChangeConfig({ brokenHoleTurns: Number(event.target.value) })}
+            onCommit={(value) => onChangeConfig({ brokenHoleTurns: value })}
           />
         </label>
         <label className="field checkbox boxed broken-rupture-check">
@@ -331,13 +410,12 @@ export function GravitySettingsSection({ config, onChangeConfig, onHelp }: Sideb
           <div className="field-row toggle-and-number">
             <label className="field">
               {t("fields.gravityRotateEvery")}
-              <input
-                type="number"
+              <NumericDraftInput
                 min={1}
                 max={99}
                 step={1}
                 value={config.gravityRotateEveryTurns}
-                onChange={(event) => onChangeConfig({ gravityRotateEveryTurns: Number(event.target.value) })}
+                onCommit={(value) => onChangeConfig({ gravityRotateEveryTurns: value })}
               />
             </label>
 
@@ -403,20 +481,18 @@ export function ClockSettingsSection({ config, onChangeConfig, onHelp }: Sidebar
         <>
           <label className="field">
             {t("fields.clockBankSeconds")}
-            <input
-              type="number"
+            <NumericDraftInput
               step={1}
               value={config.clockBankSeconds}
-              onChange={(event) => onChangeConfig({ clockBankSeconds: Number(event.target.value) })}
+              onCommit={(value) => onChangeConfig({ clockBankSeconds: value })}
             />
           </label>
           <label className="field">
             {t("fields.clockRecoverSeconds")}
-            <input
-              type="number"
+            <NumericDraftInput
               step={1}
               value={config.clockRecoverSeconds}
-              onChange={(event) => onChangeConfig({ clockRecoverSeconds: Number(event.target.value) })}
+              onCommit={(value) => onChangeConfig({ clockRecoverSeconds: value })}
             />
           </label>
           <span className="field-help">{t("fields.clockHintBank")}</span>
@@ -427,11 +503,10 @@ export function ClockSettingsSection({ config, onChangeConfig, onHelp }: Sidebar
         <>
           <label className="field">
             {t("fields.clockPerTurnSeconds")}
-            <input
-              type="number"
+            <NumericDraftInput
               step={1}
               value={config.clockPerTurnSeconds}
-              onChange={(event) => onChangeConfig({ clockPerTurnSeconds: Number(event.target.value) })}
+              onCommit={(value) => onChangeConfig({ clockPerTurnSeconds: value })}
             />
           </label>
           <span className="field-help">{t("fields.clockHintPerTurn")}</span>
