@@ -1,3 +1,4 @@
+import { Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import {
   BUILTIN_PRESET_ORDER,
@@ -81,7 +82,9 @@ export function PresetModal({ open, draftConfig, onClose, onApplyPreset }: Prese
         <section className="modal preset-modal" role="dialog" aria-modal="true" aria-labelledby="presetModalTitle">
           <header className="modal-header">
             <h2 className="modal-title" id="presetModalTitle">{t("presets.modalTitle")}</h2>
-            <button className="modal-close" type="button" aria-label={t("actions.close")} onClick={onClose}>×</button>
+            <button className="modal-close" type="button" aria-label={t("actions.close")} onClick={onClose}>
+              <X aria-hidden="true" />
+            </button>
           </header>
           <div className="modal-body preset-modal-body">
             <div className="preset-save-block">
@@ -137,7 +140,7 @@ export function PresetModal({ open, draftConfig, onClose, onApplyPreset }: Prese
                       aria-label={t("presets.deleteUserTitle")}
                       onClick={() => handleDeleteUser(record.id)}
                     >
-                      ×
+                      <Trash2 aria-hidden="true" />
                     </button>
                   </li>
                 ))}

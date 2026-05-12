@@ -1,3 +1,4 @@
+import { UserMinus, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { normalizeRoster } from "../game/config";
 import { DEFAULT_PLAYER_COLORS, DEFAULT_ROSTER } from "../game/defaults";
@@ -87,7 +88,9 @@ export function PlayersModal({ open, roster, onClose, onApply }: PlayersModalPro
         <section className="modal players-modal" role="dialog" aria-modal="true" aria-labelledby="playersModalTitle">
           <header className="modal-header">
             <h2 className="modal-title" id="playersModalTitle">{t("playersModal.title")}</h2>
-            <button className="modal-close" type="button" aria-label={t("actions.close")} onClick={onClose}>×</button>
+            <button className="modal-close" type="button" aria-label={t("actions.close")} onClick={onClose}>
+              <X aria-hidden="true" />
+            </button>
           </header>
           <div className="modal-body players-modal-body">
             <p className="field-help">{t("playersModal.intro")}</p>
@@ -116,9 +119,10 @@ export function PlayersModal({ open, roster, onClose, onApply }: PlayersModalPro
                     type="button"
                     disabled={draft.length <= 2}
                     title={t("playersModal.remove")}
+                    aria-label={t("playersModal.remove")}
                     onClick={() => removeRow(index)}
                   >
-                    −
+                    <UserMinus aria-hidden="true" />
                   </button>
                 </li>
               ))}

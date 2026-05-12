@@ -1,3 +1,4 @@
+import { Info, SlidersHorizontal } from "lucide-react";
 import { useState } from "react";
 import { mustMovePiece } from "../game/rules";
 import type { GameConfig, GameState, RosterPlayer } from "../game/types";
@@ -46,12 +47,12 @@ export function Sidebar({
           <button className="button full" type="button" onClick={onNewGame}>{t("buttons.newGame")}</button>
           <Tooltip text={t("presets.openTitle")}>
             <button className="help-button large" type="button" onClick={() => setPresetModalOpen(true)}>
-              {t("ui.presetsOpenGlyph")}
+              <SlidersHorizontal aria-hidden="true" />
             </button>
           </Tooltip>
           <Tooltip text={t("actions.viewRulesCurrent")}>
             <button className="help-button large" type="button" onClick={onRulesHelp}>
-              {t("ui.helpInfoGlyph")}
+              <Info aria-hidden="true" />
             </button>
           </Tooltip>
         </div>

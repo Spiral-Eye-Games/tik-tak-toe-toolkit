@@ -1,3 +1,4 @@
+import { ArrowDown, CircleDot, CircleOff, Grid3X3, Timer, UsersRound } from "lucide-react";
 import { DEFAULT_MAX_PIECES_PER_PLAYER } from "../game/defaults";
 import {
   getMoveModeHelp,
@@ -28,7 +29,7 @@ export function GeneralSettingsSection({ config, onChangeConfig, onHelp }: Sideb
   const lineMax = Math.max(config.columns, config.rows);
 
   return (
-    <SettingsSection title={t("sections.general")} icon="◎" helpKey="general" defaultOpen onHelp={onHelp}>
+    <SettingsSection title={t("sections.general")} icon={<Grid3X3 aria-hidden="true" />} helpKey="general" defaultOpen onHelp={onHelp}>
       <div className="field-row">
         <label className="field">
           {t("fields.columns")}
@@ -88,7 +89,7 @@ export function PiecesSettingsSection({ config, onChangeConfig, onHelp }: Sideba
   const moveModeOptions = getMoveModeOptions(config.pieceLimitType);
 
   return (
-    <SettingsSection title={t("sections.pieces")} icon="●" helpKey="pieces" defaultOpen onHelp={onHelp}>
+    <SettingsSection title={t("sections.pieces")} icon={<CircleDot aria-hidden="true" />} helpKey="pieces" defaultOpen onHelp={onHelp}>
       <div className="field-row toggle-and-number">
         <label className="field checkbox boxed">
           <span>{t("fields.unlimitedPieces")}</span>
@@ -145,7 +146,7 @@ export function PlayersSettingsSection({
   );
 
   return (
-    <SettingsSection title={t("sections.players")} icon="☺" helpKey="players" onHelp={onHelp}>
+    <SettingsSection title={t("sections.players")} icon={<UsersRound aria-hidden="true" />} helpKey="players" onHelp={onHelp}>
       <div className="field-row players-tool-row">
         <label className="field">
           {t("fields.playerCount")}
@@ -205,7 +206,7 @@ export function BrokenHolesSettingsSection({ config, onChangeConfig, onHelp }: S
   return (
     <SettingsSection
       title={t("sections.holes")}
-      icon="✦"
+      icon={<CircleOff aria-hidden="true" />}
       helpKey="holes"
       onHelp={onHelp}
       toggleExpanded={config.brokenEnabled}
@@ -272,7 +273,7 @@ export function GravitySettingsSection({ config, onChangeConfig, onHelp }: Sideb
   return (
     <SettingsSection
       title={t("sections.gravity")}
-      icon="↓"
+      icon={<ArrowDown aria-hidden="true" />}
       helpKey="gravity"
       onHelp={onHelp}
       toggleExpanded={config.gravityEnabled}
@@ -383,7 +384,7 @@ export function ClockSettingsSection({ config, onChangeConfig, onHelp }: Sidebar
   return (
     <SettingsSection
       title={t("sections.clock")}
-      icon="⏱"
+      icon={<Timer aria-hidden="true" />}
       helpKey="clock"
       onHelp={onHelp}
       toggleExpanded={config.clockEnabled}

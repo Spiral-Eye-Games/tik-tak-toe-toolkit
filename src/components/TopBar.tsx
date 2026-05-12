@@ -1,3 +1,4 @@
+import { RotateCcw, RotateCw } from "lucide-react";
 import type { ReactNode } from "react";
 import { t } from "../i18n";
 
@@ -35,8 +36,12 @@ export function TopBar({ children, statusAriaLabel, clockText, canUndo, canRedo,
           </div>
         </div>
         <div className="topbar-actions">
-          <button className="button icon" title={t("actions.undo")} type="button" disabled={!canUndo} onClick={onUndo}>↶</button>
-          <button className="button icon" title={t("actions.redo")} type="button" disabled={!canRedo} onClick={onRedo}>↷</button>
+          <button className="button icon" title={t("actions.undo")} aria-label={t("actions.undo")} type="button" disabled={!canUndo} onClick={onUndo}>
+            <RotateCcw aria-hidden="true" />
+          </button>
+          <button className="button icon" title={t("actions.redo")} aria-label={t("actions.redo")} type="button" disabled={!canRedo} onClick={onRedo}>
+            <RotateCw aria-hidden="true" />
+          </button>
         </div>
       </div>
     </header>

@@ -1,10 +1,11 @@
+import { ChevronRight } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { Tooltip } from "./Tooltip";
 import { t } from "../i18n";
 
 interface SettingsSectionProps {
   title: string;
-  icon: string;
+  icon: ReactNode;
   helpKey: string;
   defaultOpen?: boolean;
   /** Si se pasa, el acordeón se fuerza cerrado en `false` y se abre solo al pasar a `true`. */
@@ -108,7 +109,7 @@ export function SettingsSection({
             {t("ui.helpButtonSymbol")}
           </button>
         </Tooltip>
-        <span className="chevron">{t("ui.chevronRight")}</span>
+        <span className="chevron"><ChevronRight aria-hidden="true" /></span>
       </summary>
 
       <div className="settings-card">{children}</div>

@@ -50,9 +50,6 @@
   },
   "ui": {
     "helpButtonSymbol": "?",
-    "helpInfoGlyph": "i",
-    "presetsOpenGlyph": "⊞",
-    "chevronRight": "›",
     "gravityArrows": {
       "down": "↓",
       "up": "↑",

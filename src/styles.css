@@ -394,6 +394,12 @@ body, #root { height: 100vh; }
   font-weight: 900;
 }
 
+.section-icon svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2.35;
+}
+
 .section-title-wrap {
   min-width: 0;
   display: flex;
@@ -413,6 +419,9 @@ body, #root { height: 100vh; }
 .help-button {
   width: 28px;
   height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: 1px solid rgba(255, 255, 255, 0.13);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.075);
@@ -423,11 +432,21 @@ body, #root { height: 100vh; }
   transition: transform 0.12s ease, background 0.12s ease, border-color 0.12s ease;
 }
 
+.help-button svg {
+  width: 15px;
+  height: 15px;
+  stroke-width: 2.4;
+}
+
 .help-button.large {
   width: 44px;
   height: 44px;
   border-radius: 14px;
-  font-size: 16px;
+}
+
+.help-button.large svg {
+  width: 18px;
+  height: 18px;
 }
 
 .help-button:hover {
@@ -477,10 +496,17 @@ body, #root { height: 100vh; }
 }
 
 .chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   color: rgba(255, 255, 255, 0.5);
-  font-size: 18px;
-  font-weight: 900;
   transition: transform 0.16s ease;
+}
+
+.chevron svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2.6;
 }
 
 .settings-section[open] .chevron { transform: rotate(90deg); }
@@ -905,10 +931,19 @@ body, #root { height: 100vh; }
   min-width: 44px;
   height: 40px;
   padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-size: 18px;
   background: rgba(255, 255, 255, 0.1);
   color: var(--text);
   border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.button.icon svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2.35;
 }
 
 .button:hover:not(:disabled) {
@@ -979,6 +1014,9 @@ body, #root { height: 100vh; }
 .modal-close {
   width: 36px;
   height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: 1px solid rgba(255, 255, 255, 0.13);
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.075);
@@ -986,6 +1024,12 @@ body, #root { height: 100vh; }
   cursor: pointer;
   font-size: 20px;
   font-weight: 900;
+}
+
+.modal-close svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2.5;
 }
 
 .modal-body {

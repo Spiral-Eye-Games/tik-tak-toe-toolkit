@@ -1,3 +1,4 @@
+import { X } from "lucide-react";
 import { t } from "../i18n";
 import { ModalPortal } from "./ModalPortal";
 
@@ -21,7 +22,9 @@ export function HelpModal({ open, title, html, onClose }: HelpModalProps) {
         <section className="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
           <header className="modal-header">
             <h2 className="modal-title" id="modalTitle">{title}</h2>
-            <button className="modal-close" type="button" aria-label={t("actions.close")} onClick={onClose}>×</button>
+            <button className="modal-close" type="button" aria-label={t("actions.close")} onClick={onClose}>
+              <X aria-hidden="true" />
+            </button>
           </header>
           <div className="modal-body" dangerouslySetInnerHTML={{ __html: html }} />
         </section>
