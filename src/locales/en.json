@@ -392,6 +392,8 @@
   "multiplayer": {
     "title": "Experimental online",
     "subtitle": "PeerJS + WebRTC between tabs or browsers.",
+    "openMenu": "Online",
+    "closeMenu": "Close online",
     "createRoom": "Create room",
     "joinRoom": "Join",
     "leaveRoom": "Leave room",

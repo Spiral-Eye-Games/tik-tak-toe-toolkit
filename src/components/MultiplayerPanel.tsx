@@ -117,3 +117,29 @@ export function MultiplayerPanel({ multiplayer }: MultiplayerPanelProps) {
     </section>
   );
 }
+
+export function FloatingMultiplayerPanel({ multiplayer }: MultiplayerPanelProps) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className={`multiplayer-widget ${open ? "open" : ""}`}>
+      {open && (
+        <div className="multiplayer-widget-popover">
+          <MultiplayerPanel multiplayer={multiplayer} />
+        </div>
+      )}
+      <button
+        className="multiplayer-widget-toggle"
+        type="button"
+        aria-expanded={open}
+        aria-controls="multiplayer-title"
+        onClick={() => setOpen((current) => !current)}
+      >
+        <span>{open ? t("multiplayer.closeMenu") : t("multiplayer.openMenu")}</span>
+        <span className={`multiplayer-status multiplayer-status-${multiplayer.status}`}>
+          {t(`multiplayer.status.${multiplayer.status}`)}
+        </span>
+      </button>
+    </div>
+  );
+}

@@ -2,6 +2,7 @@ import { useCallback, useMemo, useReducer } from "react";
 import { Board } from "./components/Board";
 import { HelpModal } from "./components/HelpModal";
 import { MatchStatusBanner } from "./components/MatchStatusBanner";
+import { FloatingMultiplayerPanel } from "./components/MultiplayerPanel";
 import { Sidebar } from "./components/Sidebar";
 import { TopBar } from "./components/TopBar";
 import { getStatusText } from "./game/formatters";
@@ -25,6 +26,7 @@ export default function App() {
   const topbarClockText = useGameClock(gameState, dispatch);
   const { modal, closeModal, openHelp, openRulesHelp } = useHelpModal(gameState);
   const multiplayer = useMultiplayer();
+  const showDevMultiplayer = useMemo(() => hasDevQueryParam(), []);
 
   usePendingGravityRotation(gameState, dispatch);
 
@@ -69,7 +71,6 @@ export default function App() {
           onApplyPreset={applyPreset}
           onHelp={openHelp}
           onRulesHelp={openRulesHelp}
-          multiplayer={multiplayer}
         />
 
         <Board
@@ -87,6 +88,12 @@ export default function App() {
         onClose={closeModal}
       />
 
+      {showDevMultiplayer && <FloatingMultiplayerPanel multiplayer={multiplayer} />}
     </div>
   );
+}
+
+function hasDevQueryParam(): boolean {
+  if (typeof window === "undefined") return false;
+  return new URLSearchParams(window.location.search).has("dev");
 }
