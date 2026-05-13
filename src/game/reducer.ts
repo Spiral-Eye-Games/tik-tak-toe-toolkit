@@ -44,10 +44,12 @@ export function createInitialGameState(configInput: GameConfig): GameState {
   };
 }
 
-export function gameReducer(state: GameState, action: GameAction): GameState {
+export function reduceGameState(state: GameState, action: GameAction): GameState {
   switch (action.type) {
     case "newGame":
       return createInitialGameState(action.config);
+    case "replaceState":
+      return action.state;
     case "playMove":
       return playMove(state, action.row, action.col);
     case "undo":
@@ -64,5 +66,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return state;
   }
 }
+
+export const gameReducer = reduceGameState;
 
 export { createSnapshot };

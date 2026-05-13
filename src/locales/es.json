@@ -389,6 +389,46 @@
   "sidebar": {
     "matchOutcome": "Resultado de la partida"
   },
+  "multiplayer": {
+    "title": "Online experimental",
+    "subtitle": "PeerJS + WebRTC entre pestañas o navegadores.",
+    "createRoom": "Crear sala",
+    "joinRoom": "Unirse",
+    "leaveRoom": "Salir de sala",
+    "copyCode": "Copiar código",
+    "copied": "Copiado",
+    "roomCode": "Código de sala",
+    "roomCodePlaceholder": "Pegá el código",
+    "role": "Rol",
+    "symbol": "Símbolo",
+    "players": "Jugadores conectados",
+    "notAssigned": "Sin asignar",
+    "sendDebug": "Enviar mensaje de prueba",
+    "debugMessages": "Mensajes de prueba",
+    "debugHello": "HELLO recibido de {{player}}",
+    "debugWelcome": "WELCOME recibido",
+    "debugPayload": "{{player}}: prueba",
+    "waitingHint": "Esperando jugador...",
+    "errorDetail": "Error de conexión: {{message}}",
+    "status": {
+      "offline": "Offline",
+      "creating-room": "Creando sala",
+      "waiting": "Esperando",
+      "connecting": "Conectando",
+      "connected": "Conectado",
+      "disconnected": "Desconectado",
+      "error": "Error"
+    },
+    "roles": {
+      "offline": "Offline",
+      "host": "Host",
+      "client": "Client"
+    },
+    "symbols": {
+      "cross": "X",
+      "circle": "O"
+    }
+  },
   "help": {
     "general": {
       "title": "General",

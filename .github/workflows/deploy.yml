@@ -2,14 +2,12 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main", "multiplayer-test"]
 
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
   group: "pages"
@@ -17,10 +15,6 @@ concurrency:
 
 jobs:
   deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
     runs-on: ubuntu-latest
 
     steps:
@@ -34,21 +28,36 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
+
+      - name: Resolve deploy target
+        id: target
+        shell: bash
+        run: |
+          repo_name="${GITHUB_REPOSITORY##*/}"
+
+          if [ "${GITHUB_REF_NAME}" = "main" ]; then
+            destination_dir="."
+            vite_base="/${repo_name}/"
+          else
+            branch_slug="$(echo "${GITHUB_REF_NAME}" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9._-]+/-/g; s/^-+|-+$//g')"
+            destination_dir="previews/${branch_slug}"
+            vite_base="/${repo_name}/${destination_dir}/"
+          fi
+
+          echo "destination_dir=${destination_dir}" >> "$GITHUB_OUTPUT"
+          echo "vite_base=${vite_base}" >> "$GITHUB_OUTPUT"
 
       - name: Build
         env:
-          VITE_BASE: /${{ github.event.repository.name }}/
+          VITE_BASE: ${{ steps.target.outputs.vite_base }}
         run: npm run build
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v6
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v5
+      - name: Deploy to GitHub Pages branch
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          path: "./dist"
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v5
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./dist
+          destination_dir: ${{ steps.target.outputs.destination_dir }}
+          keep_files: true

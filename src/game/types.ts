@@ -154,6 +154,7 @@ export interface GameState extends GameSnapshot {
 
 export type GameAction =
   | { type: "newGame"; config: GameConfig }
+  | { type: "replaceState"; state: GameState }
   | { type: "playMove"; row: number; col: number }
   | { type: "undo" }
   | { type: "redo" }

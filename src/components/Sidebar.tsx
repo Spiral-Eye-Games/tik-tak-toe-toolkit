@@ -3,7 +3,9 @@ import { useState } from "react";
 import { mustMovePiece } from "../game/rules";
 import type { GameConfig, GameState } from "../game/types";
 import { t } from "../i18n";
+import type { MultiplayerState } from "../multiplayer/useMultiplayer";
 import { MatchStatusBanner, getMatchStatusAriaText } from "./MatchStatusBanner";
+import { MultiplayerPanel } from "./MultiplayerPanel";
 import { PresetModal } from "./PresetModal";
 import {
   BrokenHolesSettingsSection,
@@ -25,6 +27,7 @@ interface SidebarProps {
   onApplyPreset: (config: GameConfig) => void;
   onHelp: (helpKey: string) => void;
   onRulesHelp: () => void;
+  multiplayer: MultiplayerState;
 }
 
 export function Sidebar({
@@ -34,7 +37,8 @@ export function Sidebar({
   onNewGame,
   onApplyPreset,
   onHelp,
-  onRulesHelp
+  onRulesHelp,
+  multiplayer
 }: SidebarProps) {
   const [presetModalOpen, setPresetModalOpen] = useState(false);
 
@@ -54,6 +58,7 @@ export function Sidebar({
             </button>
           </Tooltip>
         </div>
+        <MultiplayerPanel multiplayer={multiplayer} />
         {liveGame.gameOver && liveGame.gameEndSummary && (
           <div
             className="sidebar-match-outcome"
