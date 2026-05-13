@@ -157,10 +157,6 @@ export function MultiplayerPanel({ multiplayer }: MultiplayerPanelProps) {
         </div>
       )}
 
-      {multiplayer.status === "waiting" && (
-        <p className="multiplayer-note" role="status">{t("multiplayer.waitingHint")}</p>
-      )}
-
       {multiplayer.error && (
         <p className="multiplayer-error" role="alert">
           {t("multiplayer.errorDetail", { message: multiplayer.error })}

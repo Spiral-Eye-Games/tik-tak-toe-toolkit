@@ -420,10 +420,10 @@
     "debugWelcome": "WELCOME recibido",
     "debugPayload": "{{player}}: prueba",
     "debugRoomFull": "{{player}} intentó entrar, pero la sala está llena",
-    "waitingHint": "Esperando jugador...",
     "roomFull": "La sala ya tiene {{maxPlayers}} jugadores.",
     "errorDetail": "Error de conexión: {{message}}",
     "system": {
+      "roomReady": "Sala online lista.",
       "playerConnected": "{{player}} conectado.",
       "playerDisconnected": "{{player}} desconectado.",
       "hostDisconnected": "El host se desconectó."

@@ -389,6 +389,7 @@ export function useMultiplayer({
       onOpen: (peerId) => {
         setRoomCode(peerId);
         setStatus("waiting");
+        addSystemMessage(t("multiplayer.system.roomReady"));
       },
       onConnection: () => {
         setStatus("connected");
