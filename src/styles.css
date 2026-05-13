@@ -479,6 +479,29 @@ body, #root { height: 100vh; }
   font-weight: 900;
 }
 
+.multiplayer-symbol-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.multiplayer-symbol-inline-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.multiplayer-symbol-inline-button:disabled {
+  cursor: default;
+  opacity: 0.75;
+}
+
 .multiplayer-symbol-glyph {
   display: inline-grid;
   place-items: center;
@@ -486,6 +509,37 @@ body, #root { height: 100vh; }
   height: 1.35em;
   font-size: 18px;
   vertical-align: -0.25em;
+}
+
+.multiplayer-symbol-picker {
+  margin-top: 12px;
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.24);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.multiplayer-symbol-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.multiplayer-symbol-picker-option {
+  min-height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.07);
+  cursor: pointer;
+}
+
+.multiplayer-symbol-picker-option:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
 }
 
 .multiplayer-players ul,

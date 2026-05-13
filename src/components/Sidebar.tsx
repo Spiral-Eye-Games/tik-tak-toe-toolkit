@@ -27,6 +27,7 @@ interface SidebarProps {
   onRulesHelp: () => void;
   readOnlyConfig?: boolean;
   canStartNewGame?: boolean;
+  maxPlayerCount?: number;
 }
 
 export function Sidebar({
@@ -38,7 +39,8 @@ export function Sidebar({
   onHelp,
   onRulesHelp,
   readOnlyConfig = false,
-  canStartNewGame = true
+  canStartNewGame = true,
+  maxPlayerCount
 }: SidebarProps) {
   const [presetModalOpen, setPresetModalOpen] = useState(false);
 
@@ -79,6 +81,7 @@ export function Sidebar({
           config={config}
           onChangeConfig={onChangeConfig}
           onHelp={onHelp}
+          maxPlayerCount={maxPlayerCount}
         />
         <ClockSettingsSection config={config} onChangeConfig={onChangeConfig} onHelp={onHelp} />
         <RestrictionsSettingsSection config={config} onChangeConfig={onChangeConfig} onHelp={onHelp} />

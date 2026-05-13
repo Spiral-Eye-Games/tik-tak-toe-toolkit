@@ -377,6 +377,7 @@
     "rankingComplete": "Final ranking is set.",
     "clockBankOut": "{{loser}} ran out of time. {{winner}} wins.",
     "collapseOut": "{{loser}} was left without pieces by the collapse. {{winner}} wins.",
+    "forfeit": "{{loser}} disconnected. {{winner}} wins.",
     "winAfterMark": " formed {{lineLength}} in a row and won.",
     "loseAfterMark": " formed {{lineLength}} in a row and lost.",
     "survivorBeforeMark": "",
@@ -399,6 +400,9 @@
     "leaveRoom": "Leave room",
     "copyCode": "Copy code",
     "copied": "Copied",
+    "nickname": "Nickname",
+    "nicknamePlaceholder": "P-123",
+    "chooseSymbol": "Choose piece",
     "maxPlayers": "Room players",
     "maxPlayersHint": "Minimum {{minPlayers}}, maximum {{maxPlayers}} based on available symbols.",
     "roomCode": "Room code",
@@ -428,7 +432,8 @@
     "errors": {
       "unknownPlayer": "Could not validate your player.",
       "hostOnlyAction": "Only the host can do that action.",
-      "notYourTurn": "It is not your turn."
+      "notYourTurn": "It is not your turn.",
+      "symbolTaken": "That piece is already equipped by another player."
     },
     "roles": {
       "offline": "Offline",

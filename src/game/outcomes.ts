@@ -2,6 +2,7 @@ import { clearClockPauseIfNoPendingGravity } from "./clock";
 import { applyCollapseIfDue } from "./collapse";
 import { getPlayerLabel } from "./formatters";
 import { scheduleGravityRotationIfDue } from "./gravity";
+import { cloneSnapshot, createSnapshot, snapshotToState } from "./history";
 import { t } from "../i18n";
 import {
   applyGravity,
@@ -11,7 +12,7 @@ import {
   shouldDrawIfNoLegalMoves,
   tickBrokenHoles
 } from "./rules";
-import type { BoardPosition, GameConfig, GameSnapshot, PlayerId } from "./types";
+import type { BoardPosition, GameConfig, GameSnapshot, GameState, PlayerId } from "./types";
 
 export function advanceTurnAfterNoLine(snapshot: GameSnapshot, config: GameConfig): void {
   const oldActive = [...snapshot.activePlayerIds];
@@ -55,6 +56,57 @@ export function resolveActivePlayerLine(snapshot: GameSnapshot, config: GameConf
   }
 
   return false;
+}
+
+export function forfeitPlayer(state: GameState, playerId: PlayerId): GameState {
+  if (state.gameOver || !state.activePlayerIds.includes(playerId)) return state;
+
+  const snap = cloneSnapshot(createSnapshot(state));
+  resolveForfeitLoss(snap, state.config, playerId);
+  return snapshotToState(state, snap, state.undoStack, []);
+}
+
+function resolveForfeitLoss(snapshot: GameSnapshot, config: GameConfig, playerId: PlayerId): void {
+  if (snapshot.gameOver || !snapshot.activePlayerIds.includes(playerId)) return;
+
+  const oldActive = [...snapshot.activePlayerIds];
+  const activeCount = snapshot.activePlayerIds.length;
+  const label = (id: PlayerId) => getPlayerLabel(config, id);
+
+  snapshot.currentPlayer = playerId;
+  snapshot.lineCells = [];
+
+  if (activeCount <= 2) {
+    snapshot.gameOver = true;
+    const winnerId = oldActive.find((id) => id !== playerId);
+    snapshot.gameEndSummary = winnerId ? { type: "winner", winnerId, loserId: playerId } : { type: "draw" };
+    snapshot.statusMessage = winnerId
+      ? t("gameOver.forfeit", { loser: label(playerId), winner: label(winnerId) })
+      : t("gameOver.draw");
+    return;
+  }
+
+  snapshot.eliminationOrderLose.push(playerId);
+  if (config.eliminateLosers) {
+    removeAllPiecesForPlayer(snapshot, config, playerId);
+  }
+  snapshot.activePlayerIds = oldActive.filter((id) => id !== playerId);
+
+  if (snapshot.activePlayerIds.length === 1) {
+    snapshot.gameOver = true;
+    const champ = snapshot.activePlayerIds[0];
+    const orderedIds = [champ, ...[...snapshot.eliminationOrderLose].reverse()];
+    snapshot.gameEndSummary = { type: "ranking", orderedIds };
+    snapshot.statusMessage = t("gameOver.survivorWin", { player: label(champ) });
+    return;
+  }
+
+  advanceAfterPlayerRemoved(snapshot, config, oldActive, playerId);
+
+  if (!snapshot.gameOver) {
+    scheduleGravityRotationIfDue(snapshot, config);
+    clearClockPauseIfNoPendingGravity(snapshot);
+  }
 }
 
 function handleCompletedLine(snapshot: GameSnapshot, config: GameConfig, completedLine: BoardPosition[]): void {

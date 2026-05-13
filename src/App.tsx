@@ -1,10 +1,11 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Board } from "./components/Board";
 import { HelpModal } from "./components/HelpModal";
 import { MatchStatusBanner } from "./components/MatchStatusBanner";
 import { FloatingMultiplayerPanel } from "./components/MultiplayerPanel";
 import { Sidebar } from "./components/Sidebar";
 import { TopBar } from "./components/TopBar";
+import { DEFAULT_ROSTER } from "./game/defaults";
 import { getStatusText } from "./game/formatters";
 import { createInitialGameState, reduceGameState } from "./game/reducer";
 import { mustMovePiece } from "./game/rules";
@@ -46,6 +47,22 @@ export default function App() {
     replaceDraftConfig
   });
   const showDevMultiplayer = useMemo(() => hasDevQueryParam(), []);
+  const connectedPlayerCount = Math.max(2, multiplayer.players.filter((player) => player.connected && player.symbol !== null).length);
+  const onlinePlayerCountMax = multiplayer.isHost ? connectedPlayerCount : undefined;
+
+  const updateConfig = useCallback((patch: Partial<GameConfig>) => {
+    const nextPatch = { ...patch };
+    if (multiplayer.isHost && typeof nextPatch.playerCount === "number") {
+      nextPatch.playerCount = Math.min(nextPatch.playerCount, connectedPlayerCount);
+    }
+    updateDraftConfig(nextPatch);
+  }, [connectedPlayerCount, multiplayer.isHost, updateDraftConfig]);
+
+  useEffect(() => {
+    if (multiplayer.isHost && draftConfig.playerCount > connectedPlayerCount) {
+      updateDraftConfig({ playerCount: connectedPlayerCount });
+    }
+  }, [connectedPlayerCount, draftConfig.playerCount, multiplayer.isHost, updateDraftConfig]);
 
   const handleGameAction = useCallback((action: GameAction) => {
     if (multiplayer.isClient) {
@@ -77,7 +94,18 @@ export default function App() {
     }
   }, [applyGameAction, multiplayer]);
 
-  const topbarClockText = useGameClock(gameState, handleHostEventAction);
+  const handleClockAction = useCallback((action: GameAction) => {
+    if (multiplayer.isClient) {
+      if (action.type === "clockBankTimeout" || action.type === "clockPerTurnTimeout") {
+        multiplayer.sendClockTimeoutClaim();
+      }
+      return;
+    }
+    handleHostEventAction(action);
+  }, [handleHostEventAction, multiplayer]);
+
+  const ownsClockTurn = !multiplayer.isOnline || multiplayer.localSymbol === gameState.currentPlayer;
+  const topbarClockText = useGameClock(gameState, handleClockAction, ownsClockTurn);
 
   usePendingGravityRotation(gameState, handleHostEventAction);
 
@@ -88,14 +116,19 @@ export default function App() {
 
   function startNewGame() {
     if (!multiplayer.canStartNewGame) return;
-    const nextConfig = sanitizeDraftConfig();
+    const nextConfig = multiplayer.isHost
+      ? buildOnlineGameConfig(sanitizeDraftConfig(), multiplayer.players)
+      : buildOfflineGameConfig(sanitizeDraftConfig());
     handleGameAction({ type: "newGame", config: nextConfig });
   }
 
   function applyPreset(config: GameConfig) {
     if (!multiplayer.canStartNewGame) return;
     const nextConfig = replaceDraftConfig(config);
-    handleGameAction({ type: "newGame", config: nextConfig });
+    handleGameAction({
+      type: "newGame",
+      config: multiplayer.isHost ? buildOnlineGameConfig(nextConfig, multiplayer.players) : buildOfflineGameConfig(nextConfig)
+    });
   }
 
   return (
@@ -115,13 +148,14 @@ export default function App() {
         <Sidebar
           config={draftConfig}
           liveGame={gameState}
-          onChangeConfig={updateDraftConfig}
+          onChangeConfig={updateConfig}
           onNewGame={startNewGame}
           onApplyPreset={applyPreset}
           onHelp={openHelp}
           onRulesHelp={openRulesHelp}
           readOnlyConfig={!multiplayer.canEditConfig}
           canStartNewGame={multiplayer.canStartNewGame}
+          maxPlayerCount={onlinePlayerCountMax}
         />
 
         <Board
@@ -150,4 +184,45 @@ export default function App() {
 function hasDevQueryParam(): boolean {
   if (typeof window === "undefined") return false;
   return new URLSearchParams(window.location.search).has("dev");
+}
+
+function buildOfflineGameConfig(config: GameConfig): GameConfig {
+  return {
+    ...config,
+    roster: DEFAULT_ROSTER.map((player) => ({ ...player }))
+  };
+}
+
+function buildOnlineGameConfig(config: GameConfig, players: Array<{ symbol: GameConfig["roster"][number]["id"] | null; connected: boolean }>): GameConfig {
+  const connectedSymbols = players
+    .filter((player) => player.connected && player.symbol !== null)
+    .map((player) => player.symbol)
+    .filter((symbol): symbol is GameConfig["roster"][number]["id"] => symbol !== null);
+
+  const selectedCount = Math.max(2, Math.min(config.playerCount, connectedSymbols.length));
+  const selectedSymbols = shuffle(connectedSymbols).slice(0, selectedCount);
+  const orderedSymbols = shuffle(selectedSymbols);
+  const colorsById = new Map(DEFAULT_ROSTER.map((player) => [player.id, player.color]));
+  const roster = orderedSymbols.map((id) => ({ id, color: colorsById.get(id) ?? "#ffffff" }));
+
+  for (const player of DEFAULT_ROSTER) {
+    if (!roster.some((entry) => entry.id === player.id)) {
+      roster.push({ ...player });
+    }
+  }
+
+  return {
+    ...config,
+    roster,
+    playerCount: selectedCount
+  };
+}
+
+function shuffle<T>(items: T[]): T[] {
+  const result = [...items];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
 }

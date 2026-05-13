@@ -156,6 +156,7 @@ export type GameAction =
   | { type: "newGame"; config: GameConfig }
   | { type: "replaceState"; state: GameState }
   | { type: "playMove"; row: number; col: number }
+  | { type: "forfeitPlayer"; playerId: PlayerId; reason: "disconnect" }
   | { type: "undo" }
   | { type: "redo" }
   | { type: "completePendingGravityRotation" }

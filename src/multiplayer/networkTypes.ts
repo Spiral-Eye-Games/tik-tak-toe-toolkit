@@ -21,11 +21,14 @@ export interface NetworkPlayer {
 }
 
 export type NetworkMessage =
-  | { type: "HELLO"; playerId: PlayerId; playerName: string }
+  | { type: "HELLO"; playerId: PlayerId; playerName: string; preferredSymbol: GamePlayerId | null }
   | { type: "WELCOME"; playerId: PlayerId; assignedSymbol: GamePlayerId; players: NetworkPlayer[]; state: GameState }
   | { type: "PLAYER_JOINED"; player: NetworkPlayer }
+  | { type: "PLAYER_PROFILE_UPDATED"; player: NetworkPlayer }
+  | { type: "SYMBOL_CHANGE_REQUEST"; playerId: PlayerId; symbol: GamePlayerId }
   | { type: "GAME_ACTION_REQUEST"; playerId: PlayerId; action: GameAction }
   | { type: "GAME_STATE_SYNC"; state: GameState }
+  | { type: "CLOCK_TIMEOUT_CLAIM"; playerId: PlayerId; mode: "bank" | "perTurn" }
   | { type: "NEW_GAME_REQUEST"; playerId: PlayerId }
   | { type: "ERROR"; message: string }
   | { type: "DEBUG_MESSAGE"; message: string; fromPlayerId: PlayerId; sentAtMs: number };

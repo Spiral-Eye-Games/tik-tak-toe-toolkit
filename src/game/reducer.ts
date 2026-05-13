@@ -3,6 +3,7 @@ import { applyClockBankTimeout, applyClockPerTurnTimeout, completePendingGravity
 import { sanitizeConfig } from "./config";
 import { createSnapshot, redoMove, undoMove } from "./history";
 import { playMove } from "./moves";
+import { forfeitPlayer } from "./outcomes";
 import { createBoard } from "./rules";
 import type { GameAction, GameConfig, GameState, PlayerId } from "./types";
 
@@ -52,6 +53,8 @@ export function reduceGameState(state: GameState, action: GameAction): GameState
       return action.state;
     case "playMove":
       return playMove(state, action.row, action.col);
+    case "forfeitPlayer":
+      return forfeitPlayer(state, action.playerId);
     case "undo":
       return undoMove(state);
     case "redo":

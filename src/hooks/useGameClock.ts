@@ -4,7 +4,11 @@ import { formatClockSecondsForDisplay, getClockRemainingSeconds, isClockEnabled 
 import type { GameAction, GameState } from "../game/types";
 import { t } from "../i18n";
 
-export function useGameClock(gameState: GameState, dispatch: Dispatch<GameAction>): string | null {
+export function useGameClock(
+  gameState: GameState,
+  dispatch: Dispatch<GameAction>,
+  shouldDispatchTimeout = true
+): string | null {
   const gameRef = useRef(gameState);
   gameRef.current = gameState;
   const [clockPulse, setClockPulse] = useState(0);
@@ -17,7 +21,7 @@ export function useGameClock(gameState: GameState, dispatch: Dispatch<GameAction
       if (gs.gameOver || !isClockEnabled(gs.config)) return;
 
       const remaining = getClockRemainingSeconds(gs, gs.config, Date.now());
-      if (remaining !== null && remaining <= 0.12) {
+      if (shouldDispatchTimeout && remaining !== null && remaining <= 0.12) {
         if (gs.config.clockMode === "bank") {
           dispatch({ type: "clockBankTimeout" });
         } else {
@@ -29,7 +33,7 @@ export function useGameClock(gameState: GameState, dispatch: Dispatch<GameAction
     }, 100);
 
     return () => window.clearInterval(id);
-  }, [gameState.gameOver, gameState.config.clockEnabled, gameState.config.clockMode, dispatch]);
+  }, [gameState.gameOver, gameState.config.clockEnabled, gameState.config.clockMode, dispatch, shouldDispatchTimeout]);
 
   return useMemo(() => {
     if (gameState.gameOver || !isClockEnabled(gameState.config)) return null;

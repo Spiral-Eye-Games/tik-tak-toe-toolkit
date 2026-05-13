@@ -14,7 +14,9 @@ const ROSTER_BY_SYMBOL = new Map(DEFAULT_ROSTER.map((player) => [player.id, play
 export function MultiplayerPanel({ multiplayer }: MultiplayerPanelProps) {
   const [joinCode, setJoinCode] = useState("");
   const [copied, setCopied] = useState(false);
+  const [symbolPickerOpen, setSymbolPickerOpen] = useState(false);
   const canJoin = joinCode.trim().length > 0 && !multiplayer.isOnline;
+  const symbolOptions = DEFAULT_ROSTER.slice(0, multiplayer.roomMaxPlayers).map((player) => player.id);
 
   async function copyRoomCode() {
     if (!multiplayer.roomCode || !navigator.clipboard) return;
@@ -37,6 +39,19 @@ export function MultiplayerPanel({ multiplayer }: MultiplayerPanelProps) {
 
       {!multiplayer.isOnline ? (
         <div className="multiplayer-panel-actions">
+          <label className="field multiplayer-room-field">
+            <span>{t("multiplayer.nickname")}</span>
+            <input
+              type="text"
+              value={multiplayer.localPlayerName}
+              placeholder={t("multiplayer.nicknamePlaceholder")}
+              onChange={(event) => multiplayer.setLocalPlayerName(event.target.value)}
+            />
+          </label>
+          <button className="button secondary full multiplayer-symbol-button" type="button" onClick={() => setSymbolPickerOpen(true)}>
+            <span>{t("multiplayer.chooseSymbol")}</span>
+            {multiplayer.localSymbol && <MultiplayerSymbol symbol={multiplayer.localSymbol} />}
+          </button>
           <label className="field">
             <span>{t("multiplayer.maxPlayers")}</span>
             <input
@@ -88,7 +103,16 @@ export function MultiplayerPanel({ multiplayer }: MultiplayerPanelProps) {
             </div>
             <div>
               <dt>{t("multiplayer.symbol")}</dt>
-              <dd>{multiplayer.localSymbol ? <MultiplayerSymbol symbol={multiplayer.localSymbol} /> : t("multiplayer.notAssigned")}</dd>
+              <dd>
+                <button
+                  className="multiplayer-symbol-inline-button"
+                  type="button"
+                  disabled={!multiplayer.canChangeProfile}
+                  onClick={() => setSymbolPickerOpen(true)}
+                >
+                  {multiplayer.localSymbol ? <MultiplayerSymbol symbol={multiplayer.localSymbol} /> : t("multiplayer.notAssigned")}
+                </button>
+              </dd>
             </div>
           </dl>
 
@@ -123,6 +147,34 @@ export function MultiplayerPanel({ multiplayer }: MultiplayerPanelProps) {
         <p className="multiplayer-error" role="alert">
           {t("multiplayer.errorDetail", { message: multiplayer.error })}
         </p>
+      )}
+
+      {symbolPickerOpen && (
+        <div className="multiplayer-symbol-picker" role="dialog" aria-modal="true" aria-label={t("multiplayer.chooseSymbol")}>
+          <div className="multiplayer-symbol-picker-grid">
+            {symbolOptions.map((symbol) => {
+              const available = multiplayer.availableSymbols.includes(symbol) || multiplayer.localSymbol === symbol;
+              return (
+                <button
+                  key={symbol}
+                  className="multiplayer-symbol-picker-option"
+                  type="button"
+                  disabled={!available || !multiplayer.canChangeProfile}
+                  aria-label={t(`multiplayer.symbols.${symbol}`)}
+                  onClick={() => {
+                    multiplayer.requestSymbolChange(symbol);
+                    setSymbolPickerOpen(false);
+                  }}
+                >
+                  <MultiplayerSymbol symbol={symbol} />
+                </button>
+              );
+            })}
+          </div>
+          <button className="button secondary full" type="button" onClick={() => setSymbolPickerOpen(false)}>
+            {t("actions.close")}
+          </button>
+        </div>
       )}
 
       {multiplayer.debugMessages.length > 0 && (

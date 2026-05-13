@@ -32,6 +32,29 @@ export function getDefaultRoster(): RosterPlayer[] {
   return DEFAULT_ROSTER.map((player) => ({ ...player }));
 }
 
+function normalizeRoster(rosterInput: RosterPlayer[]): RosterPlayer[] {
+  const defaults = getDefaultRoster();
+  const byId = new Map(defaults.map((player) => [player.id, player]));
+  const seen = new Set<string>();
+  const roster = rosterInput
+    .map((player) => {
+      const fallback = byId.get(player.id);
+      if (!fallback || seen.has(player.id)) return null;
+      seen.add(player.id);
+      return {
+        id: fallback.id,
+        color: typeof player.color === "string" && player.color.trim().length > 0 ? player.color : fallback.color
+      };
+    })
+    .filter((player): player is RosterPlayer => player !== null);
+
+  for (const fallback of defaults) {
+    if (!seen.has(fallback.id)) roster.push(fallback);
+  }
+
+  return roster;
+}
+
 export function clampInt(value: number, min: number, max: number, fallback: number): number {
   const number = Number.parseInt(String(value), 10);
   if (Number.isNaN(number)) return fallback;
@@ -111,7 +134,7 @@ export function sanitizeConfig(config: GameConfig): GameConfig {
   const pieceLimitType = config.pieceLimitType;
   const pieceMoveMode = normalizeMoveMode(pieceLimitType, config.pieceMoveMode);
 
-  const roster = getDefaultRoster();
+  const roster = normalizeRoster(config.roster);
   const maxPlayers = roster.length;
   const playerCount = clampInt(config.playerCount, 2, maxPlayers, Math.min(DEFAULT_PLAYER_COUNT, maxPlayers));
   const canUseRankingOptions = playerCount > 2;

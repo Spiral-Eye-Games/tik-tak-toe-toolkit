@@ -32,6 +32,7 @@ interface SidebarSectionProps {
   config: GameConfig;
   onChangeConfig: (patch: Partial<GameConfig>) => void;
   onHelp: (helpKey: string) => void;
+  maxPlayerCount?: number;
 }
 
 interface NumericDraftInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "type" | "value" | "onChange"> {
@@ -317,10 +318,12 @@ export function PiecesSettingsSection({ config, onChangeConfig, onHelp }: Sideba
 export function PlayersSettingsSection({
   config,
   onChangeConfig,
-  onHelp
+  onHelp,
+  maxPlayerCount = config.roster.length
 }: SidebarSectionProps) {
+  const resolvedMaxPlayerCount = Math.max(2, Math.min(config.roster.length, maxPlayerCount));
   const playerOptions = Array.from(
-    { length: Math.max(0, config.roster.length - 1) },
+    { length: Math.max(0, resolvedMaxPlayerCount - 1) },
     (_, index) => index + 2
   );
 

@@ -377,6 +377,7 @@
     "rankingComplete": "Ranking final listo.",
     "clockBankOut": "{{loser}} se quedó sin tiempo. Gana {{winner}}.",
     "collapseOut": "{{loser}} se quedó sin fichas por el colapso. Gana {{winner}}.",
+    "forfeit": "{{loser}} se desconectó. Gana {{winner}}.",
     "winAfterMark": " formó {{lineLength}} en raya y ganó.",
     "loseAfterMark": " formó {{lineLength}} en raya y perdió.",
     "survivorBeforeMark": "¡",
@@ -399,6 +400,9 @@
     "leaveRoom": "Salir de sala",
     "copyCode": "Copiar código",
     "copied": "Copiado",
+    "nickname": "Nickname",
+    "nicknamePlaceholder": "P-123",
+    "chooseSymbol": "Elegir ficha",
     "maxPlayers": "Jugadores de la sala",
     "maxPlayersHint": "Mínimo {{minPlayers}}, máximo {{maxPlayers}} según los símbolos disponibles.",
     "roomCode": "Código de sala",
@@ -428,7 +432,8 @@
     "errors": {
       "unknownPlayer": "No se pudo validar tu jugador.",
       "hostOnlyAction": "Esa acción solo puede hacerla el host.",
-      "notYourTurn": "No es tu turno."
+      "notYourTurn": "No es tu turno.",
+      "symbolTaken": "Esa ficha ya está equipada por otro jugador."
     },
     "roles": {
       "offline": "Offline",
