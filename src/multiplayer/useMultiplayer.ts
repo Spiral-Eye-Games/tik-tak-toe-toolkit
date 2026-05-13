@@ -4,6 +4,7 @@ import type { GameAction, GameConfig, GameState, PlayerId as GamePlayerId } from
 import { t } from "../i18n";
 import { PeerService } from "./peerService";
 import type {
+  ChatMessage,
   ConnectionStatus,
   NetworkMessage,
   NetworkPlayer,
@@ -38,6 +39,7 @@ export interface MultiplayerState {
   players: NetworkPlayer[];
   error: string | null;
   debugMessages: string[];
+  chatMessages: ChatMessage[];
   isOnline: boolean;
   isHost: boolean;
   isClient: boolean;
@@ -53,6 +55,7 @@ export interface MultiplayerState {
   joinRoom: (roomCode: string) => void;
   leaveRoom: () => void;
   sendDebugMessage: () => void;
+  sendChatMessage: (text: string) => void;
   sendGameAction: (action: GameAction) => void;
   sendClockTimeoutClaim: () => void;
   syncGameState: (state: GameState) => void;
@@ -86,6 +89,7 @@ export function useMultiplayer({
   const [players, setPlayers] = useState<NetworkPlayer[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [debugMessages, setDebugMessages] = useState<string[]>([]);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
 
   const localPlayerName = normalizePlayerName(localPlayerNameInput, fallbackPlayerName);
 
@@ -98,6 +102,24 @@ export function useMultiplayer({
   const addDebugMessage = useCallback((message: string) => {
     setDebugMessages((current) => [message, ...current].slice(0, 5));
   }, []);
+
+  const addChatMessage = useCallback((message: ChatMessage) => {
+    setChatMessages((current) => {
+      if (current.some((entry) => entry.id === message.id)) return current;
+      return [...current, message].slice(-80);
+    });
+  }, []);
+
+  const addSystemMessage = useCallback((text: string) => {
+    addChatMessage({
+      id: createMessageId(),
+      kind: "system",
+      playerId: null,
+      playerName: null,
+      text,
+      sentAtMs: Date.now()
+    });
+  }, [addChatMessage]);
 
   const setRoomMaxPlayers = useCallback((maxPlayers: number) => {
     setRoomMaxPlayersState(clampRoomMaxPlayers(maxPlayers));
@@ -203,11 +225,12 @@ export function useMultiplayer({
     setPlayers([]);
     setError(null);
     setDebugMessages([]);
+    setChatMessages([]);
   }, [preferredSymbol]);
 
   const handleHostMessage = useCallback((message: NetworkMessage, connectionId: string) => {
     if (message.type === "HELLO") {
-      const assignedSymbol = getAssignableSymbol(playersRef.current, roomMaxPlayers, message.preferredSymbol);
+      const assignedSymbol = getAssignableSymbol(playersRef.current, message.preferredSymbol);
       if (assignedSymbol === null) {
         serviceRef.current?.sendTo(connectionId, {
           type: "ERROR",
@@ -238,7 +261,7 @@ export function useMultiplayer({
         state: gameStateRef.current
       });
       serviceRef.current?.broadcast({ type: "PLAYER_JOINED", player: clientPlayer });
-      addDebugMessage(t("multiplayer.debugHello", { player: message.playerName }));
+      addSystemMessage(t("multiplayer.system.playerConnected", { player: message.playerName }));
       return;
     }
 
@@ -272,8 +295,21 @@ export function useMultiplayer({
 
     if (message.type === "DEBUG_MESSAGE") {
       addDebugMessage(message.message);
+      return;
     }
-  }, [addDebugMessage, handleRemoteClockTimeout, handleRemoteGameAction, roomMaxPlayers, sendErrorTo, updatePlayer]);
+
+    if (message.type === "CHAT_MESSAGE") {
+      addChatMessage({
+        id: message.id,
+        kind: "player",
+        playerId: message.playerId,
+        playerName: message.playerName,
+        text: message.text,
+        sentAtMs: message.sentAtMs
+      });
+      serviceRef.current?.broadcast(message);
+    }
+  }, [addChatMessage, addDebugMessage, addSystemMessage, handleRemoteClockTimeout, handleRemoteGameAction, roomMaxPlayers, sendErrorTo, updatePlayer]);
 
   const handleClientMessage = useCallback((message: NetworkMessage) => {
     if (message.type === "WELCOME") {
@@ -283,7 +319,6 @@ export function useMultiplayer({
       replaceDraftConfigRef.current(message.state.config);
       replaceGameStateRef.current(message.state);
       setStatus("connected");
-      addDebugMessage(t("multiplayer.debugWelcome"));
       return;
     }
 
@@ -297,11 +332,16 @@ export function useMultiplayer({
       const nextPlayers = upsertPlayer(playersRef.current, message.player);
       playersRef.current = nextPlayers;
       setPlayers(nextPlayers);
+      addSystemMessage(t("multiplayer.system.playerConnected", { player: message.player.name }));
       return;
     }
 
     if (message.type === "PLAYER_PROFILE_UPDATED") {
+      const previousPlayer = playersRef.current.find((player) => player.id === message.player.id);
       updatePlayer(message.player);
+      if (previousPlayer?.connected && !message.player.connected) {
+        addSystemMessage(t("multiplayer.system.playerDisconnected", { player: message.player.name }));
+      }
       return;
     }
 
@@ -310,11 +350,24 @@ export function useMultiplayer({
       return;
     }
 
+    if (message.type === "CHAT_MESSAGE") {
+      addChatMessage({
+        id: message.id,
+        kind: "player",
+        playerId: message.playerId,
+        playerName: message.playerName,
+        text: message.text,
+        sentAtMs: message.sentAtMs
+      });
+      return;
+    }
+
     if (message.type === "ERROR") {
       setError(message.message);
+      addSystemMessage(message.message);
       setStatus("error");
     }
-  }, [addDebugMessage, updatePlayer]);
+  }, [addChatMessage, addDebugMessage, addSystemMessage, updatePlayer]);
 
   const createRoom = useCallback(() => {
     resetSession();
@@ -352,6 +405,10 @@ export function useMultiplayer({
         playersRef.current = nextPlayers;
         setPlayers(nextPlayers);
         setStatus(nextPlayers.some((player) => player.id !== localPlayerIdRef.current && player.connected) ? "connected" : "waiting");
+        if (disconnectedPlayer) {
+          serviceRef.current?.broadcast({ type: "PLAYER_PROFILE_UPDATED", player: { ...disconnectedPlayer, connected: false } });
+          addSystemMessage(t("multiplayer.system.playerDisconnected", { player: disconnectedPlayer.name }));
+        }
         if (disconnectedPlayer?.symbol && gameStateRef.current.activePlayerIds.includes(disconnectedPlayer.symbol)) {
           const nextState = applyGameActionAsHostRef.current({
             type: "forfeitPlayer",
@@ -363,10 +420,11 @@ export function useMultiplayer({
       },
       onError: (nextError) => {
         setError(nextError.message);
+        addSystemMessage(nextError.message);
         setStatus("error");
       }
     });
-  }, [handleHostMessage, preferredSymbol, resetSession]);
+  }, [addSystemMessage, handleHostMessage, preferredSymbol, resetSession]);
 
   const joinRoom = useCallback((nextRoomCode: string) => {
     const trimmedRoomCode = nextRoomCode.trim();
@@ -398,14 +456,16 @@ export function useMultiplayer({
       },
       onMessage: handleClientMessage,
       onClose: () => {
+        addSystemMessage(t("multiplayer.system.hostDisconnected"));
         setStatus("disconnected");
       },
       onError: (nextError) => {
         setError(nextError.message);
+        addSystemMessage(nextError.message);
         setStatus("error");
       }
     });
-  }, [handleClientMessage, preferredSymbol, resetSession]);
+  }, [addSystemMessage, handleClientMessage, preferredSymbol, resetSession]);
 
   const sendDebugMessage = useCallback(() => {
     const message: NetworkMessage = {
@@ -417,6 +477,30 @@ export function useMultiplayer({
     serviceRef.current?.broadcast(message);
     addDebugMessage(message.message);
   }, [addDebugMessage]);
+
+  const sendChatMessage = useCallback((text: string) => {
+    const trimmed = text.trim();
+    if (!trimmed) return;
+
+    const message: Extract<NetworkMessage, { type: "CHAT_MESSAGE" }> = {
+      type: "CHAT_MESSAGE",
+      id: createMessageId(),
+      playerId: localPlayerIdRef.current,
+      playerName: localPlayerNameRef.current,
+      text: trimmed,
+      sentAtMs: Date.now()
+    };
+
+    addChatMessage({
+      id: message.id,
+      kind: "player",
+      playerId: message.playerId,
+      playerName: message.playerName,
+      text: message.text,
+      sentAtMs: message.sentAtMs
+    });
+    serviceRef.current?.broadcast(message);
+  }, [addChatMessage]);
 
   const sendGameAction = useCallback((action: GameAction) => {
     serviceRef.current?.broadcast({
@@ -467,10 +551,11 @@ export function useMultiplayer({
     roomMaxPlayers,
     minRoomPlayers: MIN_ROOM_PLAYERS,
     maxRoomPlayers: MAX_ROOM_PLAYERS,
-    availableSymbols: getAvailableSymbols(players, roomMaxPlayers, localPlayerId),
+    availableSymbols: getAvailableSymbols(players, localPlayerId),
     players,
     error,
     debugMessages,
+    chatMessages,
     isOnline,
     isHost,
     isClient,
@@ -486,6 +571,7 @@ export function useMultiplayer({
     joinRoom,
     leaveRoom: resetSession,
     sendDebugMessage,
+    sendChatMessage,
     sendGameAction,
     sendClockTimeoutClaim,
     syncGameState
@@ -499,22 +585,19 @@ function clampRoomMaxPlayers(maxPlayers: number): number {
 
 function getAssignableSymbol(
   players: NetworkPlayer[],
-  maxPlayers: number,
   preferredSymbol: GamePlayerId | null
 ): GamePlayerId | null {
-  if (players.length >= maxPlayers) return null;
   if (preferredSymbol && !isSymbolTaken(players, preferredSymbol, null)) return preferredSymbol;
-  return getNextAvailableSymbol(players, maxPlayers);
+  return getNextAvailableSymbol(players);
 }
 
-function getNextAvailableSymbol(players: NetworkPlayer[], maxPlayers: number): GamePlayerId | null {
+function getNextAvailableSymbol(players: NetworkPlayer[]): GamePlayerId | null {
   const usedSymbols = new Set(players.map((player) => player.symbol).filter((symbol): symbol is GamePlayerId => symbol !== null));
-  return MULTIPLAYER_SYMBOL_ORDER.slice(0, maxPlayers).find((symbol) => !usedSymbols.has(symbol)) ?? null;
+  return MULTIPLAYER_SYMBOL_ORDER.find((symbol) => !usedSymbols.has(symbol)) ?? null;
 }
 
-function getAvailableSymbols(players: NetworkPlayer[], maxPlayers: number, localPlayerId: PlayerId): GamePlayerId[] {
+function getAvailableSymbols(players: NetworkPlayer[], localPlayerId: PlayerId): GamePlayerId[] {
   return MULTIPLAYER_SYMBOL_ORDER
-    .slice(0, maxPlayers)
     .filter((symbol) => !isSymbolTaken(players, symbol, localPlayerId));
 }
 
@@ -537,6 +620,13 @@ function createPlayerId(): PlayerId {
     return crypto.randomUUID();
   }
   return `player-${Math.random().toString(36).slice(2)}`;
+}
+
+function createMessageId(): string {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+  return `msg-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
 function createPlayerName(): string {

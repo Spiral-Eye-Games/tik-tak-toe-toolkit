@@ -1,9 +1,11 @@
+import { Copy, LogOut, Send, Wifi } from "lucide-react";
 import { useState } from "react";
 import { DEFAULT_ROSTER } from "../game/defaults";
 import type { PlayerId } from "../game/types";
 import { t } from "../i18n";
 import type { MultiplayerState } from "../multiplayer/useMultiplayer";
 import { PlayerMarkGlyph } from "./PlayerMarkSpan";
+import { Tooltip } from "./Tooltip";
 
 interface MultiplayerPanelProps {
   multiplayer: MultiplayerState;
@@ -14,9 +16,10 @@ const ROSTER_BY_SYMBOL = new Map(DEFAULT_ROSTER.map((player) => [player.id, play
 export function MultiplayerPanel({ multiplayer }: MultiplayerPanelProps) {
   const [joinCode, setJoinCode] = useState("");
   const [copied, setCopied] = useState(false);
+  const [chatDraft, setChatDraft] = useState("");
   const [symbolPickerOpen, setSymbolPickerOpen] = useState(false);
   const canJoin = joinCode.trim().length > 0 && !multiplayer.isOnline;
-  const symbolOptions = DEFAULT_ROSTER.slice(0, multiplayer.roomMaxPlayers).map((player) => player.id);
+  const symbolOptions = DEFAULT_ROSTER.map((player) => player.id);
 
   async function copyRoomCode() {
     if (!multiplayer.roomCode || !navigator.clipboard) return;
@@ -25,18 +28,13 @@ export function MultiplayerPanel({ multiplayer }: MultiplayerPanelProps) {
     window.setTimeout(() => setCopied(false), 1400);
   }
 
-  return (
-    <section className="multiplayer-panel" aria-labelledby="multiplayer-title">
-      <div className="multiplayer-panel-header">
-        <div>
-          <h2 id="multiplayer-title">{t("multiplayer.title")}</h2>
-          <p>{t("multiplayer.subtitle")}</p>
-        </div>
-        <span className={`multiplayer-status multiplayer-status-${multiplayer.status}`}>
-          {t(`multiplayer.status.${multiplayer.status}`)}
-        </span>
-      </div>
+  function sendChat() {
+    multiplayer.sendChatMessage(chatDraft);
+    setChatDraft("");
+  }
 
+  return (
+    <section className="multiplayer-panel" aria-label={t("multiplayer.panelLabel")}>
       {!multiplayer.isOnline ? (
         <div className="multiplayer-panel-actions">
           <label className="field multiplayer-room-field">
@@ -58,12 +56,6 @@ export function MultiplayerPanel({ multiplayer }: MultiplayerPanelProps) {
                 value={multiplayer.roomMaxPlayers}
                 onChange={(event) => multiplayer.setRoomMaxPlayers(Number(event.target.value))}
               />
-              <span className="field-help">
-                {t("multiplayer.maxPlayersHint", {
-                  minPlayers: multiplayer.minRoomPlayers,
-                  maxPlayers: multiplayer.maxRoomPlayers
-                })}
-              </span>
             </label>
             <button className="button full" type="button" onClick={multiplayer.createRoom}>
               {t("multiplayer.createRoom")}
@@ -84,55 +76,83 @@ export function MultiplayerPanel({ multiplayer }: MultiplayerPanelProps) {
         </div>
       ) : (
         <div className="multiplayer-panel-body">
-          {multiplayer.roomCode && (
-            <div className="multiplayer-room-code">
-              <span>{t("multiplayer.roomCode")}</span>
-              <code>{multiplayer.roomCode}</code>
-              <button className="button secondary full" type="button" onClick={copyRoomCode}>
-                {copied ? t("multiplayer.copied") : t("multiplayer.copyCode")}
-              </button>
+          <div className="multiplayer-profile-row">
+            <button
+              className="multiplayer-profile-mark"
+              type="button"
+              disabled={!multiplayer.canChangeProfile}
+              onClick={() => setSymbolPickerOpen(true)}
+            >
+              {multiplayer.localSymbol ? <MultiplayerSymbol symbol={multiplayer.localSymbol} /> : null}
+            </button>
+            <div className="multiplayer-profile-copy">
+              <div className="multiplayer-profile-name">{multiplayer.localPlayerName}</div>
+              <div className="multiplayer-profile-subtitle">
+                {t(`multiplayer.roles.${multiplayer.role}`)}
+                <Tooltip text={t(`multiplayer.status.${multiplayer.status}`)} passAriaLabel={false}>
+                  <span className={`multiplayer-state-dot multiplayer-state-dot-${multiplayer.status}`} aria-hidden />
+                </Tooltip>
+              </div>
             </div>
-          )}
-
-          <dl className="multiplayer-meta">
-            <div>
-              <dt>{t("multiplayer.role")}</dt>
-              <dd>{t(`multiplayer.roles.${multiplayer.role}`)}</dd>
-            </div>
-            <div>
-              <dt>{t("multiplayer.symbol")}</dt>
-              <dd>
-                <button
-                  className="multiplayer-symbol-inline-button"
-                  type="button"
-                  disabled={!multiplayer.canChangeProfile}
-                  onClick={() => setSymbolPickerOpen(true)}
-                >
-                  {multiplayer.localSymbol ? <MultiplayerSymbol symbol={multiplayer.localSymbol} /> : t("multiplayer.notAssigned")}
+            <div className="multiplayer-profile-actions">
+              {copied && <span className="multiplayer-copy-toast" role="status">{t("multiplayer.copied")}</span>}
+              <Tooltip text={copied ? t("multiplayer.copied") : t("multiplayer.copyCode")}>
+                <button className="button icon multiplayer-icon-action" type="button" disabled={!multiplayer.roomCode} onClick={copyRoomCode}>
+                  <Copy aria-hidden="true" />
                 </button>
-              </dd>
+              </Tooltip>
+              <Tooltip text={t("multiplayer.leaveRoom")}>
+                <button className="button icon multiplayer-icon-action" type="button" onClick={multiplayer.leaveRoom}>
+                  <LogOut aria-hidden="true" />
+                </button>
+              </Tooltip>
             </div>
-          </dl>
+          </div>
 
           <div className="multiplayer-players">
             <span>{t("multiplayer.players")}</span>
-            <ul>
+            <ul className="multiplayer-players-grid">
               {multiplayer.players.map((player) => (
-                <li key={player.id}>
-                  <span>{player.name}</span>
-                  <span>{player.symbol ? <MultiplayerSymbol symbol={player.symbol} /> : t("multiplayer.notAssigned")}</span>
+                <li key={player.id} className={player.connected ? "" : "disconnected"}>
+                  <span className="multiplayer-player-mark">
+                    {player.symbol ? <MultiplayerSymbol symbol={player.symbol} /> : t("multiplayer.notAssigned")}
+                  </span>
+                  <span className="multiplayer-player-name">{player.name}</span>
                 </li>
               ))}
             </ul>
           </div>
 
-          <div className="multiplayer-panel-actions">
-            <button className="button secondary full" type="button" onClick={multiplayer.sendDebugMessage}>
-              {t("multiplayer.sendDebug")}
-            </button>
-            <button className="button secondary full" type="button" onClick={multiplayer.leaveRoom}>
-              {t("multiplayer.leaveRoom")}
-            </button>
+          <div className="multiplayer-chat">
+            <div className="multiplayer-chat-log" aria-live="polite">
+              {multiplayer.chatMessages.map((message) => (
+                <div key={message.id} className={`multiplayer-chat-message ${message.kind}`}>
+                  {message.kind === "player" && message.playerName && (
+                    <span className="multiplayer-chat-author">{message.playerName}</span>
+                  )}
+                  <span>{message.text}</span>
+                </div>
+              ))}
+            </div>
+            <div className="multiplayer-chat-compose">
+              <input
+                type="text"
+                value={chatDraft}
+                placeholder={t("multiplayer.chatPlaceholder")}
+                onChange={(event) => setChatDraft(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && !event.shiftKey) {
+                    event.preventDefault();
+                    sendChat();
+                  }
+                }}
+              />
+              <Tooltip text={t("multiplayer.sendChat")}>
+                <button className="button icon multiplayer-icon-action" type="button" disabled={chatDraft.trim().length === 0} onClick={sendChat}>
+                  <Send aria-hidden="true" />
+                </button>
+              </Tooltip>
+            </div>
           </div>
         </div>
       )}
@@ -184,16 +204,6 @@ export function MultiplayerPanel({ multiplayer }: MultiplayerPanelProps) {
         </div>
       )}
 
-      {multiplayer.debugMessages.length > 0 && (
-        <div className="multiplayer-debug" aria-live="polite">
-          <span>{t("multiplayer.debugMessages")}</span>
-          <ul>
-            {multiplayer.debugMessages.map((message, index) => (
-              <li key={`${message}-${index}`}>{message}</li>
-            ))}
-          </ul>
-        </div>
-      )}
     </section>
   );
 }
@@ -223,14 +233,12 @@ export function FloatingMultiplayerPanel({ multiplayer }: MultiplayerPanelProps)
       <button
         className="multiplayer-widget-toggle"
         type="button"
+        aria-label={open ? t("multiplayer.closeMenu") : t("multiplayer.openMenu")}
         aria-expanded={open}
-        aria-controls="multiplayer-title"
         onClick={() => setOpen((current) => !current)}
       >
-        <span>{open ? t("multiplayer.closeMenu") : t("multiplayer.openMenu")}</span>
-        <span className={`multiplayer-status multiplayer-status-${multiplayer.status}`}>
-          {t(`multiplayer.status.${multiplayer.status}`)}
-        </span>
+        <Wifi aria-hidden="true" />
+        <span className={`multiplayer-state-dot multiplayer-state-dot-${multiplayer.status}`} aria-hidden />
       </button>
     </div>
   );

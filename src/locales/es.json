@@ -393,6 +393,7 @@
   "multiplayer": {
     "title": "Online experimental",
     "subtitle": "PeerJS + WebRTC entre pestañas o navegadores.",
+    "panelLabel": "Panel online",
     "openMenu": "Online",
     "closeMenu": "Cerrar online",
     "createRoom": "Crear sala",
@@ -411,6 +412,8 @@
     "symbol": "Símbolo",
     "players": "Jugadores conectados",
     "notAssigned": "Sin asignar",
+    "chatPlaceholder": "Escribí un mensaje",
+    "sendChat": "Enviar mensaje",
     "sendDebug": "Enviar mensaje de prueba",
     "debugMessages": "Mensajes de prueba",
     "debugHello": "HELLO recibido de {{player}}",
@@ -420,6 +423,11 @@
     "waitingHint": "Esperando jugador...",
     "roomFull": "La sala ya tiene {{maxPlayers}} jugadores.",
     "errorDetail": "Error de conexión: {{message}}",
+    "system": {
+      "playerConnected": "{{player}} conectado.",
+      "playerDisconnected": "{{player}} desconectado.",
+      "hostDisconnected": "El host se desconectó."
+    },
     "status": {
       "offline": "Offline",
       "creating-room": "Creando sala",
@@ -438,7 +446,7 @@
     "roles": {
       "offline": "Offline",
       "host": "Host",
-      "client": "Client"
+      "client": "Cliente"
     },
     "symbols": {
       "cross": "X",

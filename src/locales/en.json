@@ -393,6 +393,7 @@
   "multiplayer": {
     "title": "Experimental online",
     "subtitle": "PeerJS + WebRTC between tabs or browsers.",
+    "panelLabel": "Online panel",
     "openMenu": "Online",
     "closeMenu": "Close online",
     "createRoom": "Create room",
@@ -411,6 +412,8 @@
     "symbol": "Symbol",
     "players": "Connected players",
     "notAssigned": "Not assigned",
+    "chatPlaceholder": "Write a message",
+    "sendChat": "Send message",
     "sendDebug": "Send test message",
     "debugMessages": "Test messages",
     "debugHello": "Received HELLO from {{player}}",
@@ -420,6 +423,11 @@
     "waitingHint": "Waiting for player...",
     "roomFull": "The room already has {{maxPlayers}} players.",
     "errorDetail": "Connection error: {{message}}",
+    "system": {
+      "playerConnected": "{{player}} connected.",
+      "playerDisconnected": "{{player}} disconnected.",
+      "hostDisconnected": "The host disconnected."
+    },
     "status": {
       "offline": "Offline",
       "creating-room": "Creating room",
