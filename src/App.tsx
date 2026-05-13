@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { Board } from "./components/Board";
 import { HelpModal } from "./components/HelpModal";
 import { MatchStatusBanner } from "./components/MatchStatusBanner";
@@ -22,18 +22,19 @@ export default function App() {
     sanitizeDraftConfig,
     replaceDraftConfig
   } = useDraftConfig();
-  const [gameState, setGameState] = useState(() => createInitialGameState(draftConfig));
+  const initialGameState = useMemo(() => createInitialGameState(draftConfig), []);
+  const gameStateRef = useRef<GameState>(initialGameState);
+  const [gameState, setGameState] = useState(initialGameState);
 
   const applyGameAction = useCallback((action: GameAction): GameState => {
-    let nextState: GameState | null = null;
-    setGameState((currentState) => {
-      nextState = reduceGameState(currentState, action);
-      return nextState;
-    });
-    return nextState ?? gameState;
-  }, [gameState]);
+    const nextState = reduceGameState(gameStateRef.current, action);
+    gameStateRef.current = nextState;
+    setGameState(nextState);
+    return nextState;
+  }, []);
 
   const replaceGameState = useCallback((state: GameState) => {
+    gameStateRef.current = state;
     setGameState(state);
   }, []);
 
