@@ -35,6 +35,7 @@ export interface MultiplayerState {
 export function useMultiplayer(): MultiplayerState {
   const serviceRef = useRef<PeerService | null>(null);
   const connectionPlayersRef = useRef(new Map<string, PlayerId>());
+  const playersRef = useRef<NetworkPlayer[]>([]);
   const localPlayerId = useMemo(() => createPlayerId(), []);
   const localPlayerName = useMemo(() => createPlayerName(), []);
   const localPlayerIdRef = useRef(localPlayerId);
@@ -56,6 +57,7 @@ export function useMultiplayer(): MultiplayerState {
     serviceRef.current?.close();
     serviceRef.current = null;
     connectionPlayersRef.current.clear();
+    playersRef.current = [];
     setRole("offline");
     setStatus("offline");
     setRoomCode("");
@@ -74,13 +76,16 @@ export function useMultiplayer(): MultiplayerState {
         symbol: CLIENT_SYMBOL,
         connected: true
       };
+      const nextPlayers = upsertPlayer(playersRef.current, clientPlayer);
 
-      setPlayers((current) => upsertPlayer(current, clientPlayer));
+      playersRef.current = nextPlayers;
+      setPlayers(nextPlayers);
       setStatus("connected");
       serviceRef.current?.sendTo(connectionId, {
         type: "WELCOME",
         playerId: message.playerId,
         assignedSymbol: CLIENT_SYMBOL,
+        players: nextPlayers,
         state: null
       });
       serviceRef.current?.broadcast({ type: "PLAYER_JOINED", player: clientPlayer });
@@ -96,13 +101,17 @@ export function useMultiplayer(): MultiplayerState {
   const handleClientMessage = useCallback((message: NetworkMessage) => {
     if (message.type === "WELCOME") {
       setLocalSymbol(message.assignedSymbol);
+      playersRef.current = message.players;
+      setPlayers(message.players);
       setStatus("connected");
       addDebugMessage(t("multiplayer.debugWelcome"));
       return;
     }
 
     if (message.type === "PLAYER_JOINED") {
-      setPlayers((current) => upsertPlayer(current, message.player));
+      const nextPlayers = upsertPlayer(playersRef.current, message.player);
+      playersRef.current = nextPlayers;
+      setPlayers(nextPlayers);
       return;
     }
 
@@ -121,12 +130,14 @@ export function useMultiplayer(): MultiplayerState {
     setRole("host");
     setStatus("creating-room");
     setLocalSymbol(HOST_SYMBOL);
-    setPlayers([{
+    const hostPlayers: NetworkPlayer[] = [{
       id: localPlayerIdRef.current,
       name: localPlayerNameRef.current,
       symbol: HOST_SYMBOL,
       connected: true
-    }]);
+    }];
+    playersRef.current = hostPlayers;
+    setPlayers(hostPlayers);
 
     const service = new PeerService();
     serviceRef.current = service;
@@ -142,9 +153,11 @@ export function useMultiplayer(): MultiplayerState {
       onClose: (connectionId) => {
         const playerId = connectionPlayersRef.current.get(connectionId);
         connectionPlayersRef.current.delete(connectionId);
-        setPlayers((current) => current.map((player) => (
+        const nextPlayers = playersRef.current.map((player) => (
           player.id === playerId ? { ...player, connected: false } : player
-        )));
+        ));
+        playersRef.current = nextPlayers;
+        setPlayers(nextPlayers);
         setStatus("disconnected");
       },
       onError: (nextError) => {
@@ -162,12 +175,14 @@ export function useMultiplayer(): MultiplayerState {
     setRole("client");
     setStatus("connecting");
     setRoomCode(trimmedRoomCode);
-    setPlayers([{
+    const clientPlayers: NetworkPlayer[] = [{
       id: localPlayerIdRef.current,
       name: localPlayerNameRef.current,
       symbol: null,
       connected: true
-    }]);
+    }];
+    playersRef.current = clientPlayers;
+    setPlayers(clientPlayers);
 
     const service = new PeerService();
     serviceRef.current = service;

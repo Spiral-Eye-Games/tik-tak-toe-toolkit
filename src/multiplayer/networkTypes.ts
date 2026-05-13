@@ -22,7 +22,7 @@ export interface NetworkPlayer {
 
 export type NetworkMessage =
   | { type: "HELLO"; playerId: PlayerId; playerName: string }
-  | { type: "WELCOME"; playerId: PlayerId; assignedSymbol: GamePlayerId; state: GameState | null }
+  | { type: "WELCOME"; playerId: PlayerId; assignedSymbol: GamePlayerId; players: NetworkPlayer[]; state: GameState | null }
   | { type: "PLAYER_JOINED"; player: NetworkPlayer }
   | { type: "GAME_ACTION_REQUEST"; playerId: PlayerId; action: GameAction }
   | { type: "GAME_STATE_SYNC"; state: GameState }
