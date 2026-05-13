@@ -25,6 +25,8 @@ interface SidebarProps {
   onApplyPreset: (config: GameConfig) => void;
   onHelp: (helpKey: string) => void;
   onRulesHelp: () => void;
+  readOnlyConfig?: boolean;
+  canStartNewGame?: boolean;
 }
 
 export function Sidebar({
@@ -34,7 +36,9 @@ export function Sidebar({
   onNewGame,
   onApplyPreset,
   onHelp,
-  onRulesHelp
+  onRulesHelp,
+  readOnlyConfig = false,
+  canStartNewGame = true
 }: SidebarProps) {
   const [presetModalOpen, setPresetModalOpen] = useState(false);
 
@@ -42,9 +46,9 @@ export function Sidebar({
     <aside className="sidebar">
       <div className="sidebar-sticky">
         <div className="new-game-row">
-          <button className="button full" type="button" onClick={onNewGame}>{t("buttons.newGame")}</button>
+          <button className="button full" type="button" disabled={!canStartNewGame} onClick={onNewGame}>{t("buttons.newGame")}</button>
           <Tooltip text={t("presets.openTitle")}>
-            <button className="help-button large" type="button" onClick={() => setPresetModalOpen(true)}>
+            <button className="help-button large" type="button" disabled={readOnlyConfig} onClick={() => setPresetModalOpen(true)}>
               <SlidersHorizontal aria-hidden="true" />
             </button>
           </Tooltip>
@@ -68,7 +72,7 @@ export function Sidebar({
         )}
       </div>
 
-      <div className="sidebar-content">
+      <fieldset className="sidebar-content sidebar-content-fieldset" disabled={readOnlyConfig}>
         <GeneralSettingsSection config={config} onChangeConfig={onChangeConfig} onHelp={onHelp} />
         <PiecesSettingsSection config={config} onChangeConfig={onChangeConfig} onHelp={onHelp} />
         <PlayersSettingsSection
@@ -81,7 +85,7 @@ export function Sidebar({
         <GravitySettingsSection config={config} onChangeConfig={onChangeConfig} onHelp={onHelp} />
         <BrokenHolesSettingsSection config={config} onChangeConfig={onChangeConfig} onHelp={onHelp} />
         <CollapseSettingsSection config={config} onChangeConfig={onChangeConfig} onHelp={onHelp} />
-      </div>
+      </fieldset>
 
       <PresetModal
         open={presetModalOpen}

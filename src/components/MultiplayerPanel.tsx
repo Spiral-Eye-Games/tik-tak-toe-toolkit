@@ -1,10 +1,15 @@
 import { useState } from "react";
+import { DEFAULT_ROSTER } from "../game/defaults";
+import type { PlayerId } from "../game/types";
 import { t } from "../i18n";
 import type { MultiplayerState } from "../multiplayer/useMultiplayer";
+import { PlayerMarkGlyph } from "./PlayerMarkSpan";
 
 interface MultiplayerPanelProps {
   multiplayer: MultiplayerState;
 }
+
+const ROSTER_BY_SYMBOL = new Map(DEFAULT_ROSTER.map((player) => [player.id, player]));
 
 export function MultiplayerPanel({ multiplayer }: MultiplayerPanelProps) {
   const [joinCode, setJoinCode] = useState("");
@@ -83,7 +88,7 @@ export function MultiplayerPanel({ multiplayer }: MultiplayerPanelProps) {
             </div>
             <div>
               <dt>{t("multiplayer.symbol")}</dt>
-              <dd>{multiplayer.localSymbol ? t(`multiplayer.symbols.${multiplayer.localSymbol}`) : t("multiplayer.notAssigned")}</dd>
+              <dd>{multiplayer.localSymbol ? <MultiplayerSymbol symbol={multiplayer.localSymbol} /> : t("multiplayer.notAssigned")}</dd>
             </div>
           </dl>
 
@@ -93,7 +98,7 @@ export function MultiplayerPanel({ multiplayer }: MultiplayerPanelProps) {
               {multiplayer.players.map((player) => (
                 <li key={player.id}>
                   <span>{player.name}</span>
-                  <span>{player.symbol ? t(`multiplayer.symbols.${player.symbol}`) : t("multiplayer.notAssigned")}</span>
+                  <span>{player.symbol ? <MultiplayerSymbol symbol={player.symbol} /> : t("multiplayer.notAssigned")}</span>
                 </li>
               ))}
             </ul>
@@ -131,6 +136,18 @@ export function MultiplayerPanel({ multiplayer }: MultiplayerPanelProps) {
         </div>
       )}
     </section>
+  );
+}
+
+function MultiplayerSymbol({ symbol }: { symbol: PlayerId }) {
+  const rosterPlayer = ROSTER_BY_SYMBOL.get(symbol);
+  return (
+    <PlayerMarkGlyph
+      icon={symbol}
+      className="multiplayer-symbol-glyph"
+      label={t(`multiplayer.symbols.${symbol}`)}
+      style={{ color: rosterPlayer?.color }}
+    />
   );
 }
 

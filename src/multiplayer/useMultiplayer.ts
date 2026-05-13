@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DEFAULT_ROSTER } from "../game/defaults";
-import type { PlayerId as GamePlayerId } from "../game/types";
+import type { GameAction, GameConfig, GameState, PlayerId as GamePlayerId } from "../game/types";
 import { t } from "../i18n";
 import { PeerService } from "./peerService";
 import type {
@@ -16,6 +16,13 @@ const HOST_SYMBOL: GamePlayerId = "cross";
 const MIN_ROOM_PLAYERS = 2;
 const MAX_ROOM_PLAYERS = DEFAULT_ROSTER.length;
 const DEFAULT_PLAYER_ROOM_SIZE = MIN_ROOM_PLAYERS;
+
+interface UseMultiplayerOptions {
+  gameState: GameState;
+  applyGameActionAsHost: (action: GameAction) => GameState;
+  replaceGameState: (state: GameState) => void;
+  replaceDraftConfig: (config: GameConfig) => void;
+}
 
 export interface MultiplayerState {
   role: NetworkRole;
@@ -33,17 +40,32 @@ export interface MultiplayerState {
   isOnline: boolean;
   isHost: boolean;
   isClient: boolean;
+  canEditConfig: boolean;
+  canStartNewGame: boolean;
+  canUseUndoRedo: boolean;
+  canPlayLocalTurn: boolean;
   createRoom: () => void;
   setRoomMaxPlayers: (maxPlayers: number) => void;
   joinRoom: (roomCode: string) => void;
   leaveRoom: () => void;
   sendDebugMessage: () => void;
+  sendGameAction: (action: GameAction) => void;
+  syncGameState: (state: GameState) => void;
 }
 
-export function useMultiplayer(): MultiplayerState {
+export function useMultiplayer({
+  gameState,
+  applyGameActionAsHost,
+  replaceGameState,
+  replaceDraftConfig
+}: UseMultiplayerOptions): MultiplayerState {
   const serviceRef = useRef<PeerService | null>(null);
   const connectionPlayersRef = useRef(new Map<string, PlayerId>());
   const playersRef = useRef<NetworkPlayer[]>([]);
+  const gameStateRef = useRef(gameState);
+  const applyGameActionAsHostRef = useRef(applyGameActionAsHost);
+  const replaceGameStateRef = useRef(replaceGameState);
+  const replaceDraftConfigRef = useRef(replaceDraftConfig);
   const localPlayerId = useMemo(() => createPlayerId(), []);
   const localPlayerName = useMemo(() => createPlayerName(), []);
   const localPlayerIdRef = useRef(localPlayerId);
@@ -58,6 +80,11 @@ export function useMultiplayer(): MultiplayerState {
   const [error, setError] = useState<string | null>(null);
   const [debugMessages, setDebugMessages] = useState<string[]>([]);
 
+  gameStateRef.current = gameState;
+  applyGameActionAsHostRef.current = applyGameActionAsHost;
+  replaceGameStateRef.current = replaceGameState;
+  replaceDraftConfigRef.current = replaceDraftConfig;
+
   const addDebugMessage = useCallback((message: string) => {
     setDebugMessages((current) => [message, ...current].slice(0, 5));
   }, []);
@@ -65,6 +92,33 @@ export function useMultiplayer(): MultiplayerState {
   const setRoomMaxPlayers = useCallback((maxPlayers: number) => {
     setRoomMaxPlayersState(clampRoomMaxPlayers(maxPlayers));
   }, []);
+
+  const sendErrorTo = useCallback((connectionId: string, message: string) => {
+    serviceRef.current?.sendTo(connectionId, { type: "ERROR", message });
+  }, []);
+
+  const handleRemoteGameAction = useCallback((message: Extract<NetworkMessage, { type: "GAME_ACTION_REQUEST" }>, connectionId: string) => {
+    const connectionPlayerId = connectionPlayersRef.current.get(connectionId);
+    const player = playersRef.current.find((candidate) => candidate.id === message.playerId);
+
+    if (connectionPlayerId !== message.playerId || !player?.connected || player.symbol === null) {
+      sendErrorTo(connectionId, t("multiplayer.errors.unknownPlayer"));
+      return;
+    }
+
+    if (message.action.type !== "playMove") {
+      sendErrorTo(connectionId, t("multiplayer.errors.hostOnlyAction"));
+      return;
+    }
+
+    if (player.symbol !== gameStateRef.current.currentPlayer) {
+      sendErrorTo(connectionId, t("multiplayer.errors.notYourTurn"));
+      return;
+    }
+
+    const nextState = applyGameActionAsHostRef.current(message.action);
+    serviceRef.current?.broadcast({ type: "GAME_STATE_SYNC", state: nextState });
+  }, [sendErrorTo]);
 
   const resetSession = useCallback(() => {
     serviceRef.current?.close();
@@ -110,10 +164,15 @@ export function useMultiplayer(): MultiplayerState {
         playerId: message.playerId,
         assignedSymbol,
         players: nextPlayers,
-        state: null
+        state: gameStateRef.current
       });
       serviceRef.current?.broadcast({ type: "PLAYER_JOINED", player: clientPlayer });
       addDebugMessage(t("multiplayer.debugHello", { player: message.playerName }));
+      return;
+    }
+
+    if (message.type === "GAME_ACTION_REQUEST") {
+      handleRemoteGameAction(message, connectionId);
       return;
     }
 
@@ -127,8 +186,16 @@ export function useMultiplayer(): MultiplayerState {
       setLocalSymbol(message.assignedSymbol);
       playersRef.current = message.players;
       setPlayers(message.players);
+      replaceDraftConfigRef.current(message.state.config);
+      replaceGameStateRef.current(message.state);
       setStatus("connected");
       addDebugMessage(t("multiplayer.debugWelcome"));
+      return;
+    }
+
+    if (message.type === "GAME_STATE_SYNC") {
+      replaceDraftConfigRef.current(message.state.config);
+      replaceGameStateRef.current(message.state);
       return;
     }
 
@@ -243,9 +310,35 @@ export function useMultiplayer(): MultiplayerState {
     addDebugMessage(message.message);
   }, [addDebugMessage]);
 
+  const sendGameAction = useCallback((action: GameAction) => {
+    serviceRef.current?.broadcast({
+      type: "GAME_ACTION_REQUEST",
+      playerId: localPlayerIdRef.current,
+      action
+    });
+  }, []);
+
+  const syncGameState = useCallback((state: GameState) => {
+    serviceRef.current?.broadcast({ type: "GAME_STATE_SYNC", state });
+  }, []);
+
   useEffect(() => () => {
     serviceRef.current?.close();
   }, []);
+
+  const isOnline = role !== "offline";
+  const isHost = role === "host";
+  const isClient = role === "client";
+  const canEditConfig = !isClient;
+  const canStartNewGame = !isClient;
+  const canUseUndoRedo = !isClient;
+  const canPlayLocalTurn =
+    !isOnline ||
+    (localSymbol !== null &&
+      localSymbol === gameState.currentPlayer &&
+      status !== "connecting" &&
+      status !== "creating-room" &&
+      status !== "error");
 
   return {
     role,
@@ -260,14 +353,20 @@ export function useMultiplayer(): MultiplayerState {
     players,
     error,
     debugMessages,
-    isOnline: role !== "offline",
-    isHost: role === "host",
-    isClient: role === "client",
+    isOnline,
+    isHost,
+    isClient,
+    canEditConfig,
+    canStartNewGame,
+    canUseUndoRedo,
+    canPlayLocalTurn,
     createRoom,
     setRoomMaxPlayers,
     joinRoom,
     leaveRoom: resetSession,
-    sendDebugMessage
+    sendDebugMessage,
+    sendGameAction,
+    syncGameState
   };
 }
 

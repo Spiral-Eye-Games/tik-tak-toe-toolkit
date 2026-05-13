@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useReducer } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Board } from "./components/Board";
 import { HelpModal } from "./components/HelpModal";
 import { MatchStatusBanner } from "./components/MatchStatusBanner";
@@ -6,9 +6,9 @@ import { FloatingMultiplayerPanel } from "./components/MultiplayerPanel";
 import { Sidebar } from "./components/Sidebar";
 import { TopBar } from "./components/TopBar";
 import { getStatusText } from "./game/formatters";
-import { createInitialGameState, gameReducer } from "./game/reducer";
+import { createInitialGameState, reduceGameState } from "./game/reducer";
 import { mustMovePiece } from "./game/rules";
-import type { GameAction, GameConfig } from "./game/types";
+import type { GameAction, GameConfig, GameState } from "./game/types";
 import { useDraftConfig } from "./hooks/useDraftConfig";
 import { useGameClock } from "./hooks/useGameClock";
 import { useHelpModal } from "./hooks/useHelpModal";
@@ -22,17 +22,63 @@ export default function App() {
     sanitizeDraftConfig,
     replaceDraftConfig
   } = useDraftConfig();
-  const [gameState, dispatch] = useReducer(gameReducer, draftConfig, createInitialGameState);
-  const topbarClockText = useGameClock(gameState, dispatch);
+  const [gameState, setGameState] = useState(() => createInitialGameState(draftConfig));
+
+  const applyGameAction = useCallback((action: GameAction): GameState => {
+    let nextState: GameState | null = null;
+    setGameState((currentState) => {
+      nextState = reduceGameState(currentState, action);
+      return nextState;
+    });
+    return nextState ?? gameState;
+  }, [gameState]);
+
+  const replaceGameState = useCallback((state: GameState) => {
+    setGameState(state);
+  }, []);
+
   const { modal, closeModal, openHelp, openRulesHelp } = useHelpModal(gameState);
-  const multiplayer = useMultiplayer();
+  const multiplayer = useMultiplayer({
+    gameState,
+    applyGameActionAsHost: applyGameAction,
+    replaceGameState,
+    replaceDraftConfig
+  });
   const showDevMultiplayer = useMemo(() => hasDevQueryParam(), []);
 
-  usePendingGravityRotation(gameState, dispatch);
-
   const handleGameAction = useCallback((action: GameAction) => {
-    dispatch(action);
-  }, []);
+    if (multiplayer.isClient) {
+      if (action.type === "playMove") {
+        multiplayer.sendGameAction(action);
+      }
+      return;
+    }
+
+    if (
+      multiplayer.isHost &&
+      action.type === "playMove" &&
+      multiplayer.localSymbol !== gameState.currentPlayer
+    ) {
+      return;
+    }
+
+    const nextState = applyGameAction(action);
+    if (multiplayer.isHost) {
+      multiplayer.syncGameState(nextState);
+    }
+  }, [applyGameAction, gameState.currentPlayer, multiplayer]);
+
+  const handleHostEventAction = useCallback((action: GameAction) => {
+    if (multiplayer.isClient) return;
+    const nextState = applyGameAction(action);
+    if (multiplayer.isHost) {
+      multiplayer.syncGameState(nextState);
+    }
+  }, [applyGameAction, multiplayer]);
+
+  const topbarClockText = useGameClock(gameState, handleHostEventAction);
+
+  usePendingGravityRotation(gameState, handleHostEventAction);
 
   const statusAriaLabel = useMemo(
     () => getStatusText(gameState, gameState.config, mustMovePiece),
@@ -40,11 +86,13 @@ export default function App() {
   );
 
   function startNewGame() {
+    if (!multiplayer.canStartNewGame) return;
     const nextConfig = sanitizeDraftConfig();
     handleGameAction({ type: "newGame", config: nextConfig });
   }
 
   function applyPreset(config: GameConfig) {
+    if (!multiplayer.canStartNewGame) return;
     const nextConfig = replaceDraftConfig(config);
     handleGameAction({ type: "newGame", config: nextConfig });
   }
@@ -54,8 +102,8 @@ export default function App() {
       <TopBar
         statusAriaLabel={statusAriaLabel}
         clockText={topbarClockText}
-        canUndo={gameState.undoStack.length > 0}
-        canRedo={gameState.redoStack.length > 0}
+        canUndo={multiplayer.canUseUndoRedo && gameState.undoStack.length > 0}
+        canRedo={multiplayer.canUseUndoRedo && gameState.redoStack.length > 0}
         onUndo={() => handleGameAction({ type: "undo" })}
         onRedo={() => handleGameAction({ type: "redo" })}
       >
@@ -71,6 +119,8 @@ export default function App() {
           onApplyPreset={applyPreset}
           onHelp={openHelp}
           onRulesHelp={openRulesHelp}
+          readOnlyConfig={!multiplayer.canEditConfig}
+          canStartNewGame={multiplayer.canStartNewGame}
         />
 
         <Board
@@ -78,6 +128,9 @@ export default function App() {
           onPlayMove={(row, col) => handleGameAction({ type: "playMove", row, col })}
           onVictoryNewGame={startNewGame}
           onVictoryUndo={() => handleGameAction({ type: "undo" })}
+          interactionLocked={multiplayer.isOnline && !multiplayer.canPlayLocalTurn}
+          victoryNewGameDisabled={!multiplayer.canStartNewGame}
+          victoryUndoDisabled={!multiplayer.canUseUndoRedo}
         />
       </main>
 

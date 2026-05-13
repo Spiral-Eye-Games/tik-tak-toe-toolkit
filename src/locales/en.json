@@ -425,6 +425,11 @@
       "disconnected": "Disconnected",
       "error": "Error"
     },
+    "errors": {
+      "unknownPlayer": "Could not validate your player.",
+      "hostOnlyAction": "Only the host can do that action.",
+      "notYourTurn": "It is not your turn."
+    },
     "roles": {
       "offline": "Offline",
       "host": "Host",

@@ -10,9 +10,20 @@ interface BoardProps {
   onPlayMove: (row: number, col: number) => void;
   onVictoryNewGame: () => void;
   onVictoryUndo: () => void;
+  interactionLocked?: boolean;
+  victoryNewGameDisabled?: boolean;
+  victoryUndoDisabled?: boolean;
 }
 
-export function Board({ state, onPlayMove, onVictoryNewGame, onVictoryUndo }: BoardProps) {
+export function Board({
+  state,
+  onPlayMove,
+  onVictoryNewGame,
+  onVictoryUndo,
+  interactionLocked = false,
+  victoryNewGameDisabled = false,
+  victoryUndoDisabled = false
+}: BoardProps) {
   const boardMaxAxis = Math.max(state.config.columns, state.config.rows);
 
   return (
@@ -32,7 +43,14 @@ export function Board({ state, onPlayMove, onVictoryNewGame, onVictoryUndo }: Bo
           >
             {state.board.map((rowCells, row) =>
               rowCells.map((_cell, col) => (
-                <Cell key={`${row}-${col}`} state={state} row={row} col={col} onPlayMove={onPlayMove} />
+                <Cell
+                  key={`${row}-${col}`}
+                  state={state}
+                  row={row}
+                  col={col}
+                  interactionLocked={interactionLocked}
+                  onPlayMove={onPlayMove}
+                />
               ))
             )}
           </section>
@@ -45,6 +63,8 @@ export function Board({ state, onPlayMove, onVictoryNewGame, onVictoryUndo }: Bo
           state={state}
           onNewGame={onVictoryNewGame}
           onUndo={onVictoryUndo}
+          newGameDisabled={victoryNewGameDisabled}
+          undoDisabled={victoryUndoDisabled}
         />
       </div>
     </section>

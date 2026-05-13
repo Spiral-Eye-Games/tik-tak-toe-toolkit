@@ -37,9 +37,10 @@ interface CellProps {
   row: number;
   col: number;
   onPlayMove: (row: number, col: number) => void;
+  interactionLocked?: boolean;
 }
 
-export function Cell({ state, row, col, onPlayMove }: CellProps) {
+export function Cell({ state, row, col, onPlayMove, interactionLocked = false }: CellProps) {
   const cell = state.board[row][col];
   const piece = cell.piece;
   const coordinate = `${getColumnLetter(col)}${row + 1}`;
@@ -78,7 +79,7 @@ export function Cell({ state, row, col, onPlayMove }: CellProps) {
     <button
       className={classNames.join(" ")}
       type="button"
-      disabled={!clickable}
+      disabled={interactionLocked || !clickable}
       data-broken-label={isBroken(cell) ? getBrokenLabel(cell.brokenTurns) : undefined}
       data-restricted-label={startRestricted ? t("restrictions.startBlockedCell") : undefined}
       onClick={() => onPlayMove(row, col)}

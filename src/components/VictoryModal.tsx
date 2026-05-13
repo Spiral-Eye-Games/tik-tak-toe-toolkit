@@ -7,9 +7,17 @@ interface VictoryModalProps {
   state: GameState;
   onNewGame: () => void;
   onUndo: () => void;
+  newGameDisabled?: boolean;
+  undoDisabled?: boolean;
 }
 
-export function VictoryModal({ state, onNewGame, onUndo }: VictoryModalProps) {
+export function VictoryModal({
+  state,
+  onNewGame,
+  onUndo,
+  newGameDisabled = false,
+  undoDisabled = false
+}: VictoryModalProps) {
   if (!state.gameOver || !state.gameEndSummary) return null;
 
   const summary = state.gameEndSummary;
@@ -72,11 +80,11 @@ export function VictoryModal({ state, onNewGame, onUndo }: VictoryModalProps) {
           )}
         </div>
         <footer className="victory-board-actions">
-          <button className="button full" type="button" onClick={onNewGame}>{t("buttons.newGame")}</button>
+          <button className="button full" type="button" disabled={newGameDisabled} onClick={onNewGame}>{t("buttons.newGame")}</button>
           <button
             className="button full secondary"
             type="button"
-            disabled={state.undoStack.length === 0}
+            disabled={undoDisabled || state.undoStack.length === 0}
             onClick={onUndo}
           >
             {t("actions.undo")}
