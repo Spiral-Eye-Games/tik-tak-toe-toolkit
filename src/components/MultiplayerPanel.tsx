@@ -32,6 +32,22 @@ export function MultiplayerPanel({ multiplayer }: MultiplayerPanelProps) {
 
       {!multiplayer.isOnline ? (
         <div className="multiplayer-panel-actions">
+          <label className="field">
+            <span>{t("multiplayer.maxPlayers")}</span>
+            <input
+              type="number"
+              min={multiplayer.minRoomPlayers}
+              max={multiplayer.maxRoomPlayers}
+              value={multiplayer.roomMaxPlayers}
+              onChange={(event) => multiplayer.setRoomMaxPlayers(Number(event.target.value))}
+            />
+            <span className="field-help">
+              {t("multiplayer.maxPlayersHint", {
+                minPlayers: multiplayer.minRoomPlayers,
+                maxPlayers: multiplayer.maxRoomPlayers
+              })}
+            </span>
+          </label>
           <button className="button full" type="button" onClick={multiplayer.createRoom}>
             {t("multiplayer.createRoom")}
           </button>

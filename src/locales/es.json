@@ -399,6 +399,8 @@
     "leaveRoom": "Salir de sala",
     "copyCode": "Copiar código",
     "copied": "Copiado",
+    "maxPlayers": "Jugadores de la sala",
+    "maxPlayersHint": "Mínimo {{minPlayers}}, máximo {{maxPlayers}} según los símbolos disponibles.",
     "roomCode": "Código de sala",
     "roomCodePlaceholder": "Pegá el código",
     "role": "Rol",
@@ -410,7 +412,9 @@
     "debugHello": "HELLO recibido de {{player}}",
     "debugWelcome": "WELCOME recibido",
     "debugPayload": "{{player}}: prueba",
+    "debugRoomFull": "{{player}} intentó entrar, pero la sala está llena",
     "waitingHint": "Esperando jugador...",
+    "roomFull": "La sala ya tiene {{maxPlayers}} jugadores.",
     "errorDetail": "Error de conexión: {{message}}",
     "status": {
       "offline": "Offline",
@@ -428,7 +432,17 @@
     },
     "symbols": {
       "cross": "X",
-      "circle": "O"
+      "circle": "O",
+      "triangle": "Triángulo",
+      "square": "Cuadrado",
+      "spade": "Pica",
+      "diamond": "Diamante",
+      "club": "Trébol",
+      "heart": "Corazón",
+      "moon": "Luna",
+      "sun": "Sol",
+      "zap": "Rayo",
+      "star": "Estrella"
     }
   },
   "help": {

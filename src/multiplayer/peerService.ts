@@ -44,6 +44,13 @@ export class PeerService {
     }
   }
 
+  closeConnection(connectionId: string): void {
+    const connection = this.connections.get(connectionId);
+    if (!connection) return;
+    connection.close();
+    this.connections.delete(connectionId);
+  }
+
   close() {
     for (const connection of this.connections.values()) {
       connection.close();
