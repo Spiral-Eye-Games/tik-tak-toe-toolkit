@@ -25,11 +25,7 @@ export function advanceTurnAfterNoLine(snapshot: GameSnapshot, config: GameConfi
   snapshot.currentPlayer = getNextActivePlayerAfterChanges(oldActive, snapshot.activePlayerIds, completedPlayer);
   snapshot.selectedPieceId = getDefaultSelectedPieceIdForcedOldest(snapshot, config);
 
-  if (shouldDrawIfNoLegalMoves(snapshot, config)) {
-    snapshot.gameOver = true;
-    snapshot.gameEndSummary = { type: "draw" };
-    snapshot.statusMessage = t("gameOver.draw");
-  }
+  finishIfNoLegalMoves(snapshot, config);
 }
 
 export function finishTurn(snapshot: GameSnapshot, config: GameConfig): void {
@@ -113,7 +109,6 @@ function handleWinningLine(
     removeAllPiecesForPlayer(snapshot, config, winnerId);
   }
   snapshot.activePlayerIds = oldActive.filter((id) => id !== winnerId);
-  snapshot.lineCells = [];
 
   if (snapshot.activePlayerIds.length <= 1) {
     snapshot.gameOver = true;
@@ -125,6 +120,9 @@ function handleWinningLine(
     return;
   }
 
+  if (finishIfNoLegalMoves(snapshot, config)) return;
+
+  snapshot.lineCells = [];
   advanceAfterPlayerRemoved(snapshot, config, oldActive, winnerId);
 }
 
@@ -205,11 +203,31 @@ function advanceAfterPlayerRemoved(
   snapshot.currentPlayer = getNextActivePlayerAfterChanges(oldActive, snapshot.activePlayerIds, removedId);
   snapshot.selectedPieceId = getDefaultSelectedPieceIdForcedOldest(snapshot, config);
 
-  if (shouldDrawIfNoLegalMoves(snapshot, config)) {
-    snapshot.gameOver = true;
-    snapshot.gameEndSummary = { type: "draw" };
-    snapshot.statusMessage = t("gameOver.draw");
+  finishIfNoLegalMoves(snapshot, config);
+}
+
+function finishIfNoLegalMoves(snapshot: GameSnapshot, config: GameConfig): boolean {
+  if (!shouldDrawIfNoLegalMoves(snapshot, config)) return false;
+
+  snapshot.gameOver = true;
+  if (snapshot.placementOrderWin.length > 0 || snapshot.eliminationOrderLose.length > 0) {
+    snapshot.gameEndSummary = { type: "ranking", orderedIds: buildResolvedRanking(snapshot) };
+    snapshot.statusMessage = t("gameOver.rankingComplete");
+    return true;
   }
+
+  snapshot.gameEndSummary = { type: "draw" };
+  snapshot.statusMessage = t("gameOver.draw");
+  return true;
+}
+
+function buildResolvedRanking(snapshot: GameSnapshot): PlayerId[] {
+  const orderedIds = [
+    ...snapshot.placementOrderWin,
+    ...snapshot.activePlayerIds,
+    ...[...snapshot.eliminationOrderLose].reverse()
+  ];
+  return orderedIds.filter((id, index) => orderedIds.indexOf(id) === index);
 }
 
 function getNextActivePlayerAfterChanges(oldActive: PlayerId[], activePlayerIds: PlayerId[], afterPlayerId: PlayerId): PlayerId {
