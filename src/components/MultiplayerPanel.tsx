@@ -48,29 +48,27 @@ export function MultiplayerPanel({ multiplayer }: MultiplayerPanelProps) {
               onChange={(event) => multiplayer.setLocalPlayerName(event.target.value)}
             />
           </label>
-          <button className="button secondary full multiplayer-symbol-button" type="button" onClick={() => setSymbolPickerOpen(true)}>
-            <span>{t("multiplayer.chooseSymbol")}</span>
-            {multiplayer.localSymbol && <MultiplayerSymbol symbol={multiplayer.localSymbol} />}
-          </button>
-          <label className="field">
-            <span>{t("multiplayer.maxPlayers")}</span>
-            <input
-              type="number"
-              min={multiplayer.minRoomPlayers}
-              max={multiplayer.maxRoomPlayers}
-              value={multiplayer.roomMaxPlayers}
-              onChange={(event) => multiplayer.setRoomMaxPlayers(Number(event.target.value))}
-            />
-            <span className="field-help">
-              {t("multiplayer.maxPlayersHint", {
-                minPlayers: multiplayer.minRoomPlayers,
-                maxPlayers: multiplayer.maxRoomPlayers
-              })}
-            </span>
-          </label>
-          <button className="button full" type="button" onClick={multiplayer.createRoom}>
-            {t("multiplayer.createRoom")}
-          </button>
+          <div className="multiplayer-create-row">
+            <label className="field multiplayer-max-players-field">
+              <span>{t("multiplayer.maxPlayers")}</span>
+              <input
+                type="number"
+                min={multiplayer.minRoomPlayers}
+                max={multiplayer.maxRoomPlayers}
+                value={multiplayer.roomMaxPlayers}
+                onChange={(event) => multiplayer.setRoomMaxPlayers(Number(event.target.value))}
+              />
+              <span className="field-help">
+                {t("multiplayer.maxPlayersHint", {
+                  minPlayers: multiplayer.minRoomPlayers,
+                  maxPlayers: multiplayer.maxRoomPlayers
+                })}
+              </span>
+            </label>
+            <button className="button full" type="button" onClick={multiplayer.createRoom}>
+              {t("multiplayer.createRoom")}
+            </button>
+          </div>
           <label className="field multiplayer-room-field">
             <span>{t("multiplayer.roomCode")}</span>
             <input
@@ -149,31 +147,40 @@ export function MultiplayerPanel({ multiplayer }: MultiplayerPanelProps) {
         </p>
       )}
 
-      {symbolPickerOpen && (
-        <div className="multiplayer-symbol-picker" role="dialog" aria-modal="true" aria-label={t("multiplayer.chooseSymbol")}>
-          <div className="multiplayer-symbol-picker-grid">
-            {symbolOptions.map((symbol) => {
-              const available = multiplayer.availableSymbols.includes(symbol) || multiplayer.localSymbol === symbol;
-              return (
-                <button
-                  key={symbol}
-                  className="multiplayer-symbol-picker-option"
-                  type="button"
-                  disabled={!available || !multiplayer.canChangeProfile}
-                  aria-label={t(`multiplayer.symbols.${symbol}`)}
-                  onClick={() => {
-                    multiplayer.requestSymbolChange(symbol);
-                    setSymbolPickerOpen(false);
-                  }}
-                >
-                  <MultiplayerSymbol symbol={symbol} />
-                </button>
-              );
-            })}
+      {symbolPickerOpen && multiplayer.isOnline && (
+        <div className="multiplayer-symbol-modal-backdrop" role="presentation" onClick={() => setSymbolPickerOpen(false)}>
+          <div
+            className="multiplayer-symbol-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="multiplayer-symbol-modal-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <h3 id="multiplayer-symbol-modal-title">{t("multiplayer.chooseSymbol")}</h3>
+            <div className="multiplayer-symbol-picker-grid">
+              {symbolOptions.map((symbol) => {
+                const available = multiplayer.availableSymbols.includes(symbol) || multiplayer.localSymbol === symbol;
+                return (
+                  <button
+                    key={symbol}
+                    className="multiplayer-symbol-picker-option"
+                    type="button"
+                    disabled={!available || !multiplayer.canChangeProfile}
+                    aria-label={t(`multiplayer.symbols.${symbol}`)}
+                    onClick={() => {
+                      multiplayer.requestSymbolChange(symbol);
+                      setSymbolPickerOpen(false);
+                    }}
+                  >
+                    <MultiplayerSymbol symbol={symbol} />
+                  </button>
+                );
+              })}
+            </div>
+            <button className="button secondary full" type="button" onClick={() => setSymbolPickerOpen(false)}>
+              {t("actions.close")}
+            </button>
           </div>
-          <button className="button secondary full" type="button" onClick={() => setSymbolPickerOpen(false)}>
-            {t("actions.close")}
-          </button>
         </div>
       )}
 

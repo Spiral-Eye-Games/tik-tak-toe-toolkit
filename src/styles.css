@@ -415,6 +415,17 @@ body, #root { height: 100vh; }
   margin-top: 12px;
 }
 
+.multiplayer-create-row {
+  display: grid;
+  grid-template-columns: minmax(0, 120px) minmax(0, 1fr);
+  gap: 10px;
+  align-items: end;
+}
+
+.multiplayer-max-players-field .field-help {
+  line-height: 1.2;
+}
+
 .multiplayer-room-field input,
 .field input[type="text"] {
   width: 100%;
@@ -479,13 +490,6 @@ body, #root { height: 100vh; }
   font-weight: 900;
 }
 
-.multiplayer-symbol-button {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
 .multiplayer-symbol-inline-button {
   display: inline-flex;
   align-items: center;
@@ -511,14 +515,33 @@ body, #root { height: 100vh; }
   vertical-align: -0.25em;
 }
 
-.multiplayer-symbol-picker {
-  margin-top: 12px;
+.multiplayer-symbol-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2147482100;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(0, 0, 0, 0.58);
+}
+
+.multiplayer-symbol-modal {
+  width: min(320px, 100%);
   display: grid;
   gap: 10px;
-  padding: 12px;
-  border-radius: 16px;
-  background: rgba(0, 0, 0, 0.24);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 16px;
+  border-radius: 20px;
+  background: radial-gradient(circle at top left, rgba(120, 200, 255, 0.14), transparent 42%), #202237;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.54);
+}
+
+.multiplayer-symbol-modal h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 1000;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .multiplayer-symbol-picker-grid {
