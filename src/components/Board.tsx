@@ -1,9 +1,11 @@
 import type { CSSProperties } from "react";
-import { getBoardEventCountdowns } from "../game/eventCountdowns";
+import { getBoardTurnTimeline } from "../game/boardTurnTimeline";
+import type { VictoryOnlineNameContext } from "../game/formatters";
 import type { GameState } from "../game/types";
 import { BoardEventStrip } from "./BoardEventStrip";
 import { BoardOutcomeStrip } from "./BoardOutcomeStrip";
 import { BoardSkipTurnFab } from "./BoardSkipTurnFab";
+import { BoardUndoRedoRow } from "./BoardUndoRedoRow";
 import { Cell } from "./Cell";
 import { VictoryModal } from "./VictoryModal";
 
@@ -12,11 +14,16 @@ interface BoardProps {
   onPlayMove: (row: number, col: number) => void;
   onVictoryNewGame: () => void;
   onVictoryUndo: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
+  onUndo: () => void;
+  onRedo: () => void;
   interactionLocked?: boolean;
   victoryNewGameDisabled?: boolean;
   victoryUndoDisabled?: boolean;
   skipTurnInteractive?: boolean;
   onSkipTurn?: () => void;
+  victoryOnlineNameContext?: VictoryOnlineNameContext | null;
 }
 
 export function Board({
@@ -24,20 +31,25 @@ export function Board({
   onPlayMove,
   onVictoryNewGame,
   onVictoryUndo,
+  canUndo,
+  canRedo,
+  onUndo,
+  onRedo,
   interactionLocked = false,
   victoryNewGameDisabled = false,
   victoryUndoDisabled = false,
   skipTurnInteractive = false,
-  onSkipTurn
+  onSkipTurn,
+  victoryOnlineNameContext = null
 }: BoardProps) {
   const boardMaxAxis = Math.max(state.config.columns, state.config.rows);
-  const upcomingEvents = getBoardEventCountdowns(state, state.config);
+  const turnTimeline = getBoardTurnTimeline(state, state.config);
   const showSkipFab =
     Boolean(onSkipTurn) &&
     state.config.skipTurnEnabled &&
     !state.gameOver &&
     state.pendingGravityRotationTarget === null;
-  const showEventArea = upcomingEvents.length > 0 || showSkipFab;
+  const showTimeline = turnTimeline.length > 0;
 
   return (
     <section className="board-section">
@@ -68,14 +80,21 @@ export function Board({
             )}
           </section>
 
-          {showEventArea && (
-            <div className="board-event-area">
-              <BoardEventStrip state={state} />
-              {showSkipFab && onSkipTurn && (
-                <BoardSkipTurnFab disabled={!skipTurnInteractive} onSkipTurn={onSkipTurn} />
+          <div className="board-event-area">
+            <div className="board-event-area__left-col">
+              {showTimeline && (
+                <div className="board-event-area__timeline-clip">
+                  <BoardEventStrip state={state} rows={turnTimeline} />
+                </div>
               )}
+              <BoardUndoRedoRow canUndo={canUndo} canRedo={canRedo} onUndo={onUndo} onRedo={onRedo} />
             </div>
-          )}
+            {showSkipFab && onSkipTurn && (
+              <div className="board-event-area__skip-col">
+                <BoardSkipTurnFab disabled={!skipTurnInteractive} onSkipTurn={onSkipTurn} />
+              </div>
+            )}
+          </div>
           <BoardOutcomeStrip state={state} />
         </div>
 
@@ -85,6 +104,7 @@ export function Board({
           onUndo={onVictoryUndo}
           newGameDisabled={victoryNewGameDisabled}
           undoDisabled={victoryUndoDisabled}
+          onlineNameContext={victoryOnlineNameContext}
         />
       </div>
     </section>

@@ -55,8 +55,9 @@ function buildBuiltinConfig(id: BuiltinPresetId): GameConfig {
         rows: 4,
         brokenEnabled: true,
         brokenHoleTurns: 3,
+        brokenHoleDurationUnit: "rounds",
         brokenHoleUnlimited: false,
-        brokenHoleTurnsPerPlayer: true,
+        brokenHoleTurnsPerPlayer: false,
         gravityEnabled: false,
         gravityRotateEnabled: false
       });

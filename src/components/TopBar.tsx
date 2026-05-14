@@ -1,4 +1,4 @@
-import { Clock, RotateCcw, RotateCw } from "lucide-react";
+import { Clock } from "lucide-react";
 import type { ReactNode } from "react";
 import { t } from "../i18n";
 
@@ -9,20 +9,15 @@ interface TopBarProps {
   statusAriaLabel: string;
   /** Tiempo del cronómetro del jugador en turno en MM:SS (null = oculto). */
   clockText: string | null;
-  canUndo: boolean;
-  canRedo: boolean;
-  onUndo: () => void;
-  onRedo: () => void;
 }
 
-export function TopBar({ children, statusAriaLabel, clockText, canUndo, canRedo, onUndo, onRedo }: TopBarProps) {
+export function TopBar({ children, statusAriaLabel, clockText }: TopBarProps) {
   return (
     <header className="topbar">
       <div className="topbar-brand">
         <h1>{t("app.title")}</h1>
       </div>
       <div className="topbar-stage">
-        <span className="topbar-stage-spacer" aria-hidden />
         <div className="topbar-center-cluster">
           <div className="topbar-turn-anchor">
             <div className="turn-pill" role="status" aria-label={statusAriaLabel}>
@@ -39,14 +34,6 @@ export function TopBar({ children, statusAriaLabel, clockText, canUndo, canRedo,
               </div>
             )}
           </div>
-        </div>
-        <div className="topbar-actions">
-          <button className="button icon" title={t("actions.undo")} aria-label={t("actions.undo")} type="button" disabled={!canUndo} onClick={onUndo}>
-            <RotateCcw aria-hidden="true" />
-          </button>
-          <button className="button icon" title={t("actions.redo")} aria-label={t("actions.redo")} type="button" disabled={!canRedo} onClick={onRedo}>
-            <RotateCw aria-hidden="true" />
-          </button>
         </div>
       </div>
     </header>

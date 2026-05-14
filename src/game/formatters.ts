@@ -33,6 +33,31 @@ export function getPlayerLabel(config: GameConfig, id: PlayerId): string {
   return t("players.label", { number: index + 1 });
 }
 
+/** Nombre visible de la figura (cruz, círculo, etc.) para UI que no usa “Jugador N”. */
+export function getPlayerFigureDisplayName(id: PlayerId): string {
+  return t(`players.figure.${id}`);
+}
+
+export interface VictoryOnlineNameContext {
+  isOnline: boolean;
+  players: ReadonlyArray<{ symbol: PlayerId | null; name: string }>;
+}
+
+/**
+ * Texto para modales de resultado: online → nickname del humano con esa ficha; offline (o sin nick) → nombre de la figura.
+ */
+export function getVictoryModalPlayerDisplayName(
+  playerId: PlayerId,
+  context: VictoryOnlineNameContext | null | undefined
+): string {
+  if (context?.isOnline) {
+    const match = context.players.find((entry) => entry.symbol === playerId);
+    const trimmed = match?.name?.trim();
+    if (trimmed) return trimmed;
+  }
+  return getPlayerFigureDisplayName(playerId);
+}
+
 export function getColumnLetter(col: number): string {
   let label = "";
   let n = col;

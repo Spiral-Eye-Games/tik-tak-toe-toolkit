@@ -62,6 +62,8 @@ export interface GameConfig {
   pieceMoveMode: PieceMoveMode;
   brokenEnabled: boolean;
   brokenHoleTurns: number;
+  /** Cómo interpreta `brokenHoleTurns` antes de aplicar el factor por jugador (solo si no es ilimitado). */
+  brokenHoleDurationUnit: IntervalUnit;
   brokenHoleUnlimited: boolean;
   brokenHoleTurnsPerPlayer: boolean;
   gravityEnabled: boolean;

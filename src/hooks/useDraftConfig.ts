@@ -69,6 +69,7 @@ export function useDraftConfig(options?: UseDraftConfigOptions) {
         ? next.maxPiecesPerPlayer
         : clampInt(next.maxPiecesPerPlayer, 1, 99, DEFAULT_MAX_PIECES_PER_PLAYER);
       next.brokenHoleTurns = clampInt(next.brokenHoleTurns, 1, 99, DEFAULT_BROKEN_HOLE_TURNS);
+      next.brokenHoleDurationUnit = normalizeIntervalUnit(next.brokenHoleDurationUnit, DEFAULT_CONFIG.brokenHoleDurationUnit);
       next.gravityRotateEveryTurns = clampInt(
         next.gravityRotateEveryTurns,
         1,

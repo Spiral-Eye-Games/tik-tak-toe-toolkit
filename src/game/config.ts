@@ -7,6 +7,7 @@ import {
   DEFAULT_CLOCK_PER_TURN_SECONDS,
   DEFAULT_CLOCK_RECOVER_SECONDS,
   DEFAULT_ELIMINATE_WINNERS,
+  DEFAULT_BROKEN_HOLE_DURATION_UNIT,
   DEFAULT_BROKEN_HOLE_TURNS,
   DEFAULT_GRAVITY_INITIAL_DIRECTION,
   DEFAULT_GRAVITY_ROTATE_EVERY_TURNS,
@@ -64,7 +65,8 @@ export function clampInt(value: number, min: number, max: number, fallback: numb
 export function getResolvedBrokenHoleTurns(config: GameConfig): number {
   if (config.brokenHoleUnlimited) return 0;
   let n = config.brokenHoleTurns;
-  if (config.brokenHoleTurnsPerPlayer) n *= config.playerCount;
+  const durationUnit = normalizeIntervalUnit(config.brokenHoleDurationUnit, DEFAULT_BROKEN_HOLE_DURATION_UNIT);
+  if (durationUnit === "rounds") n *= config.playerCount;
   return Math.min(Math.max(0, n), 9999);
 }
 
@@ -143,11 +145,15 @@ export function sanitizeConfig(config: GameConfig): GameConfig {
   const brokenHoleUnlimited = explicitBrokenUnlimited
     ? config.brokenHoleUnlimited
     : config.brokenHoleTurns === 0;
-  const brokenHoleTurnsPerPlayer = Boolean(config.brokenHoleTurnsPerPlayer);
+  const brokenHoleTurnsPerPlayer = false;
   const baseBrokenTurnsRaw = !explicitBrokenUnlimited && config.brokenHoleTurns === 0
     ? DEFAULT_BROKEN_HOLE_TURNS
     : config.brokenHoleTurns;
   const brokenHoleTurns = clampInt(baseBrokenTurnsRaw, 1, 99, DEFAULT_BROKEN_HOLE_TURNS);
+  const brokenHoleDurationUnit = normalizeIntervalUnit(
+    (config as GameConfig & { brokenHoleDurationUnit?: IntervalUnit }).brokenHoleDurationUnit,
+    DEFAULT_BROKEN_HOLE_DURATION_UNIT
+  );
 
   const { clockEnabled, clockMode } = resolveClockEnabledAndMode(config);
   const looseConfig = config as GameConfig & {
@@ -201,6 +207,7 @@ export function sanitizeConfig(config: GameConfig): GameConfig {
     pieceMoveMode,
     brokenEnabled: config.brokenEnabled,
     brokenHoleTurns,
+    brokenHoleDurationUnit,
     brokenHoleUnlimited,
     brokenHoleTurnsPerPlayer,
     gravityEnabled: config.gravityEnabled,
@@ -247,19 +254,22 @@ export function normalizeMoveMode(pieceLimitType: GameConfig["pieceLimitType"], 
   return value === "free" ? value : DEFAULT_UNLIMITED_PIECE_MOVE_MODE;
 }
 
-export function getMoveModeOptions(pieceLimitType: GameConfig["pieceLimitType"]): Array<{ value: PieceMoveMode; label: string }> {
+export function getMoveModeOptions(
+  pieceLimitType: GameConfig["pieceLimitType"]
+): Array<{ value: PieceMoveMode; name: string; description: string }> {
   if (pieceLimitType === "limited") {
-    return [
-      { value: "forcedOldest", label: t("moveModes.limited.forcedOldest") },
-      { value: "limitMoveAny", label: t("moveModes.limited.limitMoveAny") },
-      { value: "limitedFree", label: t("moveModes.limited.limitedFree") }
-    ];
+    return (["forcedOldest", "limitMoveAny", "limitedFree"] as const).map((key) => ({
+      value: key,
+      name: t(`moveModes.limited.${key}.name`),
+      description: t(`moveModes.limited.${key}.description`)
+    }));
   }
 
-  return [
-    { value: "blocked", label: t("moveModes.unlimited.blocked") },
-    { value: "free", label: t("moveModes.unlimited.free") }
-  ];
+  return (["blocked", "free"] as const).map((key) => ({
+    value: key,
+    name: t(`moveModes.unlimited.${key}.name`),
+    description: t(`moveModes.unlimited.${key}.description`)
+  }));
 }
 
 export function getMoveModeHelp(pieceLimitType: GameConfig["pieceLimitType"]): string {

@@ -1,5 +1,9 @@
-import { getPlayerLabel, victoryModalShowsRanking } from "../game/formatters";
-import type { GameState } from "../game/types";
+import {
+  getVictoryModalPlayerDisplayName,
+  victoryModalShowsRanking,
+  type VictoryOnlineNameContext
+} from "../game/formatters";
+import type { GameState, PlayerId } from "../game/types";
 import { t } from "../i18n";
 import { PlayerMarkSpan } from "./PlayerMarkSpan";
 
@@ -9,6 +13,8 @@ interface VictoryModalProps {
   onUndo: () => void;
   newGameDisabled?: boolean;
   undoDisabled?: boolean;
+  /** Si hay partida online, nicknames por ficha; si no, nombres de figura en el texto del modal. */
+  onlineNameContext?: VictoryOnlineNameContext | null;
 }
 
 export function VictoryModal({
@@ -16,12 +22,15 @@ export function VictoryModal({
   onNewGame,
   onUndo,
   newGameDisabled = false,
-  undoDisabled = false
+  undoDisabled = false,
+  onlineNameContext = null
 }: VictoryModalProps) {
   if (!state.gameOver || !state.gameEndSummary) return null;
 
   const summary = state.gameEndSummary;
   const config = state.config;
+
+  const nameFor = (id: PlayerId) => getVictoryModalPlayerDisplayName(id, onlineNameContext);
 
   const showFullRanking =
     summary.type === "ranking" && victoryModalShowsRanking(config, summary);
@@ -54,9 +63,9 @@ export function VictoryModal({
                   <PlayerMarkSpan config={config} playerId={summary.loserId} className="victory-emoji" />
                 )}
               </div>
-              <p className="victory-message">{t("victory.winnerLine", { player: getPlayerLabel(config, summary.winnerId) })}</p>
+              <p className="victory-message">{t("victory.winnerLine", { player: nameFor(summary.winnerId) })}</p>
               {summary.loserId !== undefined && (
-                <p className="victory-message victory-message-secondary">{t("victory.loserLine", { player: getPlayerLabel(config, summary.loserId) })}</p>
+                <p className="victory-message victory-message-secondary">{t("victory.loserLine", { player: nameFor(summary.loserId) })}</p>
               )}
             </div>
           )}
@@ -67,6 +76,7 @@ export function VictoryModal({
                 <div key={id} className="victory-ranking-row">
                   <span className="victory-rank-num">{t("victory.rankLabel", { place: index + 1 })}</span>
                   <PlayerMarkSpan config={config} playerId={id} className="victory-rank-emoji" />
+                  <span className="victory-rank-name">{nameFor(id)}</span>
                 </div>
               ))}
             </div>
@@ -75,7 +85,7 @@ export function VictoryModal({
           {summary.type === "ranking" && !showFullRanking && summary.orderedIds.length > 0 && (
             <div className="victory-champion">
               <PlayerMarkSpan config={config} playerId={summary.orderedIds[0]} className="victory-emoji" />
-              <p className="victory-message">{t("victory.winnerLine", { player: getPlayerLabel(config, summary.orderedIds[0]) })}</p>
+              <p className="victory-message">{t("victory.winnerLine", { player: nameFor(summary.orderedIds[0]) })}</p>
             </div>
           )}
         </div>

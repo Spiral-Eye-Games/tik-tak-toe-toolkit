@@ -9,7 +9,7 @@ import { DEFAULT_CONFIG, DEFAULT_ROSTER } from "./game/defaults";
 import { loadLastSettings } from "./game/sessionCache";
 import { t } from "./i18n";
 import { isDev } from "./isDev";
-import { getStatusText } from "./game/formatters";
+import { getStatusText, type VictoryOnlineNameContext } from "./game/formatters";
 import { createInitialGameState, reduceGameState } from "./game/reducer";
 import { mustMovePiece } from "./game/rules";
 import type { GameAction, GameConfig, GameState } from "./game/types";
@@ -116,6 +116,14 @@ export default function App() {
     [gameState]
   );
 
+  const victoryOnlineNameContext = useMemo<VictoryOnlineNameContext>(
+    () => ({
+      isOnline: multiplayer.isOnline,
+      players: multiplayer.players.map((player) => ({ symbol: player.symbol, name: player.name }))
+    }),
+    [multiplayer.isOnline, multiplayer.players]
+  );
+
   function startNewGame() {
     if (!multiplayer.canStartNewGame) return;
     const nextConfig = multiplayer.isHost
@@ -135,14 +143,7 @@ export default function App() {
 
   return (
     <div className="app">
-      <TopBar
-        statusAriaLabel={statusAriaLabel}
-        clockText={topbarClockText}
-        canUndo={multiplayer.canUseUndoRedo && gameState.undoStack.length > 0}
-        canRedo={multiplayer.canUseUndoRedo && gameState.redoStack.length > 0}
-        onUndo={() => handleGameAction({ type: "undo" })}
-        onRedo={() => handleGameAction({ type: "redo" })}
-      >
+      <TopBar statusAriaLabel={statusAriaLabel} clockText={topbarClockText}>
         <MatchStatusBanner state={gameState} mustMove={mustMovePiece} compactRanking />
       </TopBar>
 
@@ -165,11 +166,16 @@ export default function App() {
           onPlayMove={(row, col) => handleGameAction({ type: "playMove", row, col })}
           onVictoryNewGame={startNewGame}
           onVictoryUndo={() => handleGameAction({ type: "undo" })}
+          canUndo={multiplayer.canUseUndoRedo && gameState.undoStack.length > 0}
+          canRedo={multiplayer.canUseUndoRedo && gameState.redoStack.length > 0}
+          onUndo={() => handleGameAction({ type: "undo" })}
+          onRedo={() => handleGameAction({ type: "redo" })}
           interactionLocked={multiplayer.isOnline && !multiplayer.canPlayLocalTurn}
           victoryNewGameDisabled={!multiplayer.canStartNewGame}
           victoryUndoDisabled={!multiplayer.canUseUndoRedo}
           skipTurnInteractive={multiplayer.canPlayLocalTurn}
           onSkipTurn={() => handleGameAction({ type: "skipTurn" })}
+          victoryOnlineNameContext={victoryOnlineNameContext}
         />
       </main>
 

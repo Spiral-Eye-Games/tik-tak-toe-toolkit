@@ -8,6 +8,29 @@ export function buildClockBankInitial(activePlayerIds: PlayerId[], bankSeconds: 
   return Object.fromEntries(activePlayerIds.map((id) => [id, bankSeconds])) as Record<PlayerId, number>;
 }
 
+/** Segundos restantes en banca de un jugador (activo o no). El jugador en turno usa el reloj en vivo; el resto, el valor congelado en `clockBankRemaining`. */
+export function getBankRemainingSecondsForPlayer(
+  snapshot: GameSnapshot,
+  config: GameConfig,
+  playerId: PlayerId,
+  nowMs: number
+): number | null {
+  if (!isClockEnabled(config) || config.clockMode !== "bank" || !snapshot.clockBankRemaining) return null;
+
+  const bank = snapshot.clockBankRemaining[playerId];
+  if (bank === undefined) return null;
+
+  if (snapshot.gameOver) {
+    return Math.max(0, bank);
+  }
+
+  if (playerId === snapshot.currentPlayer) {
+    return getClockRemainingSeconds(snapshot, config, nowMs);
+  }
+
+  return Math.max(0, bank);
+}
+
 /** Segundos restantes del jugador en turno (null si no aplica). */
 export function getClockRemainingSeconds(snapshot: GameSnapshot, config: GameConfig, nowMs: number): number | null {
   if (!isClockEnabled(config) || snapshot.gameOver) return null;

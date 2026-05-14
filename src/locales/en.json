@@ -15,7 +15,21 @@
   },
   "players": {
     "label": "Player {{number}}",
-    "unknown": "Player"
+    "unknown": "Player",
+    "figure": {
+      "cross": "Cross",
+      "circle": "Circle",
+      "triangle": "Triangle",
+      "square": "Square",
+      "spade": "Spade",
+      "diamond": "Diamond",
+      "club": "Club",
+      "heart": "Heart",
+      "moon": "Moon",
+      "sun": "Sun",
+      "zap": "Bolt",
+      "star": "Star"
+    }
   },
   "presets": {
     "openTitle": "Presets: load or save",
@@ -83,23 +97,22 @@
     "win": "Win",
     "lineLength": "N in a row",
     "skipTurnEnabled": "Allow skipping a turn",
-    "unlimitedPieces": "Unlimited",
     "quantity": "Quantity",
-    "changePiecePlace": "Move pieces",
+    "pieceMovement": "Movement",
+    "restrictionMode": "Mode",
+    "editBlockedCellsShort": "Edit",
     "enableBrokenHoles": "Enable rupture",
     "enableGravity": "Enable gravity",
     "turns": "Turns",
-    "brokenUnlimited": "Unlimited",
-    "brokenTurnsPerPlayer": "Per player",
+    "brokenDuration": "Duration",
     "brokenTurnsInfo": "Duration in turns (from the next turn onward).",
     "brokenTurnsInfoUnlimited": "The break lasts until the end of the match.",
-    "brokenTurnsInfoPerPlayer": "{{base}} × {{players}} players = {{total}} turns.",
+    "brokenTurnsInfoRounds": "{{amount}} rounds × {{players}} players = {{total}} turns of break duration.",
     "gravityInitialDirection": "Initial direction",
     "gravityRotate": "Rotate gravity",
     "gravityRotateAngle": "Rotation step",
     "gravityRotateSpin": "Turn direction",
     "gravityRotateEvery": "Every N",
-    "intervalUnit": "Unit",
     "gravityRotateInfoTurns": "The direction changes every {{amount}} completed turns (after board settles).",
     "gravityRotateInfoRounds": "{{amount}} rounds × {{players}} players = {{turns}} turns between rotations.",
     "collapseEnabled": "Enable collapse",
@@ -126,7 +139,6 @@
     "restrictionStartGridSummary": "{{count}} cells blocked at the start.",
     "restrictionStartInfoTurns": "Blocks painted cells during the first {{amount}} turns.",
     "restrictionStartInfoRounds": "{{amount}} rounds × {{players}} players = {{turns}} turns with blocked cells.",
-    "restrictionMovementType": "Movement",
     "restrictionMovementHint": "Normal changes nothing. Eat removes enemy pieces; Capture converts them to your player.",
     "restrictionMovementEat": "Eat",
     "restrictionMovementEatTooltip": "Allows removing enemy pieces according to the movement pattern. Turns off if you enable Capture.",
@@ -142,6 +154,19 @@
   "intervalUnits": {
     "turns": "Turns",
     "rounds": "Rounds"
+  },
+  "numericMode": {
+    "time": {
+      "turns": "Turn-based interval",
+      "rounds": "Round-based interval",
+      "infinite": "Unlimited duration",
+      "cycleAria": "Switch interval mode (current: {{label}})"
+    },
+    "quantity": {
+      "value": "Fixed quantity",
+      "infinite": "Unlimited quantity",
+      "cycleAria": "Switch quantity mode (current: {{label}})"
+    }
   },
   "topbar": {
     "clockAria": "Time remaining: {{time}}"
@@ -167,18 +192,36 @@
   },
   "moveModes": {
     "limited": {
-      "forcedOldest": "Forced: move the first placed piece",
-      "limitMoveAny": "Limit: move any of your pieces",
-      "limitedFree": "Free: move any of your pieces always"
+      "forcedOldest": {
+        "name": "Forced",
+        "description": "When you reach the cap, you must move the piece you placed first."
+      },
+      "limitMoveAny": {
+        "name": "Limit",
+        "description": "When you reach the cap, you may move any of your pieces."
+      },
+      "limitedFree": {
+        "name": "Free",
+        "description": "You can move any of your pieces at any time, even before reaching the cap."
+      }
     },
     "unlimited": {
-      "blocked": "Blocked: pieces can't be moved",
-      "free": "Free: move any of your pieces"
+      "blocked": {
+        "name": "Blocked",
+        "description": "Placed pieces cannot be moved."
+      },
+      "free": {
+        "name": "Free",
+        "description": "You can move any of your pieces at any time."
+      }
     },
     "help": {
       "limited": "With a max number of pieces: you can force movement when you reach the limit, or allow free movement before filling up.",
       "unlimited": "With unlimited pieces: you can block movement or allow moving pieces at any time."
     }
+  },
+  "pieceMoveSelect": {
+    "triggerAria": "Movement: {{mode}}. Open to choose another mode."
   },
   "restrictions": {
     "startBlockedCell": "Block",
@@ -482,15 +525,15 @@
     },
     "pieces": {
       "title": "Pieces",
-      "html": "<p>This is where you decide how many pieces each player has and whether placed pieces can move again.</p><h3>What you can configure</h3><ul><li><strong>Unlimited</strong> on lets players place pieces without a cap; off uses the quantity field.</li><li><strong>Quantity</strong> is the maximum number of live pieces per player when pieces are not unlimited.</li><li><strong>Move pieces</strong> defines when a piece may move: never, only after reaching the limit, or freely.</li><li><strong>Movement</strong> appears when movement is allowed and adds patterns such as King, Rook, Checker, or Knight.</li><li><strong>Eat</strong> removes enemy pieces reached by the pattern; <strong>Capture</strong> converts them to your own pieces when the mode supports it.</li></ul><h3>How it changes the game</h3><ul><li>With few pieces, order matters: the number on each piece shows which one was placed first.</li><li>Forced modes push the match toward recycling pieces; free modes make it more tactical.</li><li>Special patterns change which destinations are legal, so the info button next to <strong>Movement</strong> explains each one.</li></ul>"
+      "html": "<p>This is where you decide how many pieces each player has and whether placed pieces can move again.</p><h3>What you can configure</h3><ul><li><strong>Quantity</strong> and <strong>Movement</strong> share the first row: <strong>∞</strong> / <strong>V</strong> for caps, plus a <strong>Movement</strong> control that shows descriptions in the open list and only the short name when closed.</li><li><strong>Mode</strong> appears when movement is allowed and adds patterns such as King, Rook, Checker, or Knight.</li><li><strong>Eat</strong> removes enemy pieces reached by the pattern; <strong>Capture</strong> converts them to your own pieces when the mode supports it.</li></ul><h3>How it changes the game</h3><ul><li>With few pieces, order matters: the number on each piece shows which one was placed first.</li><li>Forced modes push the match toward recycling pieces; free modes make it more tactical.</li><li>Special patterns change which destinations are legal, so the info button next to <strong>Mode</strong> explains each one.</li></ul>"
     },
     "holes": {
       "title": "Rupture",
-      "html": "<p>Rupture makes a cell unusable after a piece leaves it.</p><h3>What you can configure</h3><ul><li>The title switch enables or disables this mechanic.</li><li><strong>Turns</strong> sets how long the rupture lasts from the next turn onward.</li><li><strong>Unlimited</strong> keeps the broken cell blocked until the match ends.</li><li><strong>Per player</strong> multiplies the duration by the number of active players when the match is configured.</li></ul><h3>How it changes the game</h3><ul><li>If disabled, moving a piece leaves the cell immediately available.</li><li>If enabled, movement has a spatial cost: you can close paths or block areas.</li><li>Broken cells also interfere with line movement and gravity.</li></ul>"
+      "html": "<p>Rupture makes a cell unusable after a piece leaves it.</p><h3>What you can configure</h3><ul><li>The title switch enables or disables this mechanic.</li><li><strong>Duration</strong> sets how long the rupture lasts, with a mode button: <strong>T</strong> counts turns, <strong>R</strong> counts rounds (converted to turns using the player count), and <strong>∞</strong> blocks the cell until the match ends.</li></ul><h3>How it changes the game</h3><ul><li>If disabled, moving a piece leaves the cell immediately available.</li><li>If enabled, movement has a spatial cost: you can close paths or block areas.</li><li>Broken cells also interfere with line movement and gravity.</li></ul>"
     },
     "gravity": {
       "title": "Gravity",
-      "html": "<p>Gravity pulls every piece toward one side of the board, as if that side were the floor.</p><h3>What you can configure</h3><ul><li>The title switch enables or disables gravity.</li><li><strong>Initial direction</strong> sets where pieces fall at the start.</li><li><strong>Rotate gravity</strong> can change the direction after a number of turns or rounds.</li><li><strong>Rotation step</strong> chooses how much gravity turns each time: 90°, 180°, 270°, or random.</li><li><strong>Turn direction</strong> sets clockwise, counter-clockwise, or random rotation.</li></ul><h3>How to play with gravity</h3><ul><li>When placing, tap an empty cell in the column or row: the piece falls to its landing spot.</li><li>Strong arrows show where the piece will land; faint arrows are shortcuts in the same fall line.</li><li>When moving a piece, choose an empty cell and then the whole board settles in the current direction.</li><li>Broken cells act as obstacles and can split a column or row into separate segments.</li><li>When gravity rotates, there is a short pause before pieces settle again.</li></ul>"
+      "html": "<p>Gravity pulls every piece toward one side of the board, as if that side were the floor.</p><h3>What you can configure</h3><ul><li>The title switch enables or disables gravity.</li><li><strong>Initial direction</strong> sets where pieces fall at the start.</li><li><strong>Rotate gravity</strong> can change the direction after every N completed turns or rounds; the compact field uses <strong>T</strong> (turns) or <strong>R</strong> (rounds) next to the number.</li><li><strong>Rotation step</strong> chooses how much gravity turns each time: 90°, 180°, 270°, or random.</li><li><strong>Turn direction</strong> sets clockwise, counter-clockwise, or random rotation.</li></ul><h3>How to play with gravity</h3><ul><li>When placing, tap an empty cell in the column or row: the piece falls to its landing spot.</li><li>Strong arrows show where the piece will land; faint arrows are shortcuts in the same fall line.</li><li>When moving a piece, choose an empty cell and then the whole board settles in the current direction.</li><li>Broken cells act as obstacles and can split a column or row into separate segments.</li><li>When gravity rotates, there is a short pause before pieces settle again.</li></ul>"
     },
     "players": {
       "title": "Players",
@@ -502,19 +545,31 @@
     },
     "restrictions": {
       "title": "Blocking",
-      "html": "<p>Blocking reserves cells that cannot be used at the start of the match.</p><h3>What you can configure</h3><ul><li>The title switch enables or disables opening blocked cells.</li><li><strong>For N</strong> defines how long they stay blocked.</li><li><strong>Unit</strong> lets that time count in turns or rounds.</li><li><strong>Edit blocked cells</strong> opens a grid matching the current board so you can paint and unpaint cells.</li></ul><h3>How it changes the game</h3><ul><li>While blocking lasts, new pieces cannot be placed on painted cells.</li><li>When the countdown ends, those cells become available again.</li><li>The board event indicator shows when blocking will release.</li></ul>"
+      "html": "<p>Blocking reserves cells that cannot be used at the start of the match.</p><h3>What you can configure</h3><ul><li>The title switch enables or disables opening blocked cells.</li><li><strong>For N</strong> sets how long they stay blocked, with <strong>T</strong> (turns) or <strong>R</strong> (rounds) next to the number.</li><li><strong>Edit</strong> (same row) opens a grid matching the current board so you can paint and unpaint cells.</li></ul><h3>How it changes the game</h3><ul><li>While blocking lasts, new pieces cannot be placed on painted cells.</li><li>When the countdown ends, those cells become available again.</li><li>The board event indicator shows when blocking will release.</li></ul>"
     },
     "collapse": {
       "title": "Collapse",
-      "html": "<p>Collapse shrinks the board by breaking edges at scheduled moments.</p><h3>What you can configure</h3><ul><li>The title switch enables or disables the mechanic.</li><li><strong>Type</strong> chooses which edge or edges break: left, right, up, down, horizontal, vertical, or circular.</li><li><strong>Every N</strong> and <strong>Unit</strong> define the interval in turns or rounds.</li><li><strong>Times</strong> limits how many collapses can happen during the match.</li><li><strong>Kill players</strong> decides whether a player left without pieces by collapse loses or keeps playing.</li></ul><h3>How it changes the game</h3><ul><li>Each collapse advances one layer inward; for example, circular breaks the next ring of the board.</li><li>Collapsed cells stay broken until the end of the match.</li><li>If there were pieces on those cells, they are destroyed when the collapse happens.</li><li>The event indicator warns when the next collapse is coming.</li></ul>"
+      "html": "<p>Collapse shrinks the board by breaking edges at scheduled moments.</p><h3>What you can configure</h3><ul><li>The title switch enables or disables the mechanic.</li><li><strong>Type</strong> chooses which edge or edges break: left, right, up, down, horizontal, vertical, or circular.</li><li><strong>Every N</strong> sets the interval with <strong>T</strong> (turns) or <strong>R</strong> (rounds) next to the number; <strong>Times</strong> sits on the same row and caps how many collapses can happen.</li><li><strong>Kill players</strong> decides whether a player left without pieces by collapse loses or keeps playing.</li></ul><h3>How it changes the game</h3><ul><li>Each collapse advances one layer inward; for example, circular breaks the next ring of the board.</li><li>Collapsed cells stay broken until the end of the match.</li><li>If there were pieces on those cells, they are destroyed when the collapse happens.</li><li>The event indicator warns when the next collapse is coming.</li></ul>"
     }
   },
   "board": {
     "outcomeStripLabel": "Match results",
     "outcomeEliminated": "{{player}} eliminated",
     "outcomeRoundWin": "{{player}} won the round",
+    "outcomeStandingDraw": "—",
+    "outcomeStandingNumber": "{{n}}",
+    "outcomeBankChipTitle": "Bank: {{time}}",
+    "outcomeAriaBank": "Bank remaining {{time}}",
     "skipTurn": {
       "tooltip": "Skip turn"
+    },
+    "timeline": {
+      "stripAriaLabel": "Current turn and upcoming events",
+      "playerTurn": "Turn: {{player}}",
+      "gravityPending": "Gravity rotation (pending)",
+      "gravityRotate": "Gravity change",
+      "collapse": "Collapse",
+      "restrictionEnd": "Opening block"
     },
     "events": {
       "label": "Upcoming match events",

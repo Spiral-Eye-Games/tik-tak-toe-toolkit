@@ -1,9 +1,7 @@
-import { useEffect, useRef, useState } from "react";
-import type { ChangeEvent, FocusEvent, InputHTMLAttributes } from "react";
+import { useState } from "react";
 import { ArrowDown, ChevronsLeftRight, CircleDot, CircleOff, Grid3X3, Info, Lock, Timer, UsersRound } from "lucide-react";
 import { DEFAULT_MAX_PIECES_PER_PLAYER } from "../game/defaults";
 import {
-  getMoveModeOptions,
   getResolvedBrokenHoleTurns,
   getResolvedCollapseInterval,
   getResolvedGravityRotateInterval,
@@ -16,14 +14,14 @@ import type {
   GravityDirection,
   GravityRotateAngle,
   GravityRotateSpin,
-  IntervalUnit,
   LineRule,
-  PieceLimitType,
-  PieceMoveMode,
   RestrictionMovementMode
 } from "../game/types";
 import { t } from "../i18n";
 import { MovementInfoModal } from "./MovementInfoModal";
+import { NumericDraftInput } from "./NumericDraftInput";
+import { QuantityModeDraftInput, TimeIntervalDraftInput, type TimeIntervalPickerMode } from "./NumericModeInputs";
+import { PieceMoveModeSelect } from "./PieceMoveModeSelect";
 import { RestrictionGridModal } from "./RestrictionGridModal";
 import { SettingsSection } from "./SettingsSection";
 import { Tooltip } from "./Tooltip";
@@ -35,107 +33,9 @@ interface SidebarSectionProps {
   maxPlayerCount?: number;
 }
 
-interface NumericDraftInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "type" | "value" | "onChange"> {
-  value: number;
-  onCommit: (value: number) => void;
-  commitDelayMs?: number;
-}
-
-function NumericDraftInput({
-  value,
-  onCommit,
-  commitDelayMs = 700,
-  disabled,
-  onBlur,
-  ...props
-}: NumericDraftInputProps) {
-  const [draftValue, setDraftValue] = useState(String(value));
-  const commitTimeoutRef = useRef<number | undefined>(undefined);
-
-  useEffect(() => {
-    setDraftValue(String(value));
-  }, [value]);
-
-  useEffect(() => {
-    return () => {
-      window.clearTimeout(commitTimeoutRef.current);
-    };
-  }, []);
-
-  function clearPendingCommit() {
-    window.clearTimeout(commitTimeoutRef.current);
-    commitTimeoutRef.current = undefined;
-  }
-
-  function parseDraft(valueToParse: string) {
-    const trimmedValue = valueToParse.trim();
-    if (trimmedValue === "" || trimmedValue === "-" || trimmedValue === "+") return null;
-
-    const parsedValue = Number(trimmedValue);
-    return Number.isFinite(parsedValue) ? parsedValue : null;
-  }
-
-  function parseNumericProp(propValue: InputHTMLAttributes<HTMLInputElement>[keyof InputHTMLAttributes<HTMLInputElement>]) {
-    const parsedValue = Number(propValue);
-    return Number.isFinite(parsedValue) ? parsedValue : null;
-  }
-
-  function normalizeDraft(valueToNormalize: string) {
-    const parsedValue = parseDraft(valueToNormalize);
-    if (parsedValue === null) return null;
-
-    const stepValue = parseNumericProp(props.step);
-    const minValue = parseNumericProp(props.min);
-    const maxValue = parseNumericProp(props.max);
-    let nextValue = stepValue !== null && Number.isInteger(stepValue) ? Math.trunc(parsedValue) : parsedValue;
-
-    if (minValue !== null) nextValue = Math.max(minValue, nextValue);
-    if (maxValue !== null) nextValue = Math.min(maxValue, nextValue);
-    return nextValue;
-  }
-
-  function scheduleCommit(nextDraftValue: string) {
-    clearPendingCommit();
-    const normalizedValue = normalizeDraft(nextDraftValue);
-    if (normalizedValue === null || disabled) return;
-
-    commitTimeoutRef.current = window.setTimeout(() => {
-      setDraftValue(String(normalizedValue));
-      onCommit(normalizedValue);
-      commitTimeoutRef.current = undefined;
-    }, commitDelayMs);
-  }
-
-  function handleChange(event: ChangeEvent<HTMLInputElement>) {
-    const nextDraftValue = event.target.value;
-    setDraftValue(nextDraftValue);
-    scheduleCommit(nextDraftValue);
-  }
-
-  function handleBlur(event: FocusEvent<HTMLInputElement>) {
-    clearPendingCommit();
-    const normalizedValue = normalizeDraft(event.target.value);
-
-    if (normalizedValue === null || disabled) {
-      setDraftValue(String(value));
-    } else {
-      setDraftValue(String(normalizedValue));
-      onCommit(normalizedValue);
-    }
-
-    onBlur?.(event);
-  }
-
-  return (
-    <input
-      {...props}
-      type="number"
-      disabled={disabled}
-      value={draftValue}
-      onChange={handleChange}
-      onBlur={handleBlur}
-    />
-  );
+function brokenHoleTimePickerMode(config: GameConfig): TimeIntervalPickerMode {
+  if (config.brokenHoleUnlimited) return "infinite";
+  return config.brokenHoleDurationUnit === "rounds" ? "rounds" : "turns";
 }
 
 export function GeneralSettingsSection({ config, onChangeConfig, onHelp }: SidebarSectionProps) {
@@ -206,51 +106,42 @@ export function GeneralSettingsSection({ config, onChangeConfig, onHelp }: Sideb
 }
 
 export function PiecesSettingsSection({ config, onChangeConfig, onHelp }: SidebarSectionProps) {
-  const unlimitedPieces = config.pieceLimitType === "unlimited";
-  const moveModeOptions = getMoveModeOptions(config.pieceLimitType);
   const [movementInfoOpen, setMovementInfoOpen] = useState(false);
 
   return (
     <SettingsSection title={t("sections.pieces")} icon={<CircleDot aria-hidden="true" />} helpKey="pieces" defaultOpen onHelp={onHelp}>
-      <div className="field-row toggle-and-number">
-        <label className="field checkbox boxed">
-          <span>{t("fields.unlimitedPieces")}</span>
-          <input
-            type="checkbox"
-            checked={unlimitedPieces}
-            onChange={(event) => onChangeConfig({ pieceLimitType: event.target.checked ? "unlimited" : "limited" as PieceLimitType })}
+      <div className="field-row field-row--pieces-move">
+        <label className="field">
+          {t("fields.quantity")}
+          <QuantityModeDraftInput
+            min={1}
+            max={99}
+            step={1}
+            allowedModes={["infinite", "value"]}
+            mode={config.pieceLimitType === "unlimited" ? "infinite" : "value"}
+            value={config.maxPiecesPerPlayer || DEFAULT_MAX_PIECES_PER_PLAYER}
+            onValueCommit={(value) => onChangeConfig({ maxPiecesPerPlayer: value })}
+            onModeChange={(nextMode) => {
+              if (nextMode === "infinite") onChangeConfig({ pieceLimitType: "unlimited" });
+              else onChangeConfig({ pieceLimitType: "limited" });
+            }}
           />
         </label>
 
         <label className="field">
-          {t("fields.quantity")}
-          <NumericDraftInput
-            min={1}
-            max={99}
-            step={1}
-            disabled={unlimitedPieces}
-            value={config.maxPiecesPerPlayer || DEFAULT_MAX_PIECES_PER_PLAYER}
-            onCommit={(value) => onChangeConfig({ maxPiecesPerPlayer: value })}
+          {t("fields.pieceMovement")}
+          <PieceMoveModeSelect
+            pieceLimitType={config.pieceLimitType}
+            value={config.pieceMoveMode}
+            onChange={(mode) => onChangeConfig({ pieceMoveMode: mode })}
           />
         </label>
       </div>
 
-      <label className="field">
-        {t("fields.changePiecePlace")}
-        <select
-          value={config.pieceMoveMode}
-          onChange={(event) => onChangeConfig({ pieceMoveMode: event.target.value as PieceMoveMode })}
-        >
-          {moveModeOptions.map((option) => (
-            <option key={option.value} value={option.value}>{option.label}</option>
-          ))}
-        </select>
-      </label>
-
       {config.pieceMoveMode !== "blocked" && (
         <>
           <label className="field">
-            {t("fields.restrictionMovementType")}
+            {t("fields.restrictionMode")}
             <div className="select-with-info">
               <select
                 value={config.restrictionMovementMode}
@@ -406,45 +297,35 @@ export function BrokenHolesSettingsSection({ config, onChangeConfig, onHelp }: S
         </label>
       }
     >
-      <div className="field-row broken-rupture-row">
-        <label className="field">
-          {t("fields.turns")}
-          <NumericDraftInput
-            min={1}
-            max={99}
-            step={1}
-            disabled={!config.brokenEnabled || config.brokenHoleUnlimited}
-            value={config.brokenHoleTurns}
-            onCommit={(value) => onChangeConfig({ brokenHoleTurns: value })}
-          />
-        </label>
-        <label className="field checkbox boxed broken-rupture-check">
-          <span>{t("fields.brokenUnlimited")}</span>
-          <input
-            type="checkbox"
-            disabled={!config.brokenEnabled}
-            checked={config.brokenHoleUnlimited}
-            onChange={(event) => onChangeConfig({ brokenHoleUnlimited: event.target.checked })}
-          />
-        </label>
-      </div>
-      <div className="field-row broken-rupture-per-player-row">
-        <label className="field checkbox boxed broken-rupture-check">
-          <span>{t("fields.brokenTurnsPerPlayer")}</span>
-          <input
-            type="checkbox"
-            disabled={!config.brokenEnabled || config.brokenHoleUnlimited}
-            checked={config.brokenHoleTurnsPerPlayer}
-            onChange={(event) => onChangeConfig({ brokenHoleTurnsPerPlayer: event.target.checked })}
-          />
-        </label>
-      </div>
+      <label className="field">
+        {t("fields.brokenDuration")}
+        <TimeIntervalDraftInput
+          disabled={!config.brokenEnabled}
+          min={1}
+          max={99}
+          step={1}
+          allowedModes={["turns", "rounds", "infinite"]}
+          mode={brokenHoleTimePickerMode(config)}
+          value={config.brokenHoleTurns}
+          onValueCommit={(value) => onChangeConfig({ brokenHoleTurns: value })}
+          onModeChange={(nextMode) => {
+            if (nextMode === "infinite") {
+              onChangeConfig({ brokenHoleUnlimited: true });
+            } else {
+              onChangeConfig({
+                brokenHoleUnlimited: false,
+                brokenHoleDurationUnit: nextMode === "rounds" ? "rounds" : "turns"
+              });
+            }
+          }}
+        />
+      </label>
       <span className="field-help">
         {config.brokenHoleUnlimited
           ? t("fields.brokenTurnsInfoUnlimited")
-          : config.brokenHoleTurnsPerPlayer
-            ? t("fields.brokenTurnsInfoPerPlayer", {
-              base: config.brokenHoleTurns,
+          : config.brokenHoleDurationUnit === "rounds"
+            ? t("fields.brokenTurnsInfoRounds", {
+              amount: config.brokenHoleTurns,
               players: config.playerCount,
               total: getResolvedBrokenHoleTurns(config)
             })
@@ -525,29 +406,22 @@ export function GravitySettingsSection({ config, onChangeConfig, onHelp }: Sideb
             </label>
           </div>
 
-          <div className="field-row">
-            <label className="field">
-              {t("fields.gravityRotateEvery")}
-              <NumericDraftInput
-                min={1}
-                max={99}
-                step={1}
-                value={config.gravityRotateEveryTurns}
-                onCommit={(value) => onChangeConfig({ gravityRotateEveryTurns: value })}
-              />
-            </label>
-
-            <label className="field">
-              {t("fields.intervalUnit")}
-              <select
-                value={config.gravityRotateEveryUnit}
-                onChange={(event) => onChangeConfig({ gravityRotateEveryUnit: event.target.value as IntervalUnit })}
-              >
-                <option value="turns">{t("intervalUnits.turns")}</option>
-                <option value="rounds">{t("intervalUnits.rounds")}</option>
-              </select>
-            </label>
-          </div>
+          <label className="field">
+            {t("fields.gravityRotateEvery")}
+            <TimeIntervalDraftInput
+              disabled={!config.gravityEnabled || !config.gravityRotateEnabled}
+              min={1}
+              max={99}
+              step={1}
+              allowedModes={["turns", "rounds"]}
+              mode={config.gravityRotateEveryUnit === "rounds" ? "rounds" : "turns"}
+              value={config.gravityRotateEveryTurns}
+              onValueCommit={(value) => onChangeConfig({ gravityRotateEveryTurns: value })}
+              onModeChange={(nextMode) => {
+                onChangeConfig({ gravityRotateEveryUnit: nextMode === "rounds" ? "rounds" : "turns" });
+              }}
+            />
+          </label>
 
           <span className="field-help">
             {config.gravityRotateEveryUnit === "rounds"
@@ -599,33 +473,24 @@ export function CollapseSettingsSection({ config, onChangeConfig, onHelp }: Side
         </select>
       </label>
 
-      <div className="field-row">
+      <div className="field-row field-row--collapse-interval">
         <label className="field">
           {t("fields.collapseEvery")}
-          <NumericDraftInput
+          <TimeIntervalDraftInput
+            disabled={!config.collapseEnabled}
             min={1}
             max={99}
             step={1}
-            disabled={!config.collapseEnabled}
+            allowedModes={["turns", "rounds"]}
+            mode={config.collapseEveryUnit === "rounds" ? "rounds" : "turns"}
             value={config.collapseEveryTurns}
-            onCommit={(value) => onChangeConfig({ collapseEveryTurns: value })}
+            onValueCommit={(value) => onChangeConfig({ collapseEveryTurns: value })}
+            onModeChange={(nextMode) => {
+              onChangeConfig({ collapseEveryUnit: nextMode === "rounds" ? "rounds" : "turns" });
+            }}
           />
         </label>
 
-        <label className="field">
-          {t("fields.intervalUnit")}
-          <select
-            disabled={!config.collapseEnabled}
-            value={config.collapseEveryUnit}
-            onChange={(event) => onChangeConfig({ collapseEveryUnit: event.target.value as IntervalUnit })}
-          >
-            <option value="turns">{t("intervalUnits.turns")}</option>
-            <option value="rounds">{t("intervalUnits.rounds")}</option>
-          </select>
-        </label>
-      </div>
-
-      <div className="field-row toggle-and-number">
         <label className="field">
           {t("fields.collapseTimes")}
           <NumericDraftInput
@@ -637,17 +502,17 @@ export function CollapseSettingsSection({ config, onChangeConfig, onHelp }: Side
             onCommit={(value) => onChangeConfig({ collapseTimes: value })}
           />
         </label>
-
-        <label className="field checkbox boxed">
-          <span>{t("fields.collapseKillsPlayers")}</span>
-          <input
-            type="checkbox"
-            disabled={!config.collapseEnabled}
-            checked={config.collapseKillsPlayers}
-            onChange={(event) => onChangeConfig({ collapseKillsPlayers: event.target.checked })}
-          />
-        </label>
       </div>
+
+      <label className="field checkbox boxed">
+        <span>{t("fields.collapseKillsPlayers")}</span>
+        <input
+          type="checkbox"
+          disabled={!config.collapseEnabled}
+          checked={config.collapseKillsPlayers}
+          onChange={(event) => onChangeConfig({ collapseKillsPlayers: event.target.checked })}
+        />
+      </label>
 
       <span className="field-help">
         {config.collapseEveryUnit === "rounds"
@@ -764,38 +629,37 @@ export function RestrictionsSettingsSection({ config, onChangeConfig, onHelp }: 
     >
       {config.restrictionsEnabled && (
         <>
-          <div className="field-row">
+          <div className="field-row field-row--restriction-start">
             <label className="field">
               {t("fields.restrictionStartEvery")}
-              <NumericDraftInput
+              <TimeIntervalDraftInput
                 min={1}
                 max={99}
                 step={1}
+                allowedModes={["turns", "rounds"]}
+                mode={config.restrictionStartUnit === "rounds" ? "rounds" : "turns"}
                 value={config.restrictionStartTurns}
-                onCommit={(value) => onChangeConfig({ restrictionStartTurns: value })}
+                onValueCommit={(value) => onChangeConfig({ restrictionStartTurns: value })}
+                onModeChange={(nextMode) => {
+                  onChangeConfig({ restrictionStartUnit: nextMode === "rounds" ? "rounds" : "turns" });
+                }}
               />
             </label>
-
-            <label className="field">
-              {t("fields.intervalUnit")}
-              <select
-                value={config.restrictionStartUnit}
-                onChange={(event) => onChangeConfig({ restrictionStartUnit: event.target.value as IntervalUnit })}
+            <div className="field field--restriction-edit">
+              <span className="field-label-spacer" aria-hidden>{"\u00a0"}</span>
+              <button
+                className="button secondary full"
+                type="button"
+                aria-label={t("fields.editRestrictionStartGrid")}
+                title={t("fields.editRestrictionStartGrid")}
+                onClick={() => setGridModalOpen(true)}
               >
-                <option value="turns">{t("intervalUnits.turns")}</option>
-                <option value="rounds">{t("intervalUnits.rounds")}</option>
-              </select>
-            </label>
+                {t("fields.editBlockedCellsShort")}
+              </button>
+            </div>
           </div>
 
           <div className="restriction-grid-summary">
-            <button
-              className="button secondary full"
-              type="button"
-              onClick={() => setGridModalOpen(true)}
-            >
-              {t("fields.editRestrictionStartGrid")}
-            </button>
             <span className="field-help">
               {t("fields.restrictionStartGridSummary", { count: config.restrictionStartBlockedCells.length })}
             </span>

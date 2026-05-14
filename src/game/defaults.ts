@@ -13,6 +13,7 @@ export const DEFAULT_UNLIMITED_PIECE_MOVE_MODE: PieceMoveMode = "blocked";
 
 export const DEFAULT_BROKEN_ENABLED = false;
 export const DEFAULT_BROKEN_HOLE_TURNS = 1;
+export const DEFAULT_BROKEN_HOLE_DURATION_UNIT: IntervalUnit = "turns";
 export const DEFAULT_BROKEN_HOLE_UNLIMITED = true;
 export const DEFAULT_BROKEN_HOLE_TURNS_PER_PLAYER = false;
 export const DEFAULT_GRAVITY_ENABLED = false;
@@ -76,6 +77,7 @@ export const DEFAULT_CONFIG: GameConfig = {
   pieceMoveMode: DEFAULT_UNLIMITED_PIECES ? DEFAULT_UNLIMITED_PIECE_MOVE_MODE : DEFAULT_LIMITED_PIECE_MOVE_MODE,
   brokenEnabled: DEFAULT_BROKEN_ENABLED,
   brokenHoleTurns: DEFAULT_BROKEN_HOLE_TURNS,
+  brokenHoleDurationUnit: DEFAULT_BROKEN_HOLE_DURATION_UNIT,
   brokenHoleUnlimited: DEFAULT_BROKEN_HOLE_UNLIMITED,
   brokenHoleTurnsPerPlayer: DEFAULT_BROKEN_HOLE_TURNS_PER_PLAYER,
   gravityEnabled: DEFAULT_GRAVITY_ENABLED,

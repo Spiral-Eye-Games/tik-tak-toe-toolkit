@@ -15,7 +15,21 @@
   },
   "players": {
     "label": "Jugador {{number}}",
-    "unknown": "Jugador"
+    "unknown": "Jugador",
+    "figure": {
+      "cross": "Cruz",
+      "circle": "Círculo",
+      "triangle": "Triángulo",
+      "square": "Cuadrado",
+      "spade": "Pica",
+      "diamond": "Diamante",
+      "club": "Trébol",
+      "heart": "Corazón",
+      "moon": "Luna",
+      "sun": "Sol",
+      "zap": "Rayo",
+      "star": "Estrella"
+    }
   },
   "presets": {
     "openTitle": "Presets: cargar o guardar",
@@ -83,23 +97,22 @@
     "win": "Ganar",
     "lineLength": "N en raya",
     "skipTurnEnabled": "Permitir omitir turno",
-    "unlimitedPieces": "Ilimitadas",
     "quantity": "Cantidad",
-    "changePiecePlace": "Cambiar fichas de lugar",
+    "pieceMovement": "Movimiento",
+    "restrictionMode": "Modo",
+    "editBlockedCellsShort": "Editar",
     "enableBrokenHoles": "Activar ruptura",
     "enableGravity": "Activar gravedad",
     "turns": "Turnos",
-    "brokenUnlimited": "Ilimitado",
-    "brokenTurnsPerPlayer": "Por jugador",
+    "brokenDuration": "Duración",
     "brokenTurnsInfo": "Duración en turnos (desde el siguiente turno).",
     "brokenTurnsInfoUnlimited": "La rotura dura hasta el final de la partida.",
-    "brokenTurnsInfoPerPlayer": "{{base}} × {{players}} jugadores = {{total}} turnos.",
+    "brokenTurnsInfoRounds": "{{amount}} rondas × {{players}} jugadores = {{total}} turnos de duración de la rotura.",
     "gravityInitialDirection": "Dirección inicial",
     "gravityRotate": "Rotar gravedad",
     "gravityRotateAngle": "Paso de rotación",
     "gravityRotateSpin": "Sentido de giro",
     "gravityRotateEvery": "Cada N",
-    "intervalUnit": "Unidad",
     "gravityRotateInfoTurns": "La dirección cambia cada {{amount}} turnos completados (después de resolver líneas y estabilizar el tablero).",
     "gravityRotateInfoRounds": "{{amount}} rondas × {{players}} jugadores = {{turns}} turnos entre rotaciones.",
     "collapseEnabled": "Activar colapso",
@@ -126,7 +139,6 @@
     "restrictionStartGridSummary": "{{count}} casillas bloqueadas al inicio.",
     "restrictionStartInfoTurns": "Bloquea las casillas pintadas durante los primeros {{amount}} turnos.",
     "restrictionStartInfoRounds": "{{amount}} rondas × {{players}} jugadores = {{turns}} turnos con casillas bloqueadas.",
-    "restrictionMovementType": "Movimiento",
     "restrictionMovementHint": "Normal no cambia nada. Comer elimina fichas enemigas; Capturar las convierte a tu jugador.",
     "restrictionMovementEat": "Comer",
     "restrictionMovementEatTooltip": "Permite eliminar fichas enemigas según el patrón del movimiento. Se desactiva si activás Capturar.",
@@ -142,6 +154,19 @@
   "intervalUnits": {
     "turns": "Turnos",
     "rounds": "Rondas"
+  },
+  "numericMode": {
+    "time": {
+      "turns": "Intervalo por turno",
+      "rounds": "Intervalo por ronda",
+      "infinite": "Duración ilimitada",
+      "cycleAria": "Cambiar modo de intervalo (actual: {{label}})"
+    },
+    "quantity": {
+      "value": "Cantidad fija",
+      "infinite": "Cantidad ilimitada",
+      "cycleAria": "Cambiar modo de cantidad (actual: {{label}})"
+    }
   },
   "topbar": {
     "clockAria": "Tiempo restante: {{time}}"
@@ -167,18 +192,36 @@
   },
   "moveModes": {
     "limited": {
-      "forcedOldest": "Obligado: mover la primera colocada",
-      "limitMoveAny": "Límite: mover cualquier ficha",
-      "limitedFree": "Libre: mover cualquier ficha siempre"
+      "forcedOldest": {
+        "name": "Obligado",
+        "description": "Al llegar al máximo de fichas, tenés que mover la que colocaste primero."
+      },
+      "limitMoveAny": {
+        "name": "Límite",
+        "description": "Al llegar al máximo, podés mover cualquiera de tus fichas."
+      },
+      "limitedFree": {
+        "name": "Libre",
+        "description": "Podés mover cualquier ficha en cualquier momento, incluso antes de llegar al máximo."
+      }
     },
     "unlimited": {
-      "blocked": "Bloqueadas: no se pueden mover",
-      "free": "Libre: mover cualquier ficha"
+      "blocked": {
+        "name": "Bloqueadas",
+        "description": "Las fichas colocadas no se pueden mover."
+      },
+      "free": {
+        "name": "Libre",
+        "description": "Podés mover cualquier ficha en cualquier momento."
+      }
     },
     "help": {
       "limited": "Con máximo de fichas: podés obligar movimiento al llegar al máximo o permitir movimiento libre antes de llenarlas.",
       "unlimited": "Con fichas ilimitadas: podés bloquear el movimiento o permitir mover fichas en cualquier momento."
     }
+  },
+  "pieceMoveSelect": {
+    "triggerAria": "Movimiento: {{mode}}. Abrí para elegir otro modo."
   },
   "restrictions": {
     "startBlockedCell": "Bloq.",
@@ -482,15 +525,15 @@
     },
     "pieces": {
       "title": "Fichas",
-      "html": "<p>Acá decidís cuántas fichas tiene cada jugador y si las fichas colocadas pueden volver a moverse.</p><h3>Qué podés configurar</h3><ul><li><strong>Ilimitadas</strong> activado permite colocar fichas sin tope; desactivado usa la cantidad indicada.</li><li><strong>Cantidad</strong> es el máximo de fichas vivas por jugador cuando no son ilimitadas.</li><li><strong>Cambiar fichas de lugar</strong> define cuándo una ficha puede moverse: nunca, solo al llegar al límite, o libremente.</li><li><strong>Movimiento</strong> aparece si mover está permitido y agrega patrones como Rey, Torre, Dama o Caballo.</li><li><strong>Comer</strong> elimina fichas enemigas alcanzadas por el patrón; <strong>Capturar</strong> las convierte en fichas propias cuando el modo lo permite.</li></ul><h3>Cómo impacta en el juego</h3><ul><li>Con pocas fichas, el orden importa: el número sobre cada ficha indica cuál fue colocada primero.</li><li>Los modos obligados empujan la partida a reciclar piezas; los modos libres la vuelven más táctica.</li><li>Los patrones especiales cambian qué destinos son legales, así que el botón de información junto a <strong>Movimiento</strong> muestra el detalle de cada uno.</li></ul>"
+      "html": "<p>Acá decidís cuántas fichas tiene cada jugador y si las fichas colocadas pueden volver a moverse.</p><h3>Qué podés configurar</h3><ul><li><strong>Cantidad</strong> y <strong>Movimiento</strong> comparten la primera fila: <strong>∞</strong> / <strong>V</strong> para el tope, más un control de <strong>Movimiento</strong> que en la lista abierta muestra descripciones y cerrado solo el nombre corto.</li><li><strong>Modo</strong> aparece si el movimiento está permitido y agrega patrones como Rey, Torre, Dama o Caballo.</li><li><strong>Comer</strong> elimina fichas enemigas alcanzadas por el patrón; <strong>Capturar</strong> las convierte en fichas propias cuando el modo lo permite.</li></ul><h3>Cómo impacta en el juego</h3><ul><li>Con pocas fichas, el orden importa: el número sobre cada ficha indica cuál fue colocada primero.</li><li>Los modos obligados empujan la partida a reciclar piezas; los modos libres la vuelven más táctica.</li><li>Los patrones especiales cambian qué destinos son legales, así que el botón de información junto a <strong>Modo</strong> muestra el detalle de cada uno.</li></ul>"
     },
     "holes": {
       "title": "Ruptura",
-      "html": "<p>La ruptura hace que una casilla quede inutilizable después de que una ficha se va de ahí.</p><h3>Qué podés configurar</h3><ul><li>El interruptor del título activa o desactiva esta mecánica.</li><li><strong>Turnos</strong> indica cuánto dura la rotura desde el turno siguiente.</li><li><strong>Ilimitado</strong> hace que la casilla rota quede bloqueada hasta terminar la partida.</li><li><strong>Por jugador</strong> multiplica la duración por la cantidad de jugadores activos al configurar la partida.</li></ul><h3>Cómo impacta en el juego</h3><ul><li>Si está desactivada, mover una ficha deja la casilla libre inmediatamente.</li><li>Si está activada, moverse tiene costo espacial: podés cerrar caminos o bloquear zonas.</li><li>Las casillas rotas también interfieren con movimientos en línea y con la gravedad.</li></ul>"
+      "html": "<p>La ruptura hace que una casilla quede inutilizable después de que una ficha se va de ahí.</p><h3>Qué podés configurar</h3><ul><li>El interruptor del título activa o desactiva esta mecánica.</li><li><strong>Duración</strong> define cuánto dura la rotura, con un botón de modo: <strong>T</strong> cuenta turnos, <strong>R</strong> cuenta rondas (se convierte a turnos según la cantidad de jugadores) y <strong>∞</strong> bloquea la casilla hasta el final de la partida.</li></ul><h3>Cómo impacta en el juego</h3><ul><li>Si está desactivada, mover una ficha deja la casilla libre inmediatamente.</li><li>Si está activada, moverse tiene costo espacial: podés cerrar caminos o bloquear zonas.</li><li>Las casillas rotas también interfieren con movimientos en línea y con la gravedad.</li></ul>"
     },
     "gravity": {
       "title": "Gravedad",
-      "html": "<p>La gravedad tira todas las fichas hacia un lado del tablero, como si ese lado fuera el piso.</p><h3>Qué podés configurar</h3><ul><li>El interruptor del título activa o desactiva la gravedad.</li><li><strong>Dirección inicial</strong> define hacia dónde caen las fichas al comenzar.</li><li><strong>Rotar gravedad</strong> permite cambiar la dirección cada cierta cantidad de turnos o rondas.</li><li><strong>Paso de rotación</strong> elige cuánto gira la gravedad en cada cambio: 90°, 180°, 270° o aleatorio.</li><li><strong>Sentido de giro</strong> define si gira horario, antihorario o aleatorio.</li></ul><h3>Cómo se juega con gravedad</h3><ul><li>Al colocar, tocá una casilla vacía de la columna o fila: la ficha cae hasta su punto de aterrizaje.</li><li>Las flechas fuertes muestran dónde va a caer; las flechas suaves son atajos de la misma línea de caída.</li><li>Al mover una ficha, elegís una casilla vacía y luego todo el tablero se estabiliza en la dirección actual.</li><li>Las casillas rotas funcionan como obstáculos y pueden partir una columna o fila en tramos separados.</li><li>Cuando rota, hay una pausa breve para ver el tablero antes de que las fichas se reacomoden.</li></ul>"
+      "html": "<p>La gravedad tira todas las fichas hacia un lado del tablero, como si ese lado fuera el piso.</p><h3>Qué podés configurar</h3><ul><li>El interruptor del título activa o desactiva la gravedad.</li><li><strong>Dirección inicial</strong> define hacia dónde caen las fichas al comenzar.</li><li><strong>Rotar gravedad</strong> puede cambiar la dirección cada N turnos completos o rondas; el campo compacto usa <strong>T</strong> (turnos) o <strong>R</strong> (rondas) junto al número.</li><li><strong>Paso de rotación</strong> elige cuánto gira la gravedad en cada cambio: 90°, 180°, 270° o aleatorio.</li><li><strong>Sentido de giro</strong> define si gira horario, antihorario o aleatorio.</li></ul><h3>Cómo se juega con gravedad</h3><ul><li>Al colocar, tocá una casilla vacía de la columna o fila: la ficha cae hasta su punto de aterrizaje.</li><li>Las flechas fuertes muestran dónde va a caer; las flechas suaves son atajos de la misma línea de caída.</li><li>Al mover una ficha, elegís una casilla vacía y luego todo el tablero se estabiliza en la dirección actual.</li><li>Las casillas rotas funcionan como obstáculos y pueden partir una columna o fila en tramos separados.</li><li>Cuando rota, hay una pausa breve para ver el tablero antes de que las fichas se reacomoden.</li></ul>"
     },
     "players": {
       "title": "Jugadores",
@@ -502,19 +545,31 @@
     },
     "restrictions": {
       "title": "Bloqueo",
-      "html": "<p>El bloqueo reserva casillas que no se pueden usar al comienzo de la partida.</p><h3>Qué podés configurar</h3><ul><li>El interruptor del título activa o desactiva las casillas bloqueadas iniciales.</li><li><strong>Durante N</strong> define cuánto tiempo permanecen bloqueadas.</li><li><strong>Unidad</strong> permite contar ese tiempo en turnos o rondas.</li><li><strong>Editar casillas bloqueadas</strong> abre una grilla del tablero actual para pintar y despintar casillas.</li></ul><h3>Cómo impacta en el juego</h3><ul><li>Mientras dura el bloqueo, no se pueden colocar fichas nuevas en las casillas pintadas.</li><li>Cuando termina el contador, esas casillas vuelven a estar disponibles.</li><li>El indicador de eventos del tablero muestra cuándo se libera el bloqueo.</li></ul>"
+      "html": "<p>El bloqueo reserva casillas que no se pueden usar al comienzo de la partida.</p><h3>Qué podés configurar</h3><ul><li>El interruptor del título activa o desactiva las casillas bloqueadas iniciales.</li><li><strong>Durante N</strong> define cuánto duran bloqueadas, con <strong>T</strong> (turnos) o <strong>R</strong> (rondas) junto al número.</li><li><strong>Editar</strong> (misma fila) abre una grilla del tablero actual para pintar y despintar casillas.</li></ul><h3>Cómo impacta en el juego</h3><ul><li>Mientras dura el bloqueo, no se pueden colocar fichas nuevas en las casillas pintadas.</li><li>Cuando termina el contador, esas casillas vuelven a estar disponibles.</li><li>El indicador de eventos del tablero muestra cuándo se libera el bloqueo.</li></ul>"
     },
     "collapse": {
       "title": "Colapso",
-      "html": "<p>El colapso achica el tablero rompiendo bordes en momentos programados.</p><h3>Qué podés configurar</h3><ul><li>El interruptor del título activa o desactiva la mecánica.</li><li><strong>Tipo</strong> elige qué borde o bordes se rompen: izquierda, derecha, arriba, abajo, horizontal, vertical o circular.</li><li><strong>Cada N</strong> y <strong>Unidad</strong> definen el intervalo en turnos o rondas.</li><li><strong>Veces</strong> limita cuántos colapsos pueden ocurrir durante la partida.</li><li><strong>Matar jugadores</strong> decide si un jugador que se queda sin fichas por el colapso pierde o sigue jugando.</li></ul><h3>Cómo impacta en el juego</h3><ul><li>Cada colapso avanza una capa hacia adentro; por ejemplo, circular rompe el siguiente anillo del tablero.</li><li>Las casillas colapsadas quedan rotas hasta el final de la partida.</li><li>Si había fichas en esas casillas, se destruyen al colapsar.</li><li>El indicador de eventos avisa cuándo se acerca el próximo colapso.</li></ul>"
+      "html": "<p>El colapso achica el tablero rompiendo bordes en momentos programados.</p><h3>Qué podés configurar</h3><ul><li>El interruptor del título activa o desactiva la mecánica.</li><li><strong>Tipo</strong> elige qué borde o bordes se rompen: izquierda, derecha, arriba, abajo, horizontal, vertical o circular.</li><li><strong>Cada N</strong> define el intervalo con <strong>T</strong> (turnos) o <strong>R</strong> (rondas) junto al número; <strong>Veces</strong> va en la misma fila y limita cuántos colapsos pueden ocurrir.</li><li><strong>Matar jugadores</strong> decide si un jugador que se queda sin fichas por el colapso pierde o sigue jugando.</li></ul><h3>Cómo impacta en el juego</h3><ul><li>Cada colapso avanza una capa hacia adentro; por ejemplo, circular rompe el siguiente anillo del tablero.</li><li>Las casillas colapsadas quedan rotas hasta el final de la partida.</li><li>Si había fichas en esas casillas, se destruyen al colapsar.</li><li>El indicador de eventos avisa cuándo se acerca el próximo colapso.</li></ul>"
     }
   },
   "board": {
     "outcomeStripLabel": "Resultados en la partida",
     "outcomeEliminated": "{{player}} eliminado",
     "outcomeRoundWin": "{{player}} ganó la ronda",
+    "outcomeStandingDraw": "—",
+    "outcomeStandingNumber": "{{n}}",
+    "outcomeBankChipTitle": "Banca: {{time}}",
+    "outcomeAriaBank": "Banca restante {{time}}",
     "skipTurn": {
       "tooltip": "Omitir turno"
+    },
+    "timeline": {
+      "stripAriaLabel": "Turno actual y próximos eventos",
+      "playerTurn": "Turno: {{player}}",
+      "gravityPending": "Rotación de gravedad (pendiente)",
+      "gravityRotate": "Cambio de gravedad",
+      "collapse": "Colapso",
+      "restrictionEnd": "Liberar bloqueo"
     },
     "events": {
       "label": "Próximos eventos de la partida",
