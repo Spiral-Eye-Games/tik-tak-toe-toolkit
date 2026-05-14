@@ -66,6 +66,11 @@ export interface GameConfig {
   brokenHoleDurationUnit: IntervalUnit;
   brokenHoleUnlimited: boolean;
   brokenHoleTurnsPerPlayer: boolean;
+  /**
+   * Con gravedad: si una casilla rota por ruptura (al moverse una ficha) se comporta como bloque para la caída.
+   * Las roturas por colapso y las celdas bloqueadas al inicio siempre frenan la gravedad.
+   */
+  brokenRuptureGravityCollision: boolean;
   gravityEnabled: boolean;
   gravityInitialDirection: GravityDirection;
   gravityRotateEnabled: boolean;
@@ -113,6 +118,8 @@ export interface BoardCell {
   piece: Piece | null;
   brokenTurns: number | null;
   brokenCreatedOnTurn: number | null;
+  /** Si la casilla está rota (`brokenTurns !== null`): equivale a “sólido” para la gravedad. Predefinido al crear la rotura (ruptura/colapso). */
+  gravityCollisionSolid: boolean;
 }
 
 export type Board = BoardCell[][];

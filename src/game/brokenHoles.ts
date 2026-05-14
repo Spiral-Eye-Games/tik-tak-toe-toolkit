@@ -17,6 +17,7 @@ export function tickBrokenHoles(board: Board, config: GameConfig, turnNumber: nu
       if (cell.brokenTurns <= 0) {
         cell.brokenTurns = null;
         cell.brokenCreatedOnTurn = null;
+        cell.gravityCollisionSolid = false;
       }
     }
   }
@@ -27,9 +28,11 @@ export function abandonCellForBroken(snapshot: GameSnapshot, config: GameConfig,
   if (config.brokenEnabled) {
     cell.brokenTurns = getResolvedBrokenHoleTurns(config);
     cell.brokenCreatedOnTurn = snapshot.turnNumber;
+    cell.gravityCollisionSolid = config.brokenRuptureGravityCollision;
   } else {
     cell.brokenTurns = null;
     cell.brokenCreatedOnTurn = null;
+    cell.gravityCollisionSolid = false;
   }
 }
 
@@ -44,5 +47,5 @@ export function removeAllPiecesForPlayer(snapshot: GameSnapshot, config: GameCon
     }
   }
   snapshot.pieceHistory[playerId] = [];
-  if (config.gravityEnabled) applyGravity(snapshot.board, config, snapshot.gravityDirection);
+  if (config.gravityEnabled) applyGravity(snapshot.board, config, snapshot.gravityDirection, snapshot);
 }

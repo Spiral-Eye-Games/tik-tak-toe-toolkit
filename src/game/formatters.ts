@@ -184,6 +184,14 @@ export function buildRulesHtml(config: GameConfig): string {
         spin: t(`rules.gravity.rotateSpin.${config.gravityRotateSpin}`)
       }));
     }
+
+    if (config.brokenEnabled) {
+      mechanicItems.push(
+        config.brokenRuptureGravityCollision
+          ? t("rules.current.brokenRuptureGravitySolid")
+          : t("rules.current.brokenRuptureGravityPassthrough")
+      );
+    }
   }
 
   if (config.clockEnabled) {

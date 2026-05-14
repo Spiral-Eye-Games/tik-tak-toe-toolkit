@@ -21,6 +21,7 @@ export function applyCollapseIfDue(snapshot: GameSnapshot, config: GameConfig): 
     cell.piece = null;
     cell.brokenTurns = 0;
     cell.brokenCreatedOnTurn = snapshot.turnNumber;
+    cell.gravityCollisionSolid = true;
   }
 
   rebuildPieceHistoryFromBoard(snapshot);

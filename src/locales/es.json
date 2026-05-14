@@ -105,23 +105,18 @@
     "enableGravity": "Activar gravedad",
     "turns": "Turnos",
     "brokenDuration": "Duración",
-    "brokenTurnsInfo": "Duración en turnos (desde el siguiente turno).",
-    "brokenTurnsInfoUnlimited": "La rotura dura hasta el final de la partida.",
-    "brokenTurnsInfoRounds": "{{amount}} rondas × {{players}} jugadores = {{total}} turnos de duración de la rotura.",
+    "brokenRuptureGravityCollision": "Es obstáculo",
+    "brokenRuptureGravityCollisionHelp": "Con gravedad activa: si está encendido, las casillas rotas al mover una ficha se comportan como sólidas y frenan el deslizamiento.",
     "gravityInitialDirection": "Dirección inicial",
     "gravityRotate": "Rotar gravedad",
     "gravityRotateAngle": "Paso de rotación",
     "gravityRotateSpin": "Sentido de giro",
     "gravityRotateEvery": "Cada N",
-    "gravityRotateInfoTurns": "La dirección cambia cada {{amount}} turnos completados (después de resolver líneas y estabilizar el tablero).",
-    "gravityRotateInfoRounds": "{{amount}} rondas × {{players}} jugadores = {{turns}} turnos entre rotaciones.",
     "collapseEnabled": "Activar colapso",
     "collapseType": "Tipo",
     "collapseEvery": "Cada N",
     "collapseTimes": "Veces",
     "collapseKillsPlayers": "Matar jugadores",
-    "collapseInfoTurns": "Colapsa cada {{amount}} turnos completados, hasta {{times}} veces.",
-    "collapseInfoRounds": "{{amount}} rondas × {{players}} jugadores = {{turns}} turnos entre colapsos, hasta {{times}} veces.",
     "playerCount": "Cantidad de jugadores",
     "removeOutOfGamePieces": "Limpiar fichas",
     "removeOutOfGamePiecesTooltip": "Cuando un jugador queda fuera de la partida (pierde la raya, gana una ronda de ranking y deja de jugar, abandono, eliminación por tiempo, etc.), se retiran sus fichas del tablero.",
@@ -131,15 +126,9 @@
     "clockBankSeconds": "Banca total (s)",
     "clockRecoverSeconds": "Recuperar al mover (s)",
     "clockPerTurnSeconds": "Tiempo por turno (s)",
-    "clockHintBank": "Tiempo total acumulado entre turnos; al llegar a 0 perdés. La recuperación se suma al terminar cada movimiento (tope: la banca inicial).",
-    "clockHintPerTurn": "Cada jugador tiene el mismo tiempo en cada turno; al agotarse pierde el turno (sin colocar ni mover).",
     "blockingEnabled": "Activar bloqueo",
     "restrictionStartEvery": "Durante N",
     "editRestrictionStartGrid": "Editar casillas bloqueadas",
-    "restrictionStartGridSummary": "{{count}} casillas bloqueadas al inicio.",
-    "restrictionStartInfoTurns": "Bloquea las casillas pintadas durante los primeros {{amount}} turnos.",
-    "restrictionStartInfoRounds": "{{amount}} rondas × {{players}} jugadores = {{turns}} turnos con casillas bloqueadas.",
-    "restrictionMovementHint": "Normal no cambia nada. Comer elimina fichas enemigas; Capturar las convierte a tu jugador.",
     "restrictionMovementEat": "Comer",
     "restrictionMovementEatTooltip": "Permite eliminar fichas enemigas según el patrón del movimiento. Se desactiva si activás Capturar.",
     "restrictionMovementConvert": "Capturar",
@@ -386,6 +375,8 @@
       "singleWinnerWinMode": "Modo ganar (3+ jugadores): la partida termina en cuanto hay un primer ganador.",
       "brokenUntilEnd": "Ruptura: las casillas abandonadas quedan rotas hasta el final.",
       "brokenForTurns": "Ruptura: las casillas abandonadas quedan rotas durante {{turns}} turnos.",
+      "brokenRuptureGravitySolid": "Los huecos por ruptura frenan la gravedad como bloques (las fichas no atraviesan).",
+      "brokenRuptureGravityPassthrough": "Los huecos por ruptura no colisionan con la gravedad (las fichas pueden caer atravesando los huecos).",
       "gravityDirection": "Gravedad: las fichas caen hacia {{direction}}.",
       "gravityRotation": "La gravedad rota cada {{intervalText}} con paso {{angle}} y {{spin}}.",
       "clockBank": "Cronómetro: cada jugador tiene una banca total de {{total}} s.",
@@ -529,11 +520,11 @@
     },
     "holes": {
       "title": "Ruptura",
-      "html": "<p>La ruptura hace que una casilla quede inutilizable después de que una ficha se va de ahí.</p><h3>Qué podés configurar</h3><ul><li>El interruptor del título activa o desactiva esta mecánica.</li><li><strong>Duración</strong> define cuánto dura la rotura, con un botón de modo: <strong>T</strong> cuenta turnos, <strong>R</strong> cuenta rondas (se convierte a turnos según la cantidad de jugadores) y <strong>∞</strong> bloquea la casilla hasta el final de la partida.</li></ul><h3>Cómo impacta en el juego</h3><ul><li>Si está desactivada, mover una ficha deja la casilla libre inmediatamente.</li><li>Si está activada, moverse tiene costo espacial: podés cerrar caminos o bloquear zonas.</li><li>Las casillas rotas también interfieren con movimientos en línea y con la gravedad.</li></ul>"
+      "html": "<p>La ruptura hace que una casilla quede inutilizable después de que una ficha se va de ahí.</p><h3>Qué podés configurar</h3><ul><li>El interruptor del título activa o desactiva esta mecánica.</li><li><strong>Duración</strong> define cuánto dura la rotura, con un botón de modo: <strong>T</strong> cuenta turnos, <strong>R</strong> cuenta rondas (se convierte a turnos según la cantidad de jugadores) y <strong>∞</strong> bloquea la casilla hasta el final de la partida.</li><li>Con gravedad activa: <strong>Obstáculo gravedad (ruptura)</strong> decide si los huecos por ruptura frenan las fichas al caer (las roturas por colapso y las celdas bloqueadas al inicio siempre frenan).</li></ul><h3>Cómo impacta en el juego</h3><ul><li>Si está desactivada, mover una ficha deja la casilla libre inmediatamente.</li><li>Si está activada, moverse tiene costo espacial: podés cerrar caminos o bloquear zonas.</li><li>Las casillas rotas interfieren con movimientos en línea; la interacción con la gravedad depende del interruptor de colisión y si el hueco viene de ruptura o de colapso.</li></ul>"
     },
     "gravity": {
       "title": "Gravedad",
-      "html": "<p>La gravedad tira todas las fichas hacia un lado del tablero, como si ese lado fuera el piso.</p><h3>Qué podés configurar</h3><ul><li>El interruptor del título activa o desactiva la gravedad.</li><li><strong>Dirección inicial</strong> define hacia dónde caen las fichas al comenzar.</li><li><strong>Rotar gravedad</strong> puede cambiar la dirección cada N turnos completos o rondas; el campo compacto usa <strong>T</strong> (turnos) o <strong>R</strong> (rondas) junto al número.</li><li><strong>Paso de rotación</strong> elige cuánto gira la gravedad en cada cambio: 90°, 180°, 270° o aleatorio.</li><li><strong>Sentido de giro</strong> define si gira horario, antihorario o aleatorio.</li></ul><h3>Cómo se juega con gravedad</h3><ul><li>Al colocar, tocá una casilla vacía de la columna o fila: la ficha cae hasta su punto de aterrizaje.</li><li>Las flechas fuertes muestran dónde va a caer; las flechas suaves son atajos de la misma línea de caída.</li><li>Al mover una ficha, elegís una casilla vacía y luego todo el tablero se estabiliza en la dirección actual.</li><li>Las casillas rotas funcionan como obstáculos y pueden partir una columna o fila en tramos separados.</li><li>Cuando rota, hay una pausa breve para ver el tablero antes de que las fichas se reacomoden.</li></ul>"
+      "html": "<p>La gravedad tira todas las fichas hacia un lado del tablero, como si ese lado fuera el piso.</p><h3>Qué podés configurar</h3><ul><li>El interruptor del título activa o desactiva la gravedad.</li><li><strong>Dirección inicial</strong> define hacia dónde caen las fichas al comenzar.</li><li><strong>Rotar gravedad</strong> puede cambiar la dirección cada N turnos completos o rondas; el campo compacto usa <strong>T</strong> (turnos) o <strong>R</strong> (rondas) junto al número.</li><li><strong>Paso de rotación</strong> elige cuánto gira la gravedad en cada cambio: 90°, 180°, 270° o aleatorio.</li><li><strong>Sentido de giro</strong> define si gira horario, antihorario o aleatorio.</li></ul><h3>Cómo se juega con gravedad</h3><ul><li>Al colocar, tocá una casilla vacía de la columna o fila: la ficha cae hasta su punto de aterrizaje.</li><li>Las flechas fuertes muestran dónde va a caer; las flechas suaves son atajos de la misma línea de caída.</li><li>Al mover una ficha, elegís una casilla vacía y luego todo el tablero se estabiliza en la dirección actual.</li><li>Las casillas bloqueadas al comienzo (mientras cuenta el tiempo) frenan la gravedad como sólidas.</li><li>Las casillas rotas por colapso frenan la gravedad; los huecos por ruptura pueden frenarla o ser permeables según la opción de ruptura.</li><li>Cuando rota, hay una pausa breve para ver el tablero antes de que las fichas se reacomoden.</li></ul>"
     },
     "players": {
       "title": "Jugadores",
@@ -545,7 +536,7 @@
     },
     "restrictions": {
       "title": "Bloqueo",
-      "html": "<p>El bloqueo reserva casillas que no se pueden usar al comienzo de la partida.</p><h3>Qué podés configurar</h3><ul><li>El interruptor del título activa o desactiva las casillas bloqueadas iniciales.</li><li><strong>Durante N</strong> define cuánto duran bloqueadas, con <strong>T</strong> (turnos) o <strong>R</strong> (rondas) junto al número.</li><li><strong>Editar</strong> (misma fila) abre una grilla del tablero actual para pintar y despintar casillas.</li></ul><h3>Cómo impacta en el juego</h3><ul><li>Mientras dura el bloqueo, no se pueden colocar fichas nuevas en las casillas pintadas.</li><li>Cuando termina el contador, esas casillas vuelven a estar disponibles.</li><li>El indicador de eventos del tablero muestra cuándo se libera el bloqueo.</li></ul>"
+      "html": "<p>El bloqueo reserva casillas que no se pueden usar al comienzo de la partida.</p><h3>Qué podés configurar</h3><ul><li>El interruptor del título activa o desactiva las casillas bloqueadas iniciales.</li><li><strong>Durante N</strong> define cuánto duran bloqueadas, con <strong>T</strong> (turnos) o <strong>R</strong> (rondas) junto al número.</li><li><strong>Editar</strong> (misma fila) abre una grilla del tablero actual para pintar y despintar casillas.</li></ul><h3>Cómo impacta en el juego</h3><ul><li>Mientras dura el bloqueo, no se pueden colocar fichas nuevas en las casillas pintadas.</li><li>Mientras cuenta el tiempo, las mismas casillas frenan la gravedad hasta que termina la cuenta atrás.</li><li>Cuando termina el contador, esas casillas vuelven a estar disponibles.</li><li>El indicador de eventos del tablero muestra cuándo se libera el bloqueo.</li></ul>"
     },
     "collapse": {
       "title": "Colapso",

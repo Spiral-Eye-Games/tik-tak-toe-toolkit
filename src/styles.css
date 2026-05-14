@@ -1076,9 +1076,21 @@ body, #root { height: 100vh; }
 }
 
 .field-row.broken-rupture-row {
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) auto;
+  /* Alinear con la fila del control de la izquierda (hay label arriba), no centrar en toda la columna */
   align-items: end;
+  gap: 10px;
+}
+
+.broken-rupture-duration-col {
+  display: flex;
+  flex-direction: column;
   gap: 8px;
+  min-width: 0;
+}
+
+.broken-rupture-obstacle-cell {
+  min-width: 0;
 }
 
 .field-row.broken-rupture-per-player-row {
@@ -1089,12 +1101,6 @@ body, #root { height: 100vh; }
 .field.checkbox.broken-rupture-check span {
   line-height: 1.25;
   font-size: 12px;
-}
-
-.restriction-grid-summary {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
 }
 
 .field {
@@ -1338,13 +1344,6 @@ body, #root { height: 100vh; }
   height: 19px;
   flex: 0 0 auto;
   accent-color: var(--accent);
-}
-
-.field-help {
-  color: rgba(255, 255, 255, 0.45);
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 1.35;
 }
 
 .select-with-info {

@@ -16,6 +16,7 @@ export const DEFAULT_BROKEN_HOLE_TURNS = 1;
 export const DEFAULT_BROKEN_HOLE_DURATION_UNIT: IntervalUnit = "turns";
 export const DEFAULT_BROKEN_HOLE_UNLIMITED = true;
 export const DEFAULT_BROKEN_HOLE_TURNS_PER_PLAYER = false;
+export const DEFAULT_BROKEN_RUPTURE_GRAVITY_COLLISION = true;
 export const DEFAULT_GRAVITY_ENABLED = false;
 export const DEFAULT_GRAVITY_INITIAL_DIRECTION: GravityDirection = "down";
 export const DEFAULT_GRAVITY_ROTATE_ENABLED = false;
@@ -79,6 +80,7 @@ export const DEFAULT_CONFIG: GameConfig = {
   brokenHoleDurationUnit: DEFAULT_BROKEN_HOLE_DURATION_UNIT,
   brokenHoleUnlimited: DEFAULT_BROKEN_HOLE_UNLIMITED,
   brokenHoleTurnsPerPlayer: DEFAULT_BROKEN_HOLE_TURNS_PER_PLAYER,
+  brokenRuptureGravityCollision: DEFAULT_BROKEN_RUPTURE_GRAVITY_COLLISION,
   gravityEnabled: DEFAULT_GRAVITY_ENABLED,
   gravityInitialDirection: DEFAULT_GRAVITY_INITIAL_DIRECTION,
   gravityRotateEnabled: DEFAULT_GRAVITY_ROTATE_ENABLED,

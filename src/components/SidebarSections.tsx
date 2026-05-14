@@ -1,13 +1,8 @@
 import { useState } from "react";
 import { ArrowDown, ChevronsLeftRight, CircleDot, CircleOff, Grid3X3, Info, Lock, Timer, UsersRound } from "lucide-react";
 import { DEFAULT_MAX_PIECES_PER_PLAYER } from "../game/defaults";
-import {
-  getResolvedBrokenHoleTurns,
-  getResolvedCollapseInterval,
-  getResolvedGravityRotateInterval,
-  normalizeClockStrategy
-} from "../game/config";
-import { getResolvedRestrictionStartTurns, movementSupportsConversion } from "../game/restrictions";
+import { normalizeClockStrategy } from "../game/config";
+import { movementSupportsConversion } from "../game/restrictions";
 import type {
   CollapseType,
   GameConfig,
@@ -302,40 +297,49 @@ export function BrokenHolesSettingsSection({ config, onChangeConfig, onHelp }: S
         </label>
       }
     >
-      <label className="field">
-        {t("fields.brokenDuration")}
-        <TimeIntervalDraftInput
-          disabled={!config.brokenEnabled}
-          min={1}
-          max={99}
-          step={1}
-          allowedModes={["turns", "rounds", "infinite"]}
-          mode={brokenHoleTimePickerMode(config)}
-          value={config.brokenHoleTurns}
-          onValueCommit={(value) => onChangeConfig({ brokenHoleTurns: value })}
-          onModeChange={(nextMode) => {
-            if (nextMode === "infinite") {
-              onChangeConfig({ brokenHoleUnlimited: true });
-            } else {
-              onChangeConfig({
-                brokenHoleUnlimited: false,
-                brokenHoleDurationUnit: nextMode === "rounds" ? "rounds" : "turns"
-              });
-            }
-          }}
-        />
-      </label>
-      <span className="field-help">
-        {config.brokenHoleUnlimited
-          ? t("fields.brokenTurnsInfoUnlimited")
-          : config.brokenHoleDurationUnit === "rounds"
-            ? t("fields.brokenTurnsInfoRounds", {
-              amount: config.brokenHoleTurns,
-              players: config.playerCount,
-              total: getResolvedBrokenHoleTurns(config)
-            })
-            : t("fields.brokenTurnsInfo")}
-      </span>
+      <div className="field-row broken-rupture-row">
+        <div className="broken-rupture-duration-col">
+          <label className="field">
+            {t("fields.brokenDuration")}
+            <TimeIntervalDraftInput
+              disabled={!config.brokenEnabled}
+              min={1}
+              max={99}
+              step={1}
+              allowedModes={["turns", "rounds", "infinite"]}
+              mode={brokenHoleTimePickerMode(config)}
+              value={config.brokenHoleTurns}
+              onValueCommit={(value) => onChangeConfig({ brokenHoleTurns: value })}
+              onModeChange={(nextMode) => {
+                if (nextMode === "infinite") {
+                  onChangeConfig({ brokenHoleUnlimited: true });
+                } else {
+                  onChangeConfig({
+                    brokenHoleUnlimited: false,
+                    brokenHoleDurationUnit: nextMode === "rounds" ? "rounds" : "turns"
+                  });
+                }
+              }}
+            />
+          </label>
+        </div>
+
+        <div className="broken-rupture-obstacle-cell">
+          <Tooltip text={t("fields.brokenRuptureGravityCollisionHelp")} passAriaLabel={false}>
+            <label className="field checkbox boxed broken-rupture-check">
+              <span>{t("fields.brokenRuptureGravityCollision")}</span>
+              <input
+                type="checkbox"
+                disabled={!config.brokenEnabled || !config.gravityEnabled}
+                checked={config.brokenRuptureGravityCollision}
+                onChange={(event) =>
+                  onChangeConfig({ brokenRuptureGravityCollision: event.target.checked })
+                }
+              />
+            </label>
+          </Tooltip>
+        </div>
+      </div>
     </SettingsSection>
   );
 }
@@ -427,16 +431,6 @@ export function GravitySettingsSection({ config, onChangeConfig, onHelp }: Sideb
               }}
             />
           </label>
-
-          <span className="field-help">
-            {config.gravityRotateEveryUnit === "rounds"
-              ? t("fields.gravityRotateInfoRounds", {
-                amount: config.gravityRotateEveryTurns,
-                players: config.playerCount,
-                turns: getResolvedGravityRotateInterval(config)
-              })
-              : t("fields.gravityRotateInfoTurns", { amount: config.gravityRotateEveryTurns })}
-          </span>
         </>
       )}
     </SettingsSection>
@@ -518,20 +512,6 @@ export function CollapseSettingsSection({ config, onChangeConfig, onHelp }: Side
           onChange={(event) => onChangeConfig({ collapseKillsPlayers: event.target.checked })}
         />
       </label>
-
-      <span className="field-help">
-        {config.collapseEveryUnit === "rounds"
-          ? t("fields.collapseInfoRounds", {
-            amount: config.collapseEveryTurns,
-            players: config.playerCount,
-            turns: getResolvedCollapseInterval(config),
-            times: config.collapseTimes
-          })
-          : t("fields.collapseInfoTurns", {
-            amount: config.collapseEveryTurns,
-            times: config.collapseTimes
-          })}
-      </span>
     </SettingsSection>
   );
 }
@@ -589,7 +569,6 @@ export function ClockSettingsSection({ config, onChangeConfig, onHelp }: Sidebar
               onCommit={(value) => onChangeConfig({ clockRecoverSeconds: value })}
             />
           </label>
-          <span className="field-help">{t("fields.clockHintBank")}</span>
         </>
       )}
 
@@ -605,7 +584,6 @@ export function ClockSettingsSection({ config, onChangeConfig, onHelp }: Sidebar
               onCommit={(value) => onChangeConfig({ clockPerTurnSeconds: value })}
             />
           </label>
-          <span className="field-help">{t("fields.clockHintPerTurn")}</span>
         </>
       )}
     </SettingsSection>
@@ -663,24 +641,6 @@ export function RestrictionsSettingsSection({ config, onChangeConfig, onHelp }: 
               </button>
             </div>
           </div>
-
-          <div className="restriction-grid-summary">
-            <span className="field-help">
-              {t("fields.restrictionStartGridSummary", { count: config.restrictionStartBlockedCells.length })}
-            </span>
-          </div>
-
-          <span className="field-help">
-            {config.restrictionStartUnit === "rounds"
-              ? t("fields.restrictionStartInfoRounds", {
-                amount: config.restrictionStartTurns,
-                players: config.playerCount,
-                turns: getResolvedRestrictionStartTurns(config)
-              })
-              : t("fields.restrictionStartInfoTurns", {
-                amount: config.restrictionStartTurns
-              })}
-          </span>
         </>
       )}
       <RestrictionGridModal

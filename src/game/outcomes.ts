@@ -21,7 +21,7 @@ export function advanceTurnAfterNoLine(snapshot: GameSnapshot, config: GameConfi
   applyCollapseIfDue(snapshot, config);
   if (snapshot.gameOver) return;
 
-  if (config.gravityEnabled) applyGravity(snapshot.board, config, snapshot.gravityDirection);
+  if (config.gravityEnabled) applyGravity(snapshot.board, config, snapshot.gravityDirection, snapshot);
 
   snapshot.currentPlayer = getNextActivePlayerAfterChanges(oldActive, snapshot.activePlayerIds, completedPlayer);
   snapshot.selectedPieceId = getDefaultSelectedPieceIdForcedOldest(snapshot, config);
@@ -251,7 +251,7 @@ function advanceAfterPlayerRemoved(
   applyCollapseIfDue(snapshot, config);
   if (snapshot.gameOver) return;
 
-  if (config.gravityEnabled) applyGravity(snapshot.board, config, snapshot.gravityDirection);
+  if (config.gravityEnabled) applyGravity(snapshot.board, config, snapshot.gravityDirection, snapshot);
   snapshot.currentPlayer = getNextActivePlayerAfterChanges(oldActive, snapshot.activePlayerIds, removedId);
   snapshot.selectedPieceId = getDefaultSelectedPieceIdForcedOldest(snapshot, config);
 
