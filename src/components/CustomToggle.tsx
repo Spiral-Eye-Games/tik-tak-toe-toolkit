@@ -1,4 +1,4 @@
-import { type ChangeEvent, type ReactNode } from "react";
+import { type ChangeEvent, type LabelHTMLAttributes, type ReactNode } from "react";
 
 export type CustomToggleProps = {
   checked: boolean;
@@ -8,15 +8,24 @@ export type CustomToggleProps = {
   /** Tooltip nativo del control */
   title?: string;
   children: ReactNode;
-};
+} & Omit<LabelHTMLAttributes<HTMLLabelElement>, "onChange" | "children">;
 
-export function CustomToggle({ checked, onChange, disabled, className, title, children }: CustomToggleProps) {
+export function CustomToggle({
+  checked,
+  onChange,
+  disabled,
+  className,
+  title,
+  children,
+  ...rest
+}: CustomToggleProps) {
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     onChange(event.target.checked);
   };
 
   return (
     <label
+      {...rest}
       title={title}
       className={[
         "custom-toggle-field",
