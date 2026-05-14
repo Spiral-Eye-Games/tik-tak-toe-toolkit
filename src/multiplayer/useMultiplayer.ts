@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DEFAULT_ROSTER } from "../game/defaults";
 import type { GameAction, GameConfig, GameState, PlayerId as GamePlayerId } from "../game/types";
-import { loadMultiplayerNickname, saveMultiplayerNickname } from "../game/sessionCache";
+import {
+  loadMultiplayerNickname,
+  loadMultiplayerPreferredSymbol,
+  saveMultiplayerNickname,
+  saveMultiplayerPreferredSymbol
+} from "../game/sessionCache";
 import { t } from "../i18n";
 import { PeerService } from "./peerService";
 import type {
@@ -14,7 +19,6 @@ import type {
 } from "./networkTypes";
 
 const MULTIPLAYER_SYMBOL_ORDER = DEFAULT_ROSTER.map((player) => player.id);
-const HOST_SYMBOL: GamePlayerId = "cross";
 const MIN_ROOM_PLAYERS = 2;
 const MAX_ROOM_PLAYERS = DEFAULT_ROSTER.length;
 const DEFAULT_PLAYER_ROOM_SIZE = MIN_ROOM_PLAYERS;
@@ -24,7 +28,7 @@ interface UseMultiplayerOptions {
   applyGameActionAsHost: (action: GameAction) => GameState;
   replaceGameState: (state: GameState) => void;
   replaceDraftConfig: (config: GameConfig) => void;
-  /** Si es `false`, no se escribe el nickname en `localStorage` (modo `?dev`). */
+  /** Si es `false`, no se escribe nickname ni ficha preferida en `localStorage` (modo `?dev`). */
   persistNickname?: boolean;
   /** Al salir como cliente, restaurar config local guardada (p. ej. desde `App`). */
   onClientSessionEnd?: () => void;
@@ -36,6 +40,8 @@ export interface MultiplayerState {
   roomCode: string;
   localPlayerId: PlayerId;
   localPlayerName: string;
+  /** Texto del input de nickname (vacío permitido; `localPlayerName` aplica fallback solo para red / títulos). */
+  localPlayerNameInput: string;
   localSymbol: GamePlayerId | null;
   roomMaxPlayers: number;
   minRoomPlayers: number;
@@ -53,9 +59,9 @@ export interface MultiplayerState {
   canUseUndoRedo: boolean;
   canPlayLocalTurn: boolean;
   canChangeProfile: boolean;
-  createRoom: () => void;
+  createRoom: (maxPlayersOverride?: number) => void;
   setLocalPlayerName: (name: string) => void;
-  requestSymbolChange: (symbol: GamePlayerId) => void;
+  requestSymbolChange: (symbol: GamePlayerId | null) => void;
   setRoomMaxPlayers: (maxPlayers: number) => void;
   joinRoom: (roomCode: string) => void;
   leaveRoom: () => void;
@@ -86,7 +92,8 @@ export function useMultiplayer({
   const localPlayerId = useMemo(() => createPlayerId(), []);
   const fallbackPlayerName = useMemo(() => createPlayerName(), []);
   const [localPlayerNameInput, setLocalPlayerNameInput] = useState(() => loadMultiplayerNickname());
-  const [preferredSymbol, setPreferredSymbol] = useState<GamePlayerId>(HOST_SYMBOL);
+  const initialPreferredSymbol = persistNickname ? loadMultiplayerPreferredSymbol() : null;
+  const [preferredSymbol, setPreferredSymbol] = useState<GamePlayerId | null>(initialPreferredSymbol);
   const localPlayerIdRef = useRef(localPlayerId);
   const localPlayerNameRef = useRef(fallbackPlayerName);
 
@@ -94,8 +101,9 @@ export function useMultiplayer({
   const roleRef = useRef<NetworkRole>("offline");
   const [status, setStatus] = useState<ConnectionStatus>("offline");
   const [roomCode, setRoomCode] = useState("");
-  const [localSymbol, setLocalSymbol] = useState<GamePlayerId | null>(HOST_SYMBOL);
+  const [localSymbol, setLocalSymbol] = useState<GamePlayerId | null>(initialPreferredSymbol);
   const [roomMaxPlayers, setRoomMaxPlayersState] = useState(DEFAULT_PLAYER_ROOM_SIZE);
+  const roomMaxPlayersRef = useRef(roomMaxPlayers);
   const [players, setPlayers] = useState<NetworkPlayer[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [debugMessages, setDebugMessages] = useState<string[]>([]);
@@ -104,6 +112,7 @@ export function useMultiplayer({
   const localPlayerName = normalizePlayerName(localPlayerNameInput, fallbackPlayerName);
 
   roleRef.current = role;
+  roomMaxPlayersRef.current = roomMaxPlayers;
   gameStateRef.current = gameState;
   applyGameActionAsHostRef.current = applyGameActionAsHost;
   replaceGameStateRef.current = replaceGameState;
@@ -114,6 +123,11 @@ export function useMultiplayer({
     if (!persistNickname) return;
     saveMultiplayerNickname(localPlayerNameInput.trim());
   }, [localPlayerNameInput, persistNickname]);
+
+  useEffect(() => {
+    if (!persistNickname) return;
+    saveMultiplayerPreferredSymbol(preferredSymbol);
+  }, [persistNickname, preferredSymbol]);
 
   const addDebugMessage = useCallback((message: string) => {
     setDebugMessages((current) => [message, ...current].slice(0, 5));
@@ -196,17 +210,18 @@ export function useMultiplayer({
     setPlayers(nextPlayers);
     if (nextPlayer.id === localPlayerIdRef.current) {
       setLocalSymbol(nextPlayer.symbol);
-      if (nextPlayer.symbol) setPreferredSymbol(nextPlayer.symbol);
     }
     return nextPlayers;
   }, []);
 
-  const requestSymbolChange = useCallback((symbol: GamePlayerId) => {
+  const requestSymbolChange = useCallback((symbol: GamePlayerId | null) => {
     if (role === "offline") {
       setPreferredSymbol(symbol);
       setLocalSymbol(symbol);
       return;
     }
+
+    if (symbol === null) return;
 
     if (!canChangeProfileForState(gameStateRef.current)) return;
 
@@ -258,7 +273,7 @@ export function useMultiplayer({
       if (assignedSymbol === null) {
         serviceRef.current?.sendTo(connectionId, {
           type: "ERROR",
-          message: t("multiplayer.roomFull", { maxPlayers: roomMaxPlayers })
+          message: t("multiplayer.roomFull", { maxPlayers: roomMaxPlayersRef.current })
         });
         window.setTimeout(() => serviceRef.current?.closeConnection(connectionId), 0);
         addDebugMessage(t("multiplayer.debugRoomFull", { player: message.playerName }));
@@ -333,7 +348,7 @@ export function useMultiplayer({
       });
       serviceRef.current?.broadcast(message);
     }
-  }, [addChatMessage, addDebugMessage, addSystemMessage, handleRemoteClockTimeout, handleRemoteGameAction, roomMaxPlayers, sendErrorTo, updatePlayer]);
+  }, [addChatMessage, addDebugMessage, addSystemMessage, handleRemoteClockTimeout, handleRemoteGameAction, sendErrorTo, updatePlayer]);
 
   const handleClientMessage = useCallback((message: NetworkMessage) => {
     if (message.type === "WELCOME") {
@@ -393,16 +408,22 @@ export function useMultiplayer({
     }
   }, [addChatMessage, addDebugMessage, addSystemMessage, updatePlayer]);
 
-  const createRoom = useCallback(() => {
+  const createRoom = useCallback((maxPlayersOverride?: number) => {
+    if (typeof maxPlayersOverride === "number" && Number.isFinite(maxPlayersOverride)) {
+      const clamped = clampRoomMaxPlayers(maxPlayersOverride);
+      setRoomMaxPlayersState(clamped);
+      roomMaxPlayersRef.current = clamped;
+    }
     resetSession();
     setRole("host");
     roleRef.current = "host";
     setStatus("creating-room");
-    setLocalSymbol(preferredSymbol);
+    const hostSymbol = getAssignableSymbol([], preferredSymbol) ?? MULTIPLAYER_SYMBOL_ORDER[0]!;
+    setLocalSymbol(hostSymbol);
     const hostPlayers: NetworkPlayer[] = [{
       id: localPlayerIdRef.current,
       name: localPlayerNameRef.current,
-      symbol: preferredSymbol,
+      symbol: hostSymbol,
       connected: true
     }];
     playersRef.current = hostPlayers;
@@ -578,6 +599,7 @@ export function useMultiplayer({
     roomCode,
     localPlayerId,
     localPlayerName,
+    localPlayerNameInput,
     localSymbol,
     roomMaxPlayers,
     minRoomPlayers: MIN_ROOM_PLAYERS,

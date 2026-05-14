@@ -1,8 +1,9 @@
-import { Copy, LogOut, Send, Wifi } from "lucide-react";
-import { useState } from "react";
+import { Bell, ChevronDown, Copy, LogOut, Send, Wifi } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { DEFAULT_ROSTER } from "../game/defaults";
 import type { PlayerId } from "../game/types";
 import { t } from "../i18n";
+import { playChatPlayerTone, playChatSystemTone } from "../multiplayer/chatSounds";
 import type { MultiplayerState } from "../multiplayer/useMultiplayer";
 import { PlayerMarkGlyph } from "./PlayerMarkSpan";
 import { Tooltip } from "./Tooltip";
@@ -17,9 +18,22 @@ export function MultiplayerPanel({ multiplayer }: MultiplayerPanelProps) {
   const [joinCode, setJoinCode] = useState("");
   const [copied, setCopied] = useState(false);
   const [chatDraft, setChatDraft] = useState("");
+  const [maxPlayersDraft, setMaxPlayersDraft] = useState(() => String(multiplayer.roomMaxPlayers));
   const [symbolPickerOpen, setSymbolPickerOpen] = useState(false);
   const canJoin = joinCode.trim().length > 0 && !multiplayer.isOnline;
   const symbolOptions = DEFAULT_ROSTER.map((player) => player.id);
+
+  useEffect(() => {
+    if (!multiplayer.isOnline) {
+      setMaxPlayersDraft(String(multiplayer.roomMaxPlayers));
+    }
+  }, [multiplayer.isOnline, multiplayer.roomMaxPlayers]);
+
+  useEffect(() => {
+    if (multiplayer.isOnline) {
+      setSymbolPickerOpen(false);
+    }
+  }, [multiplayer.isOnline]);
 
   async function copyRoomCode() {
     if (!multiplayer.roomCode || !navigator.clipboard) return;
@@ -39,12 +53,28 @@ export function MultiplayerPanel({ multiplayer }: MultiplayerPanelProps) {
         <div className="multiplayer-panel-actions">
           <label className="field multiplayer-room-field">
             <span>{t("multiplayer.nickname")}</span>
-            <input
-              type="text"
-              value={multiplayer.localPlayerName}
-              placeholder={t("multiplayer.nicknamePlaceholder")}
-              onChange={(event) => multiplayer.setLocalPlayerName(event.target.value)}
-            />
+            <div className="multiplayer-nickname-row">
+              <button
+                className="multiplayer-profile-mark"
+                type="button"
+                aria-label={t("multiplayer.openPreferredSymbolPicker")}
+                onClick={() => setSymbolPickerOpen(true)}
+              >
+                {multiplayer.localSymbol ? (
+                  <MultiplayerSymbol symbol={multiplayer.localSymbol} />
+                ) : (
+                  <span className="multiplayer-symbol-auto-dash" aria-hidden>
+                    —
+                  </span>
+                )}
+              </button>
+              <input
+                type="text"
+                value={multiplayer.localPlayerNameInput}
+                placeholder={t("multiplayer.nicknamePlaceholder")}
+                onChange={(event) => multiplayer.setLocalPlayerName(event.target.value)}
+              />
+            </div>
           </label>
           <div className="multiplayer-create-row">
             <label className="field multiplayer-max-players-field">
@@ -53,11 +83,26 @@ export function MultiplayerPanel({ multiplayer }: MultiplayerPanelProps) {
                 type="number"
                 min={multiplayer.minRoomPlayers}
                 max={multiplayer.maxRoomPlayers}
-                value={multiplayer.roomMaxPlayers}
-                onChange={(event) => multiplayer.setRoomMaxPlayers(Number(event.target.value))}
+                value={maxPlayersDraft}
+                onChange={(event) => setMaxPlayersDraft(event.target.value)}
+                onBlur={() => {
+                  const parsed = parseInt(maxPlayersDraft, 10);
+                  if (Number.isFinite(parsed)) {
+                    multiplayer.setRoomMaxPlayers(parsed);
+                  } else {
+                    setMaxPlayersDraft(String(multiplayer.roomMaxPlayers));
+                  }
+                }}
               />
             </label>
-            <button className="button full" type="button" onClick={multiplayer.createRoom}>
+            <button
+              className="button full"
+              type="button"
+              onClick={() => {
+                const parsed = parseInt(maxPlayersDraft, 10);
+                multiplayer.createRoom(Number.isFinite(parsed) ? parsed : undefined);
+              }}
+            >
               {t("multiplayer.createRoom")}
             </button>
           </div>
@@ -83,7 +128,13 @@ export function MultiplayerPanel({ multiplayer }: MultiplayerPanelProps) {
               disabled={!multiplayer.canChangeProfile}
               onClick={() => setSymbolPickerOpen(true)}
             >
-              {multiplayer.localSymbol ? <MultiplayerSymbol symbol={multiplayer.localSymbol} /> : null}
+              {multiplayer.localSymbol ? (
+                <MultiplayerSymbol symbol={multiplayer.localSymbol} />
+              ) : (
+                <span className="multiplayer-symbol-auto-dash" aria-hidden>
+                  —
+                </span>
+              )}
             </button>
             <div className="multiplayer-profile-copy">
               <div className="multiplayer-profile-name">{multiplayer.localPlayerName}</div>
@@ -163,7 +214,7 @@ export function MultiplayerPanel({ multiplayer }: MultiplayerPanelProps) {
         </p>
       )}
 
-      {symbolPickerOpen && multiplayer.isOnline && (
+      {symbolPickerOpen && (
         <div className="multiplayer-symbol-modal-backdrop" role="presentation" onClick={() => setSymbolPickerOpen(false)}>
           <div
             className="multiplayer-symbol-modal"
@@ -172,16 +223,37 @@ export function MultiplayerPanel({ multiplayer }: MultiplayerPanelProps) {
             aria-labelledby="multiplayer-symbol-modal-title"
             onClick={(event) => event.stopPropagation()}
           >
-            <h3 id="multiplayer-symbol-modal-title">{t("multiplayer.chooseSymbol")}</h3>
+            <h3 id="multiplayer-symbol-modal-title">
+              {multiplayer.isOnline ? t("multiplayer.chooseSymbol") : t("multiplayer.choosePreferredSymbol")}
+            </h3>
             <div className="multiplayer-symbol-picker-grid">
+              {!multiplayer.isOnline && (
+                <button
+                  className={`multiplayer-symbol-picker-option multiplayer-symbol-picker-auto ${multiplayer.localSymbol === null ? "is-selected" : ""}`}
+                  type="button"
+                  aria-label={t("multiplayer.prefSymbolAuto")}
+                  onClick={() => {
+                    multiplayer.requestSymbolChange(null);
+                    setSymbolPickerOpen(false);
+                  }}
+                >
+                  <span className="multiplayer-symbol-auto-dash" aria-hidden>
+                    —
+                  </span>
+                </button>
+              )}
               {symbolOptions.map((symbol) => {
-                const available = multiplayer.availableSymbols.includes(symbol) || multiplayer.localSymbol === symbol;
+                const available =
+                  !multiplayer.isOnline ||
+                  multiplayer.availableSymbols.includes(symbol) ||
+                  multiplayer.localSymbol === symbol;
+                const selected = multiplayer.localSymbol === symbol;
                 return (
                   <button
                     key={symbol}
-                    className="multiplayer-symbol-picker-option"
+                    className={`multiplayer-symbol-picker-option ${selected ? "is-selected" : ""}`}
                     type="button"
-                    disabled={!available || !multiplayer.canChangeProfile}
+                    disabled={multiplayer.isOnline && (!available || !multiplayer.canChangeProfile)}
                     aria-label={t(`multiplayer.symbols.${symbol}`)}
                     onClick={() => {
                       multiplayer.requestSymbolChange(symbol);
@@ -218,24 +290,87 @@ function MultiplayerSymbol({ symbol }: { symbol: PlayerId }) {
 
 export function FloatingMultiplayerPanel({ multiplayer }: MultiplayerPanelProps) {
   const [open, setOpen] = useState(false);
+  const [chatUnreadFromPlayers, setChatUnreadFromPlayers] = useState(false);
+  const lastChatMessageIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (open) {
+      setChatUnreadFromPlayers(false);
+    }
+  }, [open]);
+
+  useEffect(() => {
+    const messages = multiplayer.chatMessages;
+    if (messages.length === 0) {
+      lastChatMessageIdRef.current = null;
+      return;
+    }
+    const last = messages[messages.length - 1];
+    if (lastChatMessageIdRef.current === last.id) {
+      return;
+    }
+    const previousId = lastChatMessageIdRef.current;
+    lastChatMessageIdRef.current = last.id;
+    if (previousId === null && messages.length > 1) {
+      return;
+    }
+
+    if (last.kind === "player") {
+      const fromSelf = last.playerId === multiplayer.localPlayerId;
+      if (!fromSelf) {
+        playChatPlayerTone();
+      }
+      const fromOthers = last.playerId !== null && last.playerId !== multiplayer.localPlayerId;
+      if (!open && fromOthers) {
+        setChatUnreadFromPlayers(true);
+      }
+    } else {
+      playChatSystemTone();
+    }
+  }, [multiplayer.chatMessages, multiplayer.localPlayerId, open]);
+
+  const handleToggleOpen = useCallback(() => {
+    setOpen((current) => !current);
+  }, []);
 
   return (
     <div className={`multiplayer-widget ${open ? "open" : ""}`}>
       {open && (
         <div className="multiplayer-widget-popover">
-          <MultiplayerPanel multiplayer={multiplayer} />
+          <header className="multiplayer-widget-header">
+            <button
+              className="button icon multiplayer-widget-collapse"
+              type="button"
+              aria-label={t("multiplayer.collapseWidget")}
+              onClick={() => setOpen(false)}
+            >
+              <ChevronDown aria-hidden="true" strokeWidth={2.25} />
+            </button>
+          </header>
+          <div className="multiplayer-widget-popover-body">
+            <MultiplayerPanel multiplayer={multiplayer} />
+          </div>
         </div>
       )}
-      <button
-        className="multiplayer-widget-toggle"
-        type="button"
-        aria-label={open ? t("multiplayer.closeMenu") : t("multiplayer.openMenu")}
-        aria-expanded={open}
-        onClick={() => setOpen((current) => !current)}
-      >
-        <Wifi aria-hidden="true" />
-        <span className={`multiplayer-state-dot multiplayer-state-dot-${multiplayer.status}`} aria-hidden />
-      </button>
+      {!open && (
+        <Tooltip text={chatUnreadFromPlayers ? t("multiplayer.chatUnreadHint") : t("multiplayer.expandWidget")}>
+          <button
+            className="multiplayer-widget-toggle"
+            type="button"
+            aria-label={t("multiplayer.expandWidget")}
+            aria-expanded={false}
+            onClick={handleToggleOpen}
+          >
+            {chatUnreadFromPlayers && (
+              <span className="multiplayer-widget-unread-badge" aria-hidden>
+                <Bell aria-hidden="true" strokeWidth={2.5} />
+              </span>
+            )}
+            <Wifi aria-hidden="true" />
+            <span className={`multiplayer-state-dot multiplayer-state-dot-${multiplayer.status}`} aria-hidden />
+          </button>
+        </Tooltip>
+      )}
     </div>
   );
 }

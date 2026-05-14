@@ -7,6 +7,7 @@ import { Sidebar } from "./components/Sidebar";
 import { TopBar } from "./components/TopBar";
 import { DEFAULT_CONFIG, DEFAULT_ROSTER } from "./game/defaults";
 import { loadLastSettings } from "./game/sessionCache";
+import { isDev } from "./isDev";
 import { getStatusText } from "./game/formatters";
 import { createInitialGameState, reduceGameState } from "./game/reducer";
 import { mustMovePiece } from "./game/rules";
@@ -18,7 +19,7 @@ import { usePendingGravityRotation } from "./hooks/usePendingGravityRotation";
 import { useMultiplayer } from "./multiplayer/useMultiplayer";
 
 export default function App() {
-  const isDevUrl = useMemo(() => hasDevQueryParam(), []);
+  const isDevUrl = useMemo(() => isDev(), []);
   const skipDraftPersistForClientRef = useRef(false);
 
   const {
@@ -190,11 +191,6 @@ export default function App() {
       {isDevUrl && <FloatingMultiplayerPanel multiplayer={multiplayer} />}
     </div>
   );
-}
-
-function hasDevQueryParam(): boolean {
-  if (typeof window === "undefined") return false;
-  return new URLSearchParams(window.location.search).has("dev");
 }
 
 function buildOfflineGameConfig(config: GameConfig): GameConfig {

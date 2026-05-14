@@ -1,8 +1,12 @@
+import { DEFAULT_ROSTER } from "./defaults";
 import { sanitizeConfig } from "./config";
-import type { GameConfig } from "./types";
+import type { GameConfig, PlayerId as GamePlayerId } from "./types";
 
 const STORAGE_KEY = "tateti-toolkit-last-settings-v1";
 const NICKNAME_STORAGE_KEY = "tateti-toolkit-multiplayer-nickname-v1";
+const PREFERRED_SYMBOL_STORAGE_KEY = "tateti-toolkit-multiplayer-preferred-symbol-v1";
+
+const VALID_MULTIPLAYER_SYMBOLS = new Set(DEFAULT_ROSTER.map((player) => player.id));
 
 interface StoredPayload {
   version: 1;
@@ -52,6 +56,31 @@ export function saveMultiplayerNickname(name: string): void {
   if (typeof localStorage === "undefined") return;
   try {
     localStorage.setItem(NICKNAME_STORAGE_KEY, name);
+  } catch {
+    /* ignore quota / private mode */
+  }
+}
+
+export function loadMultiplayerPreferredSymbol(): GamePlayerId | null {
+  if (typeof localStorage === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(PREFERRED_SYMBOL_STORAGE_KEY);
+    if (raw === null || raw === "") return null;
+    const parsed = JSON.parse(raw) as unknown;
+    if (parsed === null) return null;
+    if (typeof parsed !== "string" || !VALID_MULTIPLAYER_SYMBOLS.has(parsed as GamePlayerId)) {
+      return null;
+    }
+    return parsed as GamePlayerId;
+  } catch {
+    return null;
+  }
+}
+
+export function saveMultiplayerPreferredSymbol(symbol: GamePlayerId | null): void {
+  if (typeof localStorage === "undefined") return;
+  try {
+    localStorage.setItem(PREFERRED_SYMBOL_STORAGE_KEY, JSON.stringify(symbol));
   } catch {
     /* ignore quota / private mode */
   }

@@ -324,21 +324,72 @@ body, #root { height: 100vh; }
 .multiplayer-widget-popover {
   width: min(360px, calc(100vw - 32px));
   max-height: min(74vh, 680px);
-  overflow-y: auto;
-  border-radius: 22px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-radius: 14px;
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.46);
   pointer-events: auto;
+  overflow: hidden;
+  background: rgba(22, 24, 38, 0.98);
+  border: 1px solid rgba(120, 200, 255, 0.2);
+}
+
+.multiplayer-widget-popover-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.multiplayer-widget-header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 2px 4px 3px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  background: rgba(0, 0, 0, 0.12);
+  overflow: visible;
+}
+
+.multiplayer-widget-collapse {
+  min-width: 40px !important;
+  width: 40px !important;
+  height: 24px !important;
+  flex-shrink: 0;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: rgba(255, 255, 255, 0.78);
+  opacity: 1;
+  overflow: visible;
+}
+
+.multiplayer-widget-collapse:hover:not(:disabled) {
+  color: rgba(255, 255, 255, 0.98);
+  opacity: 1;
+  filter: none;
+  transform: none;
+}
+
+.multiplayer-widget-collapse.button.icon svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2.35;
+  stroke: currentColor;
+  color: inherit;
 }
 
 .multiplayer-widget-toggle {
-  width: 54px;
-  height: 54px;
+  width: 48px;
+  height: 48px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 0;
   border: 1px solid rgba(120, 200, 255, 0.28);
-  border-radius: 999px;
+  border-radius: 10px;
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04)), #202237;
   color: var(--text);
   font-size: 14px;
@@ -350,14 +401,47 @@ body, #root { height: 100vh; }
   position: relative;
 }
 
+.multiplayer-widget-unread-badge {
+  position: absolute;
+  left: 5px;
+  top: 5px;
+  z-index: 2;
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(251, 191, 36, 0.95);
+  color: #1a1508;
+  box-shadow: 0 0 0 2px rgba(22, 24, 38, 0.95);
+  animation: multiplayer-unread-pulse 1.6s ease-in-out infinite;
+}
+
+.multiplayer-widget-unread-badge svg {
+  width: 12px;
+  height: 12px;
+}
+
+@keyframes multiplayer-unread-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.06); opacity: 0.92; }
+}
+
 .multiplayer-widget-toggle:hover {
   filter: brightness(1.06);
   transform: translateY(-1px);
 }
 
+.multiplayer-widget-popover-body .multiplayer-panel {
+  border-radius: 0;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
 .multiplayer-panel {
   margin: 0;
-  padding: 14px;
+  padding: 8px 12px 12px;
   border-radius: 18px;
   background: radial-gradient(circle at top left, rgba(120, 200, 255, 0.12), transparent 38%), rgba(28, 29, 45, 0.98);
   border: 1px solid rgba(120, 200, 255, 0.18);
@@ -407,7 +491,6 @@ body, #root { height: 100vh; }
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin-top: 12px;
 }
 
 .multiplayer-create-row {
@@ -470,6 +553,8 @@ body, #root { height: 100vh; }
   background: rgba(255, 255, 255, 0.08);
   color: var(--text);
   cursor: pointer;
+  display: grid;
+  place-items: center;
 }
 
 .multiplayer-profile-mark:disabled {
@@ -585,6 +670,30 @@ body, #root { height: 100vh; }
   cursor: not-allowed;
 }
 
+.multiplayer-symbol-picker-option.is-selected {
+  border-color: rgba(255, 209, 102, 0.55);
+  box-shadow: 0 0 0 2px rgba(255, 209, 102, 0.12);
+}
+
+.multiplayer-symbol-auto-dash {
+  font-size: 22px;
+  font-weight: 300;
+  color: var(--muted);
+  line-height: 1;
+}
+
+.multiplayer-nickname-row {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 8px;
+  align-items: stretch;
+}
+
+.multiplayer-nickname-row > input[type="text"] {
+  min-width: 0;
+  width: 100%;
+}
+
 .multiplayer-players ul,
 .multiplayer-debug ul {
   margin: 0;
@@ -666,7 +775,7 @@ body, #root { height: 100vh; }
 }
 
 .multiplayer-chat-message.system {
-  color: #f5d36a;
+  color: #69d2fc;
   font-weight: 800;
 }
 
