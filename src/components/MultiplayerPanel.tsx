@@ -1,5 +1,5 @@
 import { Bell, ChevronDown, Copy, LogOut, Send, Wifi } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { DEFAULT_ROSTER } from "../game/defaults";
 import type { PlayerId } from "../game/types";
 import { t } from "../i18n";
@@ -14,12 +14,20 @@ interface MultiplayerPanelProps {
 
 const ROSTER_BY_SYMBOL = new Map(DEFAULT_ROSTER.map((player) => [player.id, player]));
 
+const CHAT_STICKY_BOTTOM_PX = 48;
+
+function isChatScrolledToBottom(el: HTMLElement): boolean {
+  return el.scrollHeight - el.scrollTop - el.clientHeight <= CHAT_STICKY_BOTTOM_PX;
+}
+
 export function MultiplayerPanel({ multiplayer }: MultiplayerPanelProps) {
   const [joinCode, setJoinCode] = useState("");
   const [copied, setCopied] = useState(false);
   const [chatDraft, setChatDraft] = useState("");
   const [maxPlayersDraft, setMaxPlayersDraft] = useState(() => String(multiplayer.roomMaxPlayers));
   const [symbolPickerOpen, setSymbolPickerOpen] = useState(false);
+  const chatLogRef = useRef<HTMLDivElement | null>(null);
+  const didInitialChatScrollRef = useRef(false);
   const canJoin = joinCode.trim().length > 0 && !multiplayer.isOnline;
   const symbolOptions = DEFAULT_ROSTER.map((player) => player.id);
 
@@ -34,6 +42,25 @@ export function MultiplayerPanel({ multiplayer }: MultiplayerPanelProps) {
       setSymbolPickerOpen(false);
     }
   }, [multiplayer.isOnline]);
+
+  useLayoutEffect(() => {
+    if (!multiplayer.isOnline) {
+      didInitialChatScrollRef.current = false;
+      return;
+    }
+    const el = chatLogRef.current;
+    if (!el || multiplayer.chatMessages.length === 0) return;
+
+    if (!didInitialChatScrollRef.current) {
+      el.scrollTop = el.scrollHeight;
+      didInitialChatScrollRef.current = true;
+      return;
+    }
+
+    if (isChatScrolledToBottom(el)) {
+      el.scrollTop = el.scrollHeight;
+    }
+  }, [multiplayer.isOnline, multiplayer.chatMessages]);
 
   async function copyRoomCode() {
     if (!multiplayer.roomCode || !navigator.clipboard) return;
@@ -175,7 +202,7 @@ export function MultiplayerPanel({ multiplayer }: MultiplayerPanelProps) {
           </div>
 
           <div className="multiplayer-chat">
-            <div className="multiplayer-chat-log" aria-live="polite">
+            <div ref={chatLogRef} className="multiplayer-chat-log" aria-live="polite">
               {multiplayer.chatMessages.map((message) => (
                 <div key={message.id} className={`multiplayer-chat-message ${message.kind}`}>
                   {message.kind === "player" && message.playerName && (

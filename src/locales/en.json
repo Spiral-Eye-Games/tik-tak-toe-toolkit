@@ -408,7 +408,7 @@
     "nicknamePlaceholder": "P-123",
     "chooseSymbol": "Choose piece",
     "choosePreferredSymbol": "Preferred piece",
-    "prefSymbolAuto": "Automatic: first free piece when you connect",
+    "prefSymbolAuto": "Automatic: random free piece when you connect",
     "openPreferredSymbolPicker": "Choose preferred piece",
     "maxPlayers": "Room players",
     "maxPlayersHint": "Minimum {{minPlayers}}, maximum {{maxPlayers}} based on available symbols.",

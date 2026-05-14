@@ -408,7 +408,7 @@
     "nicknamePlaceholder": "P-123",
     "chooseSymbol": "Elegir ficha",
     "choosePreferredSymbol": "Ficha preferida",
-    "prefSymbolAuto": "Automático: primera ficha libre al conectar",
+    "prefSymbolAuto": "Automático: ficha libre al azar al conectar",
     "openPreferredSymbolPicker": "Elegir ficha preferida",
     "maxPlayers": "Jugadores de la sala",
     "maxPlayersHint": "Mínimo {{minPlayers}}, máximo {{maxPlayers}} según los símbolos disponibles.",

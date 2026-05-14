@@ -641,12 +641,28 @@ function getAssignableSymbol(
   preferredSymbol: GamePlayerId | null
 ): GamePlayerId | null {
   if (preferredSymbol && !isSymbolTaken(players, preferredSymbol, null)) return preferredSymbol;
-  return getNextAvailableSymbol(players);
+  return pickRandomAvailableSymbol(players);
 }
 
-function getNextAvailableSymbol(players: NetworkPlayer[]): GamePlayerId | null {
-  const usedSymbols = new Set(players.map((player) => player.symbol).filter((symbol): symbol is GamePlayerId => symbol !== null));
-  return MULTIPLAYER_SYMBOL_ORDER.find((symbol) => !usedSymbols.has(symbol)) ?? null;
+function pickRandomAvailableSymbol(players: NetworkPlayer[]): GamePlayerId | null {
+  const usedSymbols = new Set(
+    players.map((player) => player.symbol).filter((symbol): symbol is GamePlayerId => symbol !== null)
+  );
+  const available = MULTIPLAYER_SYMBOL_ORDER.filter((symbol) => !usedSymbols.has(symbol));
+  if (available.length === 0) return null;
+  const index = randomUintBelow(available.length);
+  return available[index] ?? null;
+}
+
+/** Entero uniforme en [0, upperExclusive). */
+function randomUintBelow(upperExclusive: number): number {
+  if (upperExclusive <= 1) return 0;
+  if (typeof crypto !== "undefined" && "getRandomValues" in crypto) {
+    const buf = new Uint32Array(1);
+    crypto.getRandomValues(buf);
+    return buf[0]! % upperExclusive;
+  }
+  return Math.floor(Math.random() * upperExclusive);
 }
 
 function getAvailableSymbols(players: NetworkPlayer[], localPlayerId: PlayerId): GamePlayerId[] {
