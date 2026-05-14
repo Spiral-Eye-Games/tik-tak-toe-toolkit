@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { Board } from "./components/Board";
 import { HelpModal } from "./components/HelpModal";
 import { MatchStatusBanner } from "./components/MatchStatusBanner";
@@ -59,22 +59,11 @@ export default function App() {
     onClientSessionEnd: restoreCachedSettingsAfterClientSession
   });
   skipDraftPersistForClientRef.current = multiplayer.isClient;
-  const connectedPlayerCount = Math.max(2, multiplayer.players.filter((player) => player.connected && player.symbol !== null).length);
-  const onlinePlayerCountMax = multiplayer.isHost ? connectedPlayerCount : undefined;
+  const onlineHostMaxPlayerPicker = multiplayer.isHost ? DEFAULT_ROSTER.length : undefined;
 
   const updateConfig = useCallback((patch: Partial<GameConfig>) => {
-    const nextPatch = { ...patch };
-    if (multiplayer.isHost && typeof nextPatch.playerCount === "number") {
-      nextPatch.playerCount = Math.min(nextPatch.playerCount, connectedPlayerCount);
-    }
-    updateDraftConfig(nextPatch);
-  }, [connectedPlayerCount, multiplayer.isHost, updateDraftConfig]);
-
-  useEffect(() => {
-    if (multiplayer.isHost && draftConfig.playerCount > connectedPlayerCount) {
-      updateDraftConfig({ playerCount: connectedPlayerCount });
-    }
-  }, [connectedPlayerCount, draftConfig.playerCount, multiplayer.isHost, updateDraftConfig]);
+    updateDraftConfig(patch);
+  }, [updateDraftConfig]);
 
   const handleGameAction = useCallback((action: GameAction) => {
     if (multiplayer.isClient) {
@@ -167,7 +156,7 @@ export default function App() {
           onRulesHelp={openRulesHelp}
           readOnlyConfig={!multiplayer.canEditConfig}
           canStartNewGame={multiplayer.canStartNewGame}
-          maxPlayerCount={onlinePlayerCountMax}
+          maxPlayerCount={onlineHostMaxPlayerPicker}
         />
 
         <Board
@@ -206,7 +195,7 @@ function buildOnlineGameConfig(config: GameConfig, players: Array<{ symbol: Game
     .map((player) => player.symbol)
     .filter((symbol): symbol is GameConfig["roster"][number]["id"] => symbol !== null);
 
-  const selectedCount = Math.max(2, Math.min(config.playerCount, connectedSymbols.length));
+  const selectedCount = Math.min(config.playerCount, connectedSymbols.length);
   const selectedSymbols = shuffle(connectedSymbols).slice(0, selectedCount);
   const orderedSymbols = shuffle(selectedSymbols);
   const colorsById = new Map(DEFAULT_ROSTER.map((player) => [player.id, player.color]));

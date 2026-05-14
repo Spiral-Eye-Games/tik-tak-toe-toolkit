@@ -6,7 +6,10 @@ export interface PeerServiceEvents {
   onConnection?: (connectionId: string) => void;
   onMessage?: (message: NetworkMessage, connectionId: string) => void;
   onClose?: (connectionId: string) => void;
-  onError?: (error: Error) => void;
+  /** Fallo al abrir el canal de datos con un peer (p. ej. negociación WebRTC); no implica caída de toda la sala. */
+  onConnectionSetupFailed?: (remotePeerId: string, error: Error) => void;
+  /** Error del peer de señalización u otro fallo no asociado a un único intento de conexión. */
+  onFatalError?: (error: Error) => void;
 }
 
 export class PeerService {
@@ -75,11 +78,17 @@ export class PeerService {
     });
 
     peer.on("error", (error) => {
-      this.events.onError?.(toError(error));
+      const err = toError(error);
+      if (isRecoverablePeerLevelError(err)) {
+        const remoteId = extractNegotiationPeerId(err.message) ?? "";
+        this.events.onConnectionSetupFailed?.(remoteId, err);
+        return;
+      }
+      this.events.onFatalError?.(err);
     });
 
     peer.on("disconnected", () => {
-      this.events.onError?.(new Error("PeerJS disconnected."));
+      this.events.onFatalError?.(new Error("PeerJS disconnected."));
     });
   }
 
@@ -95,7 +104,7 @@ export class PeerService {
       if (isNetworkMessage(data)) {
         this.events.onMessage?.(data, connectionId);
       } else {
-        this.events.onError?.(new Error("Received an invalid network message."));
+        this.events.onConnectionSetupFailed?.(connection.peer, new Error("Received an invalid network message."));
       }
     });
 
@@ -105,7 +114,7 @@ export class PeerService {
     });
 
     connection.on("error", (error) => {
-      this.events.onError?.(toError(error));
+      this.events.onConnectionSetupFailed?.(connection.peer, toError(error));
     });
   }
 }
@@ -113,4 +122,22 @@ export class PeerService {
 function toError(error: unknown): Error {
   if (error instanceof Error) return error;
   return new Error(String(error));
+}
+
+/** Errores habituales de PeerJS al fallar un intento puntual de enlace (no se corta toda la sala). */
+function isRecoverablePeerLevelError(error: Error): boolean {
+  const m = error.message.toLowerCase();
+  if (m.includes("negotiation of connection")) return true;
+  if (m.includes("could not connect to peer")) return true;
+  if (m.includes("peer-unavailable")) return true;
+  if (m.includes("network")) return true;
+  if (m.includes("server error")) return true;
+  if (m.includes("socket error")) return true;
+  if (m.includes("connection to") && m.includes("failed")) return true;
+  return false;
+}
+
+function extractNegotiationPeerId(message: string): string | null {
+  const match = /Negotiation of connection to\s+(\S+)/i.exec(message);
+  return match?.[1] ?? null;
 }

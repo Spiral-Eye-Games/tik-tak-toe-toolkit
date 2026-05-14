@@ -22,7 +22,7 @@ export interface NetworkPlayer {
 
 export interface ChatMessage {
   id: string;
-  kind: "system" | "player";
+  kind: "system" | "player" | "issue";
   playerId: PlayerId | null;
   playerName: string | null;
   text: string;
@@ -33,6 +33,7 @@ export type NetworkMessage =
   | { type: "HELLO"; playerId: PlayerId; playerName: string; preferredSymbol: GamePlayerId | null }
   | { type: "WELCOME"; playerId: PlayerId; assignedSymbol: GamePlayerId; players: NetworkPlayer[]; state: GameState }
   | { type: "PLAYER_JOINED"; player: NetworkPlayer }
+  | { type: "PLAYER_LEFT"; playerId: PlayerId }
   | { type: "PLAYER_PROFILE_UPDATED"; player: NetworkPlayer }
   | { type: "SYMBOL_CHANGE_REQUEST"; playerId: PlayerId; symbol: GamePlayerId }
   | { type: "GAME_ACTION_REQUEST"; playerId: PlayerId; action: GameAction }

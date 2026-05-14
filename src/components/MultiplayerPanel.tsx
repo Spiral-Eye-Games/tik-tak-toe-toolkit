@@ -24,18 +24,11 @@ export function MultiplayerPanel({ multiplayer }: MultiplayerPanelProps) {
   const [joinCode, setJoinCode] = useState("");
   const [copied, setCopied] = useState(false);
   const [chatDraft, setChatDraft] = useState("");
-  const [maxPlayersDraft, setMaxPlayersDraft] = useState(() => String(multiplayer.roomMaxPlayers));
   const [symbolPickerOpen, setSymbolPickerOpen] = useState(false);
   const chatLogRef = useRef<HTMLDivElement | null>(null);
   const didInitialChatScrollRef = useRef(false);
   const canJoin = joinCode.trim().length > 0 && !multiplayer.isOnline;
   const symbolOptions = DEFAULT_ROSTER.map((player) => player.id);
-
-  useEffect(() => {
-    if (!multiplayer.isOnline) {
-      setMaxPlayersDraft(String(multiplayer.roomMaxPlayers));
-    }
-  }, [multiplayer.isOnline, multiplayer.roomMaxPlayers]);
 
   useEffect(() => {
     if (multiplayer.isOnline) {
@@ -78,8 +71,7 @@ export function MultiplayerPanel({ multiplayer }: MultiplayerPanelProps) {
     <section className="multiplayer-panel" aria-label={t("multiplayer.panelLabel")}>
       {!multiplayer.isOnline ? (
         <div className="multiplayer-panel-actions">
-          <label className="field multiplayer-room-field">
-            <span>{t("multiplayer.nickname")}</span>
+          <div className="field multiplayer-room-field">
             <div className="multiplayer-nickname-row">
               <button
                 className="multiplayer-profile-mark"
@@ -98,38 +90,15 @@ export function MultiplayerPanel({ multiplayer }: MultiplayerPanelProps) {
               <input
                 type="text"
                 value={multiplayer.localPlayerNameInput}
-                placeholder={t("multiplayer.nicknamePlaceholder")}
+                placeholder={t("multiplayer.nickname")}
+                aria-label={t("multiplayer.nickname")}
                 onChange={(event) => multiplayer.setLocalPlayerName(event.target.value)}
               />
             </div>
-          </label>
-          <div className="multiplayer-create-row">
-            <label className="field multiplayer-max-players-field">
-              <span>{t("multiplayer.maxPlayers")}</span>
-              <input
-                type="number"
-                min={multiplayer.minRoomPlayers}
-                max={multiplayer.maxRoomPlayers}
-                value={maxPlayersDraft}
-                onChange={(event) => setMaxPlayersDraft(event.target.value)}
-                onBlur={() => {
-                  const parsed = parseInt(maxPlayersDraft, 10);
-                  if (Number.isFinite(parsed)) {
-                    multiplayer.setRoomMaxPlayers(parsed);
-                  } else {
-                    setMaxPlayersDraft(String(multiplayer.roomMaxPlayers));
-                  }
-                }}
-              />
-            </label>
-            <button
-              className="button full"
-              type="button"
-              onClick={() => {
-                const parsed = parseInt(maxPlayersDraft, 10);
-                multiplayer.createRoom(Number.isFinite(parsed) ? parsed : undefined);
-              }}
-            >
+          </div>
+          <div className="multiplayer-create-block">
+            <div className="multiplayer-create-section-title">{t("multiplayer.createRoomSectionTitle")}</div>
+            <button className="button full" type="button" onClick={() => multiplayer.createRoom()}>
               {t("multiplayer.createRoom")}
             </button>
           </div>
@@ -204,7 +173,11 @@ export function MultiplayerPanel({ multiplayer }: MultiplayerPanelProps) {
           <div className="multiplayer-chat">
             <div ref={chatLogRef} className="multiplayer-chat-log" aria-live="polite">
               {multiplayer.chatMessages.map((message) => (
-                <div key={message.id} className={`multiplayer-chat-message ${message.kind}`}>
+                <div
+                  key={message.id}
+                  className={`multiplayer-chat-message ${message.kind}`}
+                  role={message.kind === "issue" ? "status" : undefined}
+                >
                   {message.kind === "player" && message.playerName && (
                     <span className="multiplayer-chat-author">{message.playerName}</span>
                   )}
@@ -233,12 +206,6 @@ export function MultiplayerPanel({ multiplayer }: MultiplayerPanelProps) {
             </div>
           </div>
         </div>
-      )}
-
-      {multiplayer.error && (
-        <p className="multiplayer-error" role="alert">
-          {t("multiplayer.errorDetail", { message: multiplayer.error })}
-        </p>
       )}
 
       {symbolPickerOpen && (

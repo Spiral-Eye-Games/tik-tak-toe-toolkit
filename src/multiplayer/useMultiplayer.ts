@@ -9,6 +9,7 @@ import {
 } from "../game/sessionCache";
 import { t } from "../i18n";
 import { PeerService } from "./peerService";
+import { humanizeWireErrorMessage } from "./wireErrorMessage";
 import type {
   ChatMessage,
   ConnectionStatus,
@@ -19,9 +20,8 @@ import type {
 } from "./networkTypes";
 
 const MULTIPLAYER_SYMBOL_ORDER = DEFAULT_ROSTER.map((player) => player.id);
-const MIN_ROOM_PLAYERS = 2;
+/** Tope de jugadores humanos en sala: coincide con la cantidad de símbolos del roster. */
 const MAX_ROOM_PLAYERS = DEFAULT_ROSTER.length;
-const DEFAULT_PLAYER_ROOM_SIZE = MIN_ROOM_PLAYERS;
 
 interface UseMultiplayerOptions {
   gameState: GameState;
@@ -43,12 +43,10 @@ export interface MultiplayerState {
   /** Texto del input de nickname (vacío permitido; `localPlayerName` aplica fallback solo para red / títulos). */
   localPlayerNameInput: string;
   localSymbol: GamePlayerId | null;
+  /** Cupo máximo de la sala (tamaño del roster). */
   roomMaxPlayers: number;
-  minRoomPlayers: number;
-  maxRoomPlayers: number;
   availableSymbols: GamePlayerId[];
   players: NetworkPlayer[];
-  error: string | null;
   debugMessages: string[];
   chatMessages: ChatMessage[];
   isOnline: boolean;
@@ -59,10 +57,9 @@ export interface MultiplayerState {
   canUseUndoRedo: boolean;
   canPlayLocalTurn: boolean;
   canChangeProfile: boolean;
-  createRoom: (maxPlayersOverride?: number) => void;
+  createRoom: () => void;
   setLocalPlayerName: (name: string) => void;
   requestSymbolChange: (symbol: GamePlayerId | null) => void;
-  setRoomMaxPlayers: (maxPlayers: number) => void;
   joinRoom: (roomCode: string) => void;
   leaveRoom: () => void;
   sendDebugMessage: () => void;
@@ -102,17 +99,14 @@ export function useMultiplayer({
   const [status, setStatus] = useState<ConnectionStatus>("offline");
   const [roomCode, setRoomCode] = useState("");
   const [localSymbol, setLocalSymbol] = useState<GamePlayerId | null>(initialPreferredSymbol);
-  const [roomMaxPlayers, setRoomMaxPlayersState] = useState(DEFAULT_PLAYER_ROOM_SIZE);
-  const roomMaxPlayersRef = useRef(roomMaxPlayers);
   const [players, setPlayers] = useState<NetworkPlayer[]>([]);
-  const [error, setError] = useState<string | null>(null);
   const [debugMessages, setDebugMessages] = useState<string[]>([]);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const issueDedupeRef = useRef<{ signature: string; at: number } | null>(null);
 
   const localPlayerName = normalizePlayerName(localPlayerNameInput, fallbackPlayerName);
 
   roleRef.current = role;
-  roomMaxPlayersRef.current = roomMaxPlayers;
   gameStateRef.current = gameState;
   applyGameActionAsHostRef.current = applyGameActionAsHost;
   replaceGameStateRef.current = replaceGameState;
@@ -151,9 +145,24 @@ export function useMultiplayer({
     });
   }, [addChatMessage]);
 
-  const setRoomMaxPlayers = useCallback((maxPlayers: number) => {
-    setRoomMaxPlayersState(clampRoomMaxPlayers(maxPlayers));
-  }, []);
+  const addIssueMessage = useCallback((text: string) => {
+    addChatMessage({
+      id: createMessageId(),
+      kind: "issue",
+      playerId: null,
+      playerName: null,
+      text,
+      sentAtMs: Date.now()
+    });
+  }, [addChatMessage]);
+
+  const addIssueMessageDeduped = useCallback((text: string, signature: string) => {
+    const now = Date.now();
+    const prev = issueDedupeRef.current;
+    if (prev && prev.signature === signature && now - prev.at < 2500) return;
+    issueDedupeRef.current = { signature, at: now };
+    addIssueMessage(text);
+  }, [addIssueMessage]);
 
   const setLocalPlayerName = useCallback((name: string) => {
     setLocalPlayerNameInput(name);
@@ -228,7 +237,7 @@ export function useMultiplayer({
     if (role === "host") {
       const current = playersRef.current.find((player) => player.id === localPlayerIdRef.current);
       if (!current || isSymbolTaken(playersRef.current, symbol, current.id)) {
-        setError(t("multiplayer.errors.symbolTaken"));
+        addIssueMessageDeduped(t("multiplayer.errors.symbolTaken"), "symbolTaken");
         return;
       }
       const updated = { ...current, symbol };
@@ -242,7 +251,7 @@ export function useMultiplayer({
       playerId: localPlayerIdRef.current,
       symbol
     });
-  }, [role, updatePlayer]);
+  }, [role, updatePlayer, addIssueMessageDeduped]);
 
   const clearMultiplayerUi = useCallback(() => {
     serviceRef.current?.close();
@@ -254,7 +263,6 @@ export function useMultiplayer({
     setRoomCode("");
     setLocalSymbol(preferredSymbol);
     setPlayers([]);
-    setError(null);
     setDebugMessages([]);
     setChatMessages([]);
     roleRef.current = "offline";
@@ -273,7 +281,7 @@ export function useMultiplayer({
       if (assignedSymbol === null) {
         serviceRef.current?.sendTo(connectionId, {
           type: "ERROR",
-          message: t("multiplayer.roomFull", { maxPlayers: roomMaxPlayersRef.current })
+          message: t("multiplayer.roomFull", { maxPlayers: MAX_ROOM_PLAYERS })
         });
         window.setTimeout(() => serviceRef.current?.closeConnection(connectionId), 0);
         addDebugMessage(t("multiplayer.debugRoomFull", { player: message.playerName }));
@@ -375,12 +383,29 @@ export function useMultiplayer({
       return;
     }
 
-    if (message.type === "PLAYER_PROFILE_UPDATED") {
-      const previousPlayer = playersRef.current.find((player) => player.id === message.player.id);
-      updatePlayer(message.player);
-      if (previousPlayer?.connected && !message.player.connected) {
-        addSystemMessage(t("multiplayer.system.playerDisconnected", { player: message.player.name }));
+    if (message.type === "PLAYER_LEFT") {
+      const leaving = playersRef.current.find((player) => player.id === message.playerId);
+      const nextPlayers = playersRef.current.filter((player) => player.id !== message.playerId);
+      playersRef.current = nextPlayers;
+      setPlayers(nextPlayers);
+      if (leaving) {
+        addSystemMessage(t("multiplayer.system.playerLeftRoom", { player: leaving.name }));
       }
+      return;
+    }
+
+    if (message.type === "PLAYER_PROFILE_UPDATED") {
+      if (!message.player.connected) {
+        const leaving = playersRef.current.find((player) => player.id === message.player.id);
+        const nextPlayers = playersRef.current.filter((player) => player.id !== message.player.id);
+        playersRef.current = nextPlayers;
+        setPlayers(nextPlayers);
+        if (leaving) {
+          addSystemMessage(t("multiplayer.system.playerLeftRoom", { player: leaving.name }));
+        }
+        return;
+      }
+      updatePlayer(message.player);
       return;
     }
 
@@ -402,18 +427,12 @@ export function useMultiplayer({
     }
 
     if (message.type === "ERROR") {
-      setError(message.message);
-      addSystemMessage(message.message);
-      setStatus("error");
+      addIssueMessage(humanizeWireErrorMessage(message.message));
+      return;
     }
-  }, [addChatMessage, addDebugMessage, addSystemMessage, updatePlayer]);
+  }, [addChatMessage, addDebugMessage, addIssueMessage, addSystemMessage, updatePlayer]);
 
-  const createRoom = useCallback((maxPlayersOverride?: number) => {
-    if (typeof maxPlayersOverride === "number" && Number.isFinite(maxPlayersOverride)) {
-      const clamped = clampRoomMaxPlayers(maxPlayersOverride);
-      setRoomMaxPlayersState(clamped);
-      roomMaxPlayersRef.current = clamped;
-    }
+  const createRoom = useCallback(() => {
     resetSession();
     setRole("host");
     roleRef.current = "host";
@@ -446,32 +465,40 @@ export function useMultiplayer({
         if (!playerId) return;
         connectionPlayersRef.current.delete(connectionId);
         const disconnectedPlayer = playersRef.current.find((player) => player.id === playerId);
-        const nextPlayers = playersRef.current.map((player) => (
-          player.id === playerId ? { ...player, connected: false } : player
-        ));
-        playersRef.current = nextPlayers;
-        setPlayers(nextPlayers);
-        setStatus(nextPlayers.some((player) => player.id !== localPlayerIdRef.current && player.connected) ? "connected" : "waiting");
-        if (disconnectedPlayer) {
-          serviceRef.current?.broadcast({ type: "PLAYER_PROFILE_UPDATED", player: { ...disconnectedPlayer, connected: false } });
-          addSystemMessage(t("multiplayer.system.playerDisconnected", { player: disconnectedPlayer.name }));
-        }
-        if (disconnectedPlayer?.symbol && gameStateRef.current.activePlayerIds.includes(disconnectedPlayer.symbol)) {
-          const nextState = applyGameActionAsHostRef.current({
+        if (!disconnectedPlayer || disconnectedPlayer.id === localPlayerIdRef.current) return;
+
+        let nextState: GameState | null = null;
+        if (disconnectedPlayer.symbol && gameStateRef.current.activePlayerIds.includes(disconnectedPlayer.symbol)) {
+          nextState = applyGameActionAsHostRef.current({
             type: "forfeitPlayer",
             playerId: disconnectedPlayer.symbol,
             reason: "disconnect"
           });
+        }
+
+        const nextPlayers = playersRef.current.filter((player) => player.id !== playerId);
+        playersRef.current = nextPlayers;
+        setPlayers(nextPlayers);
+        setStatus(nextPlayers.some((player) => player.id !== localPlayerIdRef.current && player.connected) ? "connected" : "waiting");
+
+        serviceRef.current?.broadcast({ type: "PLAYER_LEFT", playerId });
+        if (nextState) {
           serviceRef.current?.broadcast({ type: "GAME_STATE_SYNC", state: nextState });
         }
+        addSystemMessage(t("multiplayer.system.playerLeftRoom", { player: disconnectedPlayer.name }));
       },
-      onError: (nextError) => {
-        setError(nextError.message);
-        addSystemMessage(nextError.message);
-        setStatus("error");
+      onConnectionSetupFailed: (remotePeerId, err) => {
+        const text = humanizeWireErrorMessage(err.message);
+        addIssueMessageDeduped(text, `hostSetup:${remotePeerId}:${text}`);
+        addDebugMessage(err.message);
+      },
+      onFatalError: (err) => {
+        const text = humanizeWireErrorMessage(err.message);
+        addIssueMessageDeduped(text, `hostFatal:${err.message}`);
+        addDebugMessage(err.message);
       }
     });
-  }, [addSystemMessage, handleHostMessage, preferredSymbol, resetSession]);
+  }, [addDebugMessage, addIssueMessageDeduped, addSystemMessage, handleHostMessage, preferredSymbol, resetSession]);
 
   const joinRoom = useCallback((nextRoomCode: string) => {
     const trimmedRoomCode = nextRoomCode.trim();
@@ -506,18 +533,28 @@ export function useMultiplayer({
       onClose: () => {
         if (roleRef.current !== "client") return;
         resetSession();
-        addSystemMessage(t("multiplayer.system.hostDisconnected"));
+        queueMicrotask(() => {
+          addSystemMessage(t("multiplayer.system.hostDisconnected"));
+        });
       },
-      onError: (nextError) => {
-        const msg = nextError.message;
+      onConnectionSetupFailed: (_remotePeerId, err) => {
         if (roleRef.current !== "client") return;
+        const text = humanizeWireErrorMessage(err.message);
         resetSession();
-        setError(msg);
-        setStatus("error");
-        addSystemMessage(msg);
+        queueMicrotask(() => {
+          addIssueMessage(text);
+        });
+      },
+      onFatalError: (err) => {
+        if (roleRef.current !== "client") return;
+        const text = humanizeWireErrorMessage(err.message);
+        resetSession();
+        queueMicrotask(() => {
+          addIssueMessage(text);
+        });
       }
     });
-  }, [addSystemMessage, handleClientMessage, preferredSymbol, resetSession]);
+  }, [addIssueMessage, addSystemMessage, handleClientMessage, preferredSymbol, resetSession]);
 
   const sendDebugMessage = useCallback(() => {
     const message: NetworkMessage = {
@@ -582,7 +619,8 @@ export function useMultiplayer({
   const isHost = role === "host";
   const isClient = role === "client";
   const canEditConfig = !isClient;
-  const canStartNewGame = !isClient;
+  const rosterHumansWithSymbol = players.filter((player) => player.connected && player.symbol !== null).length;
+  const canStartNewGame = !isClient && (!isOnline || rosterHumansWithSymbol >= 2);
   const canUseUndoRedo = !isClient;
   const canChangeProfile = !isOnline || canChangeProfileForState(gameState);
   const canPlayLocalTurn =
@@ -590,8 +628,7 @@ export function useMultiplayer({
     (localSymbol !== null &&
       localSymbol === gameState.currentPlayer &&
       status !== "connecting" &&
-      status !== "creating-room" &&
-      status !== "error");
+      status !== "creating-room");
 
   return {
     role,
@@ -601,12 +638,9 @@ export function useMultiplayer({
     localPlayerName,
     localPlayerNameInput,
     localSymbol,
-    roomMaxPlayers,
-    minRoomPlayers: MIN_ROOM_PLAYERS,
-    maxRoomPlayers: MAX_ROOM_PLAYERS,
+    roomMaxPlayers: MAX_ROOM_PLAYERS,
     availableSymbols: getAvailableSymbols(players, localPlayerId),
     players,
-    error,
     debugMessages,
     chatMessages,
     isOnline,
@@ -620,7 +654,6 @@ export function useMultiplayer({
     createRoom,
     setLocalPlayerName,
     requestSymbolChange,
-    setRoomMaxPlayers,
     joinRoom,
     leaveRoom: resetSession,
     sendDebugMessage,
@@ -629,11 +662,6 @@ export function useMultiplayer({
     sendClockTimeoutClaim,
     syncGameState
   };
-}
-
-function clampRoomMaxPlayers(maxPlayers: number): number {
-  if (!Number.isFinite(maxPlayers)) return DEFAULT_PLAYER_ROOM_SIZE;
-  return Math.min(MAX_ROOM_PLAYERS, Math.max(MIN_ROOM_PLAYERS, Math.round(maxPlayers)));
 }
 
 function getAssignableSymbol(

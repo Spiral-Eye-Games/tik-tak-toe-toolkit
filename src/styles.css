@@ -493,11 +493,16 @@ body, #root { height: 100vh; }
   gap: 10px;
 }
 
-.multiplayer-create-row {
-  display: grid;
-  grid-template-columns: minmax(0, 120px) minmax(0, 1fr);
+.multiplayer-create-block {
+  display: flex;
+  flex-direction: column;
   gap: 10px;
-  align-items: end;
+}
+
+.multiplayer-create-section-title {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .multiplayer-room-field input,
@@ -776,6 +781,11 @@ body, #root { height: 100vh; }
 
 .multiplayer-chat-message.system {
   color: #69d2fc;
+  font-weight: 800;
+}
+
+.multiplayer-chat-message.issue {
+  color: #f0a4a8;
   font-weight: 800;
 }
 
