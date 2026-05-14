@@ -8,7 +8,6 @@ import { TopBar } from "./components/TopBar";
 import { DEFAULT_CONFIG, DEFAULT_ROSTER } from "./game/defaults";
 import { loadLastSettings } from "./game/sessionCache";
 import { t } from "./i18n";
-import { isDev } from "./isDev";
 import { getStatusText } from "./game/formatters";
 import { createInitialGameState, reduceGameState } from "./game/reducer";
 import { mustMovePiece } from "./game/rules";
@@ -20,7 +19,6 @@ import { usePendingGravityRotation } from "./hooks/usePendingGravityRotation";
 import { useMultiplayer } from "./multiplayer/useMultiplayer";
 
 export default function App() {
-  const isDevUrl = useMemo(() => isDev(), []);
   const skipDraftPersistForClientRef = useRef(false);
 
   const {
@@ -56,7 +54,7 @@ export default function App() {
     applyGameActionAsHost: applyGameAction,
     replaceGameState,
     replaceDraftConfig,
-    persistNickname: !isDevUrl,
+    persistNickname: true,
     onClientSessionEnd: restoreCachedSettingsAfterClientSession
   });
   skipDraftPersistForClientRef.current = multiplayer.isClient;
@@ -180,7 +178,7 @@ export default function App() {
         onClose={closeModal}
       />
 
-      {isDevUrl && <FloatingMultiplayerPanel multiplayer={multiplayer} />}
+      <FloatingMultiplayerPanel multiplayer={multiplayer} />
 
       {multiplayer.hostDisconnectedToastOpen && (
         <div className="host-disconnect-toast-layer" role="status" aria-live="polite">
