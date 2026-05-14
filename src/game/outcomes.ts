@@ -87,7 +87,7 @@ function resolveForfeitLoss(snapshot: GameSnapshot, config: GameConfig, playerId
   }
 
   snapshot.eliminationOrderLose.push(playerId);
-  if (config.eliminateLosers) {
+  if (config.removeOutOfGamePieces) {
     removeAllPiecesForPlayer(snapshot, config, playerId);
   }
   snapshot.activePlayerIds = oldActive.filter((id) => id !== playerId);
@@ -128,7 +128,7 @@ function handleWinningLine(
   activeCount: number,
   label: (id: PlayerId) => string
 ): void {
-  if (!config.continueRanking) {
+  if (config.singleWinner) {
     snapshot.gameOver = true;
     snapshot.gameEndSummary = { type: "winner", winnerId: snapshot.currentPlayer };
     snapshot.statusMessage = t("gameOver.win", {
@@ -144,7 +144,7 @@ function handleWinningLine(
   if (activeCount === 2) {
     const loserId = oldActive.find((id) => id !== winnerId);
     snapshot.placementOrderWin.push(winnerId);
-    if (config.eliminateWinners) {
+    if (config.removeOutOfGamePieces) {
       removeAllPiecesForPlayer(snapshot, config, winnerId);
     }
     snapshot.activePlayerIds = [];
@@ -157,7 +157,7 @@ function handleWinningLine(
   }
 
   snapshot.placementOrderWin.push(winnerId);
-  if (config.eliminateWinners) {
+  if (config.removeOutOfGamePieces) {
     removeAllPiecesForPlayer(snapshot, config, winnerId);
   }
   snapshot.activePlayerIds = oldActive.filter((id) => id !== winnerId);
@@ -218,7 +218,7 @@ function handleLosingLine(
 
   const eliminatedId = snapshot.currentPlayer;
   snapshot.eliminationOrderLose.push(eliminatedId);
-  if (config.eliminateLosers) {
+  if (config.removeOutOfGamePieces) {
     removeAllPiecesForPlayer(snapshot, config, eliminatedId);
   }
 
@@ -328,7 +328,7 @@ export function resolveBankTimeoutLoss(snapshot: GameSnapshot, config: GameConfi
 
   const eliminatedId = timedOutId;
   snapshot.eliminationOrderLose.push(eliminatedId);
-  if (config.eliminateLosers) {
+  if (config.removeOutOfGamePieces) {
     removeAllPiecesForPlayer(snapshot, config, eliminatedId);
   }
 

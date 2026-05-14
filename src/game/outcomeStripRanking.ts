@@ -63,7 +63,7 @@ function inProgressDisplayOrder(state: GameState, participants: PlayerId[]): Pla
   const { config } = state;
   const order: PlayerId[] = [];
 
-  if (config.lineRule === "win" && config.continueRanking) {
+  if (config.lineRule === "win" && !config.singleWinner) {
     for (const id of state.placementOrderWin) {
       if (participants.includes(id) && !order.includes(id)) order.push(id);
     }
@@ -95,7 +95,7 @@ function legacyStripRows(state: GameState): OutcomeStripRowModel[] {
     for (const id of state.eliminationOrderLose) {
       rows.push({ playerId: id, kind: "eliminated", place: { type: "none" } });
     }
-  } else if (state.config.lineRule === "win" && state.config.continueRanking) {
+  } else if (state.config.lineRule === "win" && !state.config.singleWinner) {
     for (const id of state.placementOrderWin) {
       rows.push({ playerId: id, kind: "round_won", place: { type: "none" } });
     }
@@ -136,7 +136,7 @@ export function buildOutcomeStripRows(state: GameState): OutcomeStripRowModel[] 
   return order.map((playerId) => {
     let place: OutcomePlaceSlot = { type: "provisional", value: 0 };
 
-    if (config.lineRule === "win" && config.continueRanking) {
+    if (config.lineRule === "win" && !config.singleWinner) {
       const winIdx = state.placementOrderWin.indexOf(playerId);
       if (winIdx >= 0) {
         /** Orden de llegada al “podio” provisional: 1 = primero en completar línea, etc. */

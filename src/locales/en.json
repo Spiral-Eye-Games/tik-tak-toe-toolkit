@@ -123,9 +123,9 @@
     "collapseInfoTurns": "Collapses every {{amount}} completed turns, up to {{times}} times.",
     "collapseInfoRounds": "{{amount}} rounds × {{players}} players = {{turns}} turns between collapses, up to {{times}} times.",
     "playerCount": "Number of players",
-    "eliminateLosers": "Eliminate losers (remove their pieces when they complete a line)",
-    "continueRanking": "Continue for ranking (multiple winners in order)",
-    "eliminateWinners": "Eliminate winners (remove their pieces when they complete a line in ranking)",
+    "removeOutOfGamePieces": "Clear pieces",
+    "removeOutOfGamePiecesTooltip": "When a player is out of the match (losing line, winning a ranking round and leaving play, forfeit, bank elimination, etc.), their pieces are removed from the board.",
+    "singleWinner": "Single winner only",
     "clockEnabled": "Enable clock",
     "clockType": "Clock type",
     "clockBankSeconds": "Total bank (s)",
@@ -381,9 +381,9 @@
       "movementEat": "Eat is active: enemy pieces reached by the pattern are removed.",
       "movementConvert": "Capture is active: jumped pieces become your own pieces.",
       "playerCount": "{{players}} players participate.",
-      "eliminateLosers": "When a player loses, their pieces are removed from the board.",
-      "continueRanking": "The match continues after the first winner to build standings.",
-      "eliminateWinners": "When a player wins a ranking round, their pieces are removed.",
+      "removeOutOfGamePieces": "When a player is out of the match, their pieces are removed from the board.",
+      "rankingContinues": "Win mode (3+ players): play continues after the first winner to build a ranking.",
+      "singleWinnerWinMode": "Win mode (3+ players): the match ends as soon as there is a first winner.",
       "brokenUntilEnd": "Rupture: abandoned cells stay broken until the end.",
       "brokenForTurns": "Rupture: abandoned cells stay broken for {{turns}} turns.",
       "gravityDirection": "Gravity: pieces fall toward {{direction}}.",
@@ -537,7 +537,7 @@
     },
     "players": {
       "title": "Players",
-      "html": "<p>This is where you choose how many players join and how matches with more than two players resolve.</p><h3>What you can configure</h3><ul><li><strong>Number of players</strong> uses the first players in the list, in that turn order.</li><li>With more than two players in <strong>Lose</strong> mode, <strong>Eliminate losers</strong> can clear their pieces when they are removed.</li><li>With more than two players in <strong>Win</strong> mode, <strong>Continue for ranking</strong> lets play continue after the first winner.</li><li>If ranking continues, <strong>Eliminate winners</strong> decides whether a winner's pieces are removed or kept as obstacles.</li></ul><h3>How it changes the game</h3><ul><li>In two-player matches, winning or losing ends the match normally.</li><li>In three-or-more-player matches, elimination options decide whether the board partially clears or keeps pieces that affect the remaining players.</li><li>Player icons and colors are edited from the players panel.</li></ul>"
+      "html": "<p>This is where you choose how many players join and how matches with more than two players resolve.</p><h3>What you can configure</h3><ul><li><strong>Number of players</strong> uses the first players in the list, in that turn order.</li><li>With more than two players, <strong>Remove out-of-game pieces</strong> (same row) clears the board pieces of anyone who is eliminated or leaves after winning a ranking round—regardless of other ranking options.</li><li>With more than two players in <strong>Win</strong> mode, <strong>Single winner only</strong> ends the match on the first completed winning line; if it is off, play continues for a full ranking.</li></ul><h3>How it changes the game</h3><ul><li>In two-player matches, winning or losing ends the match normally.</li><li>In three-or-more-player matches, clearing pieces changes whether eliminated players leave obstacles behind.</li><li>Player icons and colors are edited from the players panel.</li></ul>"
     },
     "clock": {
       "title": "Clock",

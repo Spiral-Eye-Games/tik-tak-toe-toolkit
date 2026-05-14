@@ -231,47 +231,52 @@ export function PlayersSettingsSection({
 
   return (
     <SettingsSection title={t("sections.players")} icon={<UsersRound aria-hidden="true" />} helpKey="players" onHelp={onHelp}>
-      <label className="field">
-        {t("fields.playerCount")}
-        <select
-          value={config.playerCount}
-          onChange={(event) => onChangeConfig({ playerCount: Number(event.target.value) })}
-        >
-          {playerOptions.map((value) => (
-            <option key={value} value={value}>{value}</option>
-          ))}
-        </select>
-      </label>
+      {config.playerCount > 2 ? (
+        <div className="field-row field-row--player-count">
+          <label className="field">
+            {t("fields.playerCount")}
+            <select
+              value={config.playerCount}
+              onChange={(event) => onChangeConfig({ playerCount: Number(event.target.value) })}
+            >
+              {playerOptions.map((value) => (
+                <option key={value} value={value}>{value}</option>
+              ))}
+            </select>
+          </label>
 
-      {config.lineRule === "lose" && config.playerCount > 2 && (
-        <label className="field checkbox boxed">
-          <span>{t("fields.eliminateLosers")}</span>
-          <input
-            type="checkbox"
-            checked={config.eliminateLosers}
-            onChange={(event) => onChangeConfig({ eliminateLosers: event.target.checked })}
-          />
+          <Tooltip text={t("fields.removeOutOfGamePiecesTooltip")} passAriaLabel={false}>
+            <label className="field checkbox boxed">
+              <span>{t("fields.removeOutOfGamePieces")}</span>
+              <input
+                type="checkbox"
+                checked={config.removeOutOfGamePieces}
+                onChange={(event) => onChangeConfig({ removeOutOfGamePieces: event.target.checked })}
+              />
+            </label>
+          </Tooltip>
+        </div>
+      ) : (
+        <label className="field">
+          {t("fields.playerCount")}
+          <select
+            value={config.playerCount}
+            onChange={(event) => onChangeConfig({ playerCount: Number(event.target.value) })}
+          >
+            {playerOptions.map((value) => (
+              <option key={value} value={value}>{value}</option>
+            ))}
+          </select>
         </label>
       )}
 
       {config.lineRule === "win" && config.playerCount > 2 && (
         <label className="field checkbox boxed">
-          <span>{t("fields.continueRanking")}</span>
+          <span>{t("fields.singleWinner")}</span>
           <input
             type="checkbox"
-            checked={config.continueRanking}
-            onChange={(event) => onChangeConfig({ continueRanking: event.target.checked })}
-          />
-        </label>
-      )}
-
-      {config.lineRule === "win" && config.playerCount > 2 && config.continueRanking && (
-        <label className="field checkbox boxed">
-          <span>{t("fields.eliminateWinners")}</span>
-          <input
-            type="checkbox"
-            checked={config.eliminateWinners}
-            onChange={(event) => onChangeConfig({ eliminateWinners: event.target.checked })}
+            checked={config.singleWinner}
+            onChange={(event) => onChangeConfig({ singleWinner: event.target.checked })}
           />
         </label>
       )}

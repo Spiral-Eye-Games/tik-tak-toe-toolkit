@@ -1196,7 +1196,8 @@ body, #root { height: 100vh; }
 
 .field-row--pieces-move,
 .field-row--restriction-start,
-.field-row--collapse-interval {
+.field-row--collapse-interval,
+.field-row--player-count {
   align-items: end;
 }
 
@@ -2722,7 +2723,7 @@ body, #root { height: 100vh; }
   .topbar { padding-left: 12px; padding-right: 12px; }
   .button.icon { min-width: 38px; height: 36px; }
   .layout { grid-template-columns: 1fr; }
-  .field-row, .field-row.compact, .field-row.toggle-and-number, .field-row.broken-rupture-row, .field-row.broken-rupture-per-player-row, .field-row--pieces-move, .field-row--restriction-start, .field-row--collapse-interval { grid-template-columns: 1fr; }
+  .field-row, .field-row.compact, .field-row.toggle-and-number, .field-row.broken-rupture-row, .field-row.broken-rupture-per-player-row, .field-row--pieces-move, .field-row--restriction-start, .field-row--collapse-interval, .field-row--player-count { grid-template-columns: 1fr; }
   .multiplayer-widget {
     right: 12px;
     bottom: 12px;

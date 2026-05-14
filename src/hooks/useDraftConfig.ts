@@ -49,9 +49,8 @@ export function useDraftConfig(options?: UseDraftConfigOptions) {
       }
 
       if (next.playerCount <= 2) {
-        next.eliminateLosers = false;
-        next.continueRanking = false;
-        next.eliminateWinners = false;
+        next.removeOutOfGamePieces = false;
+        next.singleWinner = false;
       }
 
       if (patch.pieceLimitType !== undefined || patch.pieceMoveMode !== undefined) {

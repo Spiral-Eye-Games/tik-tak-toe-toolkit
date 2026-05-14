@@ -6,7 +6,6 @@ import {
   DEFAULT_CLOCK_BANK_SECONDS,
   DEFAULT_CLOCK_PER_TURN_SECONDS,
   DEFAULT_CLOCK_RECOVER_SECONDS,
-  DEFAULT_ELIMINATE_WINNERS,
   DEFAULT_BROKEN_HOLE_DURATION_UNIT,
   DEFAULT_BROKEN_HOLE_TURNS,
   DEFAULT_GRAVITY_INITIAL_DIRECTION,
@@ -15,9 +14,11 @@ import {
   DEFAULT_LIMITED_PIECE_MOVE_MODE,
   DEFAULT_MAX_PIECES_PER_PLAYER,
   DEFAULT_PLAYER_COUNT,
+  DEFAULT_REMOVE_OUT_OF_GAME_PIECES,
   DEFAULT_RESTRICTION_START_TURNS,
   DEFAULT_RESTRICTION_START_UNIT,
   DEFAULT_ROSTER,
+  DEFAULT_SINGLE_WINNER,
   DEFAULT_UNLIMITED_PIECE_MOVE_MODE
 } from "./defaults";
 import type { ClockMode, CollapseType, GameConfig, GravityDirection, GravityRotateAngle, GravityRotateSpin, IntervalUnit, PieceMoveMode, RosterPlayer } from "./types";
@@ -195,6 +196,34 @@ export function sanitizeConfig(config: GameConfig): GameConfig {
   const restrictionMovementEatEnabled =
     !restrictionMovementConvertEnabled && restrictionMovementMode !== "normal" && Boolean(config.restrictionMovementEatEnabled);
 
+  const looseRanking = config as GameConfig & {
+    eliminateLosers?: boolean;
+    eliminateWinners?: boolean;
+    continueRanking?: boolean;
+  };
+
+  let removeOutOfGamePieces: boolean;
+  if (typeof config.removeOutOfGamePieces === "boolean") {
+    removeOutOfGamePieces = config.removeOutOfGamePieces;
+  } else {
+    const el = looseRanking.eliminateLosers;
+    const ew = looseRanking.eliminateWinners;
+    if (typeof el === "boolean" || typeof ew === "boolean") {
+      removeOutOfGamePieces = Boolean(el || ew);
+    } else {
+      removeOutOfGamePieces = DEFAULT_REMOVE_OUT_OF_GAME_PIECES;
+    }
+  }
+
+  let singleWinner: boolean;
+  if (typeof config.singleWinner === "boolean") {
+    singleWinner = config.singleWinner;
+  } else if (typeof looseRanking.continueRanking === "boolean") {
+    singleWinner = !looseRanking.continueRanking;
+  } else {
+    singleWinner = DEFAULT_SINGLE_WINNER;
+  }
+
   return {
     columns,
     rows,
@@ -225,9 +254,8 @@ export function sanitizeConfig(config: GameConfig): GameConfig {
     collapseKillsPlayers: Boolean(config.collapseKillsPlayers),
     roster,
     playerCount,
-    eliminateLosers: canUseRankingOptions && Boolean(config.eliminateLosers),
-    continueRanking: canUseRankingOptions && Boolean(config.continueRanking),
-    eliminateWinners: canUseRankingOptions && (typeof config.eliminateWinners === "boolean" ? config.eliminateWinners : DEFAULT_ELIMINATE_WINNERS),
+    removeOutOfGamePieces: canUseRankingOptions && Boolean(removeOutOfGamePieces),
+    singleWinner: canUseRankingOptions && Boolean(singleWinner),
     clockEnabled,
     clockMode,
     clockBankSeconds: clampInt(config.clockBankSeconds, 10, 7200, DEFAULT_CLOCK_BANK_SECONDS),

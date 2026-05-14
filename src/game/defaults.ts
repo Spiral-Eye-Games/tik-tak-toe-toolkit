@@ -46,9 +46,8 @@ export const DEFAULT_ROSTER: RosterPlayer[] = [
 ];
 
 export const DEFAULT_PLAYER_COUNT = 2;
-export const DEFAULT_ELIMINATE_LOSERS = true;
-export const DEFAULT_CONTINUE_RANKING = false;
-export const DEFAULT_ELIMINATE_WINNERS = false;
+export const DEFAULT_REMOVE_OUT_OF_GAME_PIECES = true;
+export const DEFAULT_SINGLE_WINNER = false;
 
 export const DEFAULT_CLOCK_ENABLED = false;
 export const DEFAULT_CLOCK_MODE: ClockMode = "bank";
@@ -95,9 +94,8 @@ export const DEFAULT_CONFIG: GameConfig = {
   collapseKillsPlayers: DEFAULT_COLLAPSE_KILLS_PLAYERS,
   roster: DEFAULT_ROSTER,
   playerCount: DEFAULT_PLAYER_COUNT,
-  eliminateLosers: DEFAULT_ELIMINATE_LOSERS,
-  continueRanking: DEFAULT_CONTINUE_RANKING,
-  eliminateWinners: DEFAULT_ELIMINATE_WINNERS,
+  removeOutOfGamePieces: DEFAULT_REMOVE_OUT_OF_GAME_PIECES,
+  singleWinner: DEFAULT_SINGLE_WINNER,
   clockEnabled: DEFAULT_CLOCK_ENABLED,
   clockMode: DEFAULT_CLOCK_MODE,
   clockBankSeconds: DEFAULT_CLOCK_BANK_SECONDS,

@@ -123,9 +123,9 @@
     "collapseInfoTurns": "Colapsa cada {{amount}} turnos completados, hasta {{times}} veces.",
     "collapseInfoRounds": "{{amount}} rondas × {{players}} jugadores = {{turns}} turnos entre colapsos, hasta {{times}} veces.",
     "playerCount": "Cantidad de jugadores",
-    "eliminateLosers": "Eliminar perdedores (sacar fichas al perder la raya)",
-    "continueRanking": "Seguir por el ranking (varios ganadores por orden)",
-    "eliminateWinners": "Eliminar ganadores (sacar fichas al ganar la raya en ranking)",
+    "removeOutOfGamePieces": "Limpiar fichas",
+    "removeOutOfGamePiecesTooltip": "Cuando un jugador queda fuera de la partida (pierde la raya, gana una ronda de ranking y deja de jugar, abandono, eliminación por tiempo, etc.), se retiran sus fichas del tablero.",
+    "singleWinner": "Solo un ganador",
     "clockEnabled": "Activar cronómetro",
     "clockType": "Tipo de reloj",
     "clockBankSeconds": "Banca total (s)",
@@ -381,9 +381,9 @@
       "movementEat": "Comer está activo: las fichas enemigas alcanzadas por el patrón se eliminan.",
       "movementConvert": "Capturar está activo: las fichas saltadas se convierten en fichas propias.",
       "playerCount": "Participan {{players}} jugadores.",
-      "eliminateLosers": "Cuando un jugador pierde, sus fichas se retiran del tablero.",
-      "continueRanking": "La partida continúa después del primer ganador para armar ranking.",
-      "eliminateWinners": "Cuando un jugador gana una ronda de ranking, sus fichas se retiran.",
+      "removeOutOfGamePieces": "Cuando un jugador queda fuera de la partida, sus fichas se retiran del tablero.",
+      "rankingContinues": "Modo ganar (3+ jugadores): la partida sigue tras el primer ganador para armar el ranking.",
+      "singleWinnerWinMode": "Modo ganar (3+ jugadores): la partida termina en cuanto hay un primer ganador.",
       "brokenUntilEnd": "Ruptura: las casillas abandonadas quedan rotas hasta el final.",
       "brokenForTurns": "Ruptura: las casillas abandonadas quedan rotas durante {{turns}} turnos.",
       "gravityDirection": "Gravedad: las fichas caen hacia {{direction}}.",
@@ -537,7 +537,7 @@
     },
     "players": {
       "title": "Jugadores",
-      "html": "<p>Acá elegís cuántos jugadores participan y cómo se resuelven partidas con más de dos.</p><h3>Qué podés configurar</h3><ul><li><strong>Cantidad de jugadores</strong> toma los primeros jugadores de la lista, en ese orden de turno.</li><li>Con más de dos jugadores y modo <strong>Perder</strong>, podés activar <strong>Eliminar perdedores</strong> para borrar sus fichas al quedar fuera.</li><li>Con más de dos jugadores y modo <strong>Ganar</strong>, <strong>Seguir por el ranking</strong> permite seguir jugando después del primer ganador.</li><li>Si seguís por ranking, <strong>Eliminar ganadores</strong> decide si las fichas del ganador se retiran o quedan como obstáculos.</li></ul><h3>Cómo impacta en el juego</h3><ul><li>En partidas de dos jugadores, ganar o perder termina la partida normalmente.</li><li>En partidas de tres o más, las opciones de eliminación definen si el tablero se limpia parcialmente o conserva piezas que condicionan al resto.</li><li>Los iconos y colores de jugadores se editan desde el panel de jugadores.</li></ul>"
+      "html": "<p>Acá elegís cuántos jugadores participan y cómo se resuelven partidas con más de dos.</p><h3>Qué podés configurar</h3><ul><li><strong>Cantidad de jugadores</strong> toma los primeros jugadores de la lista, en ese orden de turno.</li><li>Con más de dos jugadores, <strong>Quitar fichas fuera de juego</strong> (misma fila que la cantidad) borra del tablero las fichas de quien queda eliminado o sale tras ganar una ronda de ranking, sin depender de otras opciones de ranking.</li><li>Con más de dos jugadores y modo <strong>Ganar</strong>, <strong>Solo un ganador</strong> termina la partida en la primera raya ganadora; si está desactivado, se sigue para armar el ranking completo.</li></ul><h3>Cómo impacta en el juego</h3><ul><li>En partidas de dos jugadores, ganar o perder termina la partida normalmente.</li><li>En partidas de tres o más, quitar fichas cambia si los eliminados dejan obstáculos o no.</li><li>Los iconos y colores de jugadores se editan desde el panel de jugadores.</li></ul>"
     },
     "clock": {
       "title": "Cronómetro",

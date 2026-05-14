@@ -9,7 +9,8 @@ export function applySkipTurn(state: GameState): GameState {
     return state;
   }
 
-  const snap = cloneSnapshot(createSnapshot(state));
+  const previousSnapshot = createSnapshot(state);
+  const snap = cloneSnapshot(previousSnapshot);
   commitBankAfterVoluntaryPass(snap, state.config, Date.now(), { ignoreElapsed: state.turnNumber === 0 });
   snap.turnNumber++;
   snap.statusMessage = "";
@@ -21,5 +22,5 @@ export function applySkipTurn(state: GameState): GameState {
     restartTurnClock(snap, state.config, Date.now());
   }
 
-  return snapshotToState(state, snap, state.undoStack, []);
+  return snapshotToState(state, snap, [...state.undoStack, previousSnapshot], []);
 }

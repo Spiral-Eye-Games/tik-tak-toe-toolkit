@@ -84,7 +84,11 @@ export function Board({
             <div className="board-event-area__left-col">
               {showTimeline && (
                 <div className="board-event-area__timeline-clip">
-                  <BoardEventStrip state={state} rows={turnTimeline} />
+                  <BoardEventStrip
+                    state={state}
+                    rows={turnTimeline}
+                    onlineNameContext={victoryOnlineNameContext}
+                  />
                 </div>
               )}
               <BoardUndoRedoRow canUndo={canUndo} canRedo={canRedo} onUndo={onUndo} onRedo={onRedo} />

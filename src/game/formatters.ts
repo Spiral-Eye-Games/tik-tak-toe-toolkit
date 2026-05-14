@@ -58,6 +58,14 @@ export function getVictoryModalPlayerDisplayName(
   return getPlayerFigureDisplayName(playerId);
 }
 
+/** Etiqueta en la franja de turnos del tablero: offline → nombre de la figura; online → nickname si hay. */
+export function getBoardTimelineTurnLabel(
+  playerId: PlayerId,
+  context: VictoryOnlineNameContext | null | undefined
+): string {
+  return getVictoryModalPlayerDisplayName(playerId, context);
+}
+
 export function getColumnLetter(col: number): string {
   let label = "";
   let n = col;
@@ -138,14 +146,15 @@ export function buildRulesHtml(config: GameConfig): string {
     t("rules.current.playerCount", { players: config.playerCount })
   ];
 
-  if (config.playerCount > 2 && config.lineRule === "lose" && config.eliminateLosers) {
-    playerItems.push(t("rules.current.eliminateLosers"));
+  if (config.playerCount > 2 && config.removeOutOfGamePieces) {
+    playerItems.push(t("rules.current.removeOutOfGamePieces"));
   }
 
-  if (config.playerCount > 2 && config.lineRule === "win" && config.continueRanking) {
-    playerItems.push(t("rules.current.continueRanking"));
-    if (config.eliminateWinners) {
-      playerItems.push(t("rules.current.eliminateWinners"));
+  if (config.playerCount > 2 && config.lineRule === "win") {
+    if (config.singleWinner) {
+      playerItems.push(t("rules.current.singleWinnerWinMode"));
+    } else {
+      playerItems.push(t("rules.current.rankingContinues"));
     }
   }
 
@@ -355,5 +364,5 @@ export function victoryModalShowsRanking(config: GameConfig, summary: GameEndSum
   if (config.lineRule === "lose") {
     return config.playerCount > 2;
   }
-  return config.continueRanking;
+  return !config.singleWinner;
 }

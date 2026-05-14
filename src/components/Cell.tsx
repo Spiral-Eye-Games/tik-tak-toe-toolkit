@@ -23,7 +23,7 @@ function getPieceOutKind(state: GameState, piece: Piece | null): PieceOutKind {
   }
   if (
     state.config.lineRule === "win" &&
-    state.config.continueRanking &&
+    !state.config.singleWinner &&
     state.placementOrderWin.includes(piece.owner) &&
     !state.activePlayerIds.includes(piece.owner)
   ) {

@@ -81,9 +81,10 @@ export interface GameConfig {
   collapseKillsPlayers: boolean;
   roster: RosterPlayer[];
   playerCount: number;
-  eliminateLosers: boolean;
-  continueRanking: boolean;
-  eliminateWinners: boolean;
+  /** Con 3+ jugadores: retira del tablero las fichas de quien queda fuera (por perder/ganar ronda o abandono). */
+  removeOutOfGamePieces: boolean;
+  /** Con 3+ jugadores en modo ganar: si true, la partida termina al primer ganador (sin ranking). */
+  singleWinner: boolean;
   clockEnabled: boolean;
   clockMode: ClockMode;
   /** Modo banca: segundos iniciales (y tope tras recuperación) por jugador. */
