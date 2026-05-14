@@ -1,4 +1,4 @@
-import { RotateCcw, RotateCw } from "lucide-react";
+import { Clock, RotateCcw, RotateCw } from "lucide-react";
 import type { ReactNode } from "react";
 import { t } from "../i18n";
 
@@ -7,7 +7,7 @@ interface TopBarProps {
   children: ReactNode;
   /** Texto plano equivalente para accesibilidad (p. ej. `aria-label`). */
   statusAriaLabel: string;
-  /** Texto del cronómetro del jugador en turno (null = oculto). */
+  /** Tiempo del cronómetro del jugador en turno en MM:SS (null = oculto). */
   clockText: string | null;
   canUndo: boolean;
   canRedo: boolean;
@@ -29,8 +29,13 @@ export function TopBar({ children, statusAriaLabel, clockText, canUndo, canRedo,
               {children}
             </div>
             {clockText !== null && (
-              <div className="topbar-clock-pill" aria-live="polite">
-                {clockText}
+              <div
+                className="topbar-clock-pill"
+                aria-live="polite"
+                aria-label={t("topbar.clockAria", { time: clockText })}
+              >
+                <Clock className="topbar-clock-icon" aria-hidden size={18} strokeWidth={2.25} />
+                <span>{clockText}</span>
               </div>
             )}
           </div>

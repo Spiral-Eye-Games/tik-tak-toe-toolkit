@@ -140,6 +140,7 @@ body, #root { height: 100vh; }
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 6px;
   padding: 8px 14px;
   border-radius: 999px;
   background: rgba(120, 200, 255, 0.12);

@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { Dispatch } from "react";
 import { formatClockSecondsForDisplay, getClockRemainingSeconds, isClockEnabled } from "../game/clock";
 import type { GameAction, GameState } from "../game/types";
-import { t } from "../i18n";
 
 export function useGameClock(
   gameState: GameState,
@@ -39,6 +38,6 @@ export function useGameClock(
     if (gameState.gameOver || !isClockEnabled(gameState.config)) return null;
     const remaining = getClockRemainingSeconds(gameState, gameState.config, Date.now());
     if (remaining === null) return null;
-    return t("topbar.clock", { seconds: formatClockSecondsForDisplay(remaining) });
+    return formatClockSecondsForDisplay(remaining);
   }, [gameState, clockPulse]);
 }

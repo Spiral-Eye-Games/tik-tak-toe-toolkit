@@ -144,7 +144,7 @@
     "rounds": "Rondas"
   },
   "topbar": {
-    "clock": "{{seconds}} s"
+    "clockAria": "Tiempo restante: {{time}}"
   },
   "playersModal": {
     "title": "Jugadores",
