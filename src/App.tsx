@@ -5,7 +5,8 @@ import { MatchStatusBanner } from "./components/MatchStatusBanner";
 import { FloatingMultiplayerPanel } from "./components/MultiplayerPanel";
 import { Sidebar } from "./components/Sidebar";
 import { TopBar } from "./components/TopBar";
-import { DEFAULT_ROSTER } from "./game/defaults";
+import { DEFAULT_CONFIG, DEFAULT_ROSTER } from "./game/defaults";
+import { loadLastSettings } from "./game/sessionCache";
 import { getStatusText } from "./game/formatters";
 import { createInitialGameState, reduceGameState } from "./game/reducer";
 import { mustMovePiece } from "./game/rules";
@@ -17,12 +18,15 @@ import { usePendingGravityRotation } from "./hooks/usePendingGravityRotation";
 import { useMultiplayer } from "./multiplayer/useMultiplayer";
 
 export default function App() {
+  const isDevUrl = useMemo(() => hasDevQueryParam(), []);
+  const skipDraftPersistForClientRef = useRef(false);
+
   const {
     draftConfig,
     updateDraftConfig,
     sanitizeDraftConfig,
     replaceDraftConfig
-  } = useDraftConfig();
+  } = useDraftConfig({ skipPersistRef: skipDraftPersistForClientRef });
   const initialGameState = useMemo(() => createInitialGameState(draftConfig), []);
   const gameStateRef = useRef<GameState>(initialGameState);
   const [gameState, setGameState] = useState(initialGameState);
@@ -39,14 +43,21 @@ export default function App() {
     setGameState(state);
   }, []);
 
+  const restoreCachedSettingsAfterClientSession = useCallback(() => {
+    const nextConfig = replaceDraftConfig(loadLastSettings() ?? DEFAULT_CONFIG);
+    replaceGameState(createInitialGameState(nextConfig));
+  }, [replaceDraftConfig, replaceGameState]);
+
   const { modal, closeModal, openHelp, openRulesHelp } = useHelpModal(gameState);
   const multiplayer = useMultiplayer({
     gameState,
     applyGameActionAsHost: applyGameAction,
     replaceGameState,
-    replaceDraftConfig
+    replaceDraftConfig,
+    persistNickname: !isDevUrl,
+    onClientSessionEnd: restoreCachedSettingsAfterClientSession
   });
-  const showDevMultiplayer = useMemo(() => hasDevQueryParam(), []);
+  skipDraftPersistForClientRef.current = multiplayer.isClient;
   const connectedPlayerCount = Math.max(2, multiplayer.players.filter((player) => player.connected && player.symbol !== null).length);
   const onlinePlayerCountMax = multiplayer.isHost ? connectedPlayerCount : undefined;
 
@@ -176,7 +187,7 @@ export default function App() {
         onClose={closeModal}
       />
 
-      {showDevMultiplayer && <FloatingMultiplayerPanel multiplayer={multiplayer} />}
+      {isDevUrl && <FloatingMultiplayerPanel multiplayer={multiplayer} />}
     </div>
   );
 }

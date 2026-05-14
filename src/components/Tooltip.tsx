@@ -25,37 +25,43 @@ interface TooltipPos {
   maxWidth: number;
 }
 
-function measureTooltipPos(host: HTMLElement): TooltipPos {
+function measureTooltipPos(host: HTMLElement, tooltipWidth?: number, tooltipHeight?: number): TooltipPos {
   const r = host.getBoundingClientRect();
   const gap = 10;
+  const margin = 8;
   const vw = typeof window !== "undefined" ? window.innerWidth : 800;
   const vh = typeof window !== "undefined" ? window.innerHeight : 600;
   const maxWidth = Math.min(280, vw - 24);
+  const effectiveHeight = tooltipHeight ?? 96;
 
   let top = r.bottom + gap;
   let translateY = "0";
-  const estHeight = 96;
-  if (top + estHeight > vh - 12) {
+  if (top + effectiveHeight > vh - 12) {
     top = r.top - gap;
     translateY = "-100%";
   }
 
-  let left = r.left + r.width / 2;
-  const half = maxWidth / 2 + 12;
-  left = Math.max(half, Math.min(vw - half, left));
+  const center = r.left + r.width / 2;
+  const halfWidth = (tooltipWidth ?? maxWidth) / 2;
+  const minLeft = halfWidth + margin;
+  const maxLeft = vw - halfWidth - margin;
+  const left = Math.max(minLeft, Math.min(maxLeft, center));
 
   return { left, top, translateY, maxWidth };
 }
 
 export function Tooltip({ text, children, className, passAriaLabel = true }: TooltipProps) {
   const hostRef = useRef<HTMLSpanElement>(null);
+  const tooltipRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<TooltipPos | null>(null);
 
   const syncPosition = useCallback(() => {
     const host = hostRef.current;
     if (!host) return;
-    setPos(measureTooltipPos(host));
+    const tooltip = tooltipRef.current;
+    const tooltipRect = tooltip?.getBoundingClientRect();
+    setPos(measureTooltipPos(host, tooltipRect?.width, tooltipRect?.height));
   }, []);
 
   const show = useCallback(() => {
@@ -119,6 +125,7 @@ export function Tooltip({ text, children, className, passAriaLabel = true }: Too
     typeof document !== "undefined" &&
     createPortal(
       <div
+        ref={tooltipRef}
         className="tooltip-portal"
         style={{
           position: "fixed",

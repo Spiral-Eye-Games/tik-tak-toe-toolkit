@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DEFAULT_ROSTER } from "../game/defaults";
 import type { GameAction, GameConfig, GameState, PlayerId as GamePlayerId } from "../game/types";
+import { loadMultiplayerNickname, saveMultiplayerNickname } from "../game/sessionCache";
 import { t } from "../i18n";
 import { PeerService } from "./peerService";
 import type {
@@ -23,6 +24,10 @@ interface UseMultiplayerOptions {
   applyGameActionAsHost: (action: GameAction) => GameState;
   replaceGameState: (state: GameState) => void;
   replaceDraftConfig: (config: GameConfig) => void;
+  /** Si es `false`, no se escribe el nickname en `localStorage` (modo `?dev`). */
+  persistNickname?: boolean;
+  /** Al salir como cliente, restaurar config local guardada (p. ej. desde `App`). */
+  onClientSessionEnd?: () => void;
 }
 
 export interface MultiplayerState {
@@ -65,7 +70,9 @@ export function useMultiplayer({
   gameState,
   applyGameActionAsHost,
   replaceGameState,
-  replaceDraftConfig
+  replaceDraftConfig,
+  persistNickname = false,
+  onClientSessionEnd
 }: UseMultiplayerOptions): MultiplayerState {
   const serviceRef = useRef<PeerService | null>(null);
   const connectionPlayersRef = useRef(new Map<string, PlayerId>());
@@ -74,14 +81,17 @@ export function useMultiplayer({
   const applyGameActionAsHostRef = useRef(applyGameActionAsHost);
   const replaceGameStateRef = useRef(replaceGameState);
   const replaceDraftConfigRef = useRef(replaceDraftConfig);
+  const onClientSessionEndRef = useRef(onClientSessionEnd);
+  onClientSessionEndRef.current = onClientSessionEnd;
   const localPlayerId = useMemo(() => createPlayerId(), []);
   const fallbackPlayerName = useMemo(() => createPlayerName(), []);
-  const [localPlayerNameInput, setLocalPlayerNameInput] = useState("");
+  const [localPlayerNameInput, setLocalPlayerNameInput] = useState(() => loadMultiplayerNickname());
   const [preferredSymbol, setPreferredSymbol] = useState<GamePlayerId>(HOST_SYMBOL);
   const localPlayerIdRef = useRef(localPlayerId);
   const localPlayerNameRef = useRef(fallbackPlayerName);
 
   const [role, setRole] = useState<NetworkRole>("offline");
+  const roleRef = useRef<NetworkRole>("offline");
   const [status, setStatus] = useState<ConnectionStatus>("offline");
   const [roomCode, setRoomCode] = useState("");
   const [localSymbol, setLocalSymbol] = useState<GamePlayerId | null>(HOST_SYMBOL);
@@ -93,11 +103,17 @@ export function useMultiplayer({
 
   const localPlayerName = normalizePlayerName(localPlayerNameInput, fallbackPlayerName);
 
+  roleRef.current = role;
   gameStateRef.current = gameState;
   applyGameActionAsHostRef.current = applyGameActionAsHost;
   replaceGameStateRef.current = replaceGameState;
   replaceDraftConfigRef.current = replaceDraftConfig;
   localPlayerNameRef.current = localPlayerName;
+
+  useEffect(() => {
+    if (!persistNickname) return;
+    saveMultiplayerNickname(localPlayerNameInput.trim());
+  }, [localPlayerNameInput, persistNickname]);
 
   const addDebugMessage = useCallback((message: string) => {
     setDebugMessages((current) => [message, ...current].slice(0, 5));
@@ -213,7 +229,7 @@ export function useMultiplayer({
     });
   }, [role, updatePlayer]);
 
-  const resetSession = useCallback(() => {
+  const clearMultiplayerUi = useCallback(() => {
     serviceRef.current?.close();
     serviceRef.current = null;
     connectionPlayersRef.current.clear();
@@ -226,7 +242,15 @@ export function useMultiplayer({
     setError(null);
     setDebugMessages([]);
     setChatMessages([]);
+    roleRef.current = "offline";
   }, [preferredSymbol]);
+
+  const resetSession = useCallback(() => {
+    if (roleRef.current === "client") {
+      onClientSessionEndRef.current?.();
+    }
+    clearMultiplayerUi();
+  }, [clearMultiplayerUi]);
 
   const handleHostMessage = useCallback((message: NetworkMessage, connectionId: string) => {
     if (message.type === "HELLO") {
@@ -372,6 +396,7 @@ export function useMultiplayer({
   const createRoom = useCallback(() => {
     resetSession();
     setRole("host");
+    roleRef.current = "host";
     setStatus("creating-room");
     setLocalSymbol(preferredSymbol);
     const hostPlayers: NetworkPlayer[] = [{
@@ -433,6 +458,7 @@ export function useMultiplayer({
 
     resetSession();
     setRole("client");
+    roleRef.current = "client";
     setStatus("connecting");
     setRoomCode(trimmedRoomCode);
     const clientPlayers: NetworkPlayer[] = [{
@@ -457,13 +483,17 @@ export function useMultiplayer({
       },
       onMessage: handleClientMessage,
       onClose: () => {
+        if (roleRef.current !== "client") return;
+        resetSession();
         addSystemMessage(t("multiplayer.system.hostDisconnected"));
-        setStatus("disconnected");
       },
       onError: (nextError) => {
-        setError(nextError.message);
-        addSystemMessage(nextError.message);
+        const msg = nextError.message;
+        if (roleRef.current !== "client") return;
+        resetSession();
+        setError(msg);
         setStatus("error");
+        addSystemMessage(msg);
       }
     });
   }, [addSystemMessage, handleClientMessage, preferredSymbol, resetSession]);

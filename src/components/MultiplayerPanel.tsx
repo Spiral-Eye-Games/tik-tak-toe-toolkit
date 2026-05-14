@@ -111,7 +111,7 @@ export function MultiplayerPanel({ multiplayer }: MultiplayerPanelProps) {
 
           <div className="multiplayer-players">
             <span>{t("multiplayer.players")}</span>
-            <ul className="multiplayer-players-grid">
+            <ul className="multiplayer-players-strip" role="list">
               {multiplayer.players.map((player) => (
                 <li key={player.id} className={player.connected ? "" : "disconnected"}>
                   <span className="multiplayer-player-mark">

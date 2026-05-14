@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type RefObject } from "react";
 import {
   DEFAULT_CONFIG,
   DEFAULT_BROKEN_HOLE_TURNS,
@@ -13,14 +13,20 @@ import { movementSupportsConversion, normalizeRestrictionMovementMode, normalize
 import { loadLastSettings, saveLastSettings } from "../game/sessionCache";
 import type { GameConfig } from "../game/types";
 
-export function useDraftConfig() {
+export interface UseDraftConfigOptions {
+  /** Cuando `current` es `true`, no se escribe la config en `localStorage` (p. ej. cliente online). */
+  skipPersistRef?: RefObject<boolean>;
+}
+
+export function useDraftConfig(options?: UseDraftConfigOptions) {
   const [draftConfig, setDraftConfig] = useState<GameConfig>(
     () => sanitizeConfig(loadLastSettings() ?? DEFAULT_CONFIG)
   );
 
   useEffect(() => {
+    if (options?.skipPersistRef?.current) return;
     saveLastSettings(draftConfig);
-  }, [draftConfig]);
+  }, [draftConfig, options?.skipPersistRef]);
 
   function updateDraftConfig(patch: Partial<GameConfig>) {
     setDraftConfig((previous) => {

@@ -2,6 +2,7 @@ import { sanitizeConfig } from "./config";
 import type { GameConfig } from "./types";
 
 const STORAGE_KEY = "tateti-toolkit-last-settings-v1";
+const NICKNAME_STORAGE_KEY = "tateti-toolkit-multiplayer-nickname-v1";
 
 interface StoredPayload {
   version: 1;
@@ -32,6 +33,25 @@ export function saveLastSettings(config: GameConfig): void {
       config: { ...sanitized, roster: sanitized.roster.map((p) => ({ ...p })) }
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+  } catch {
+    /* ignore quota / private mode */
+  }
+}
+
+export function loadMultiplayerNickname(): string {
+  if (typeof localStorage === "undefined") return "";
+  try {
+    const raw = localStorage.getItem(NICKNAME_STORAGE_KEY);
+    return typeof raw === "string" ? raw : "";
+  } catch {
+    return "";
+  }
+}
+
+export function saveMultiplayerNickname(name: string): void {
+  if (typeof localStorage === "undefined") return;
+  try {
+    localStorage.setItem(NICKNAME_STORAGE_KEY, name);
   } catch {
     /* ignore quota / private mode */
   }

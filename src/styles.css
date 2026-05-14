@@ -592,34 +592,41 @@ body, #root { height: 100vh; }
   list-style: none;
 }
 
-.multiplayer-players-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+.multiplayer-players-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  align-content: flex-start;
   gap: 6px;
 }
 
-.multiplayer-players-grid li {
-  min-width: 0;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+.multiplayer-players-strip li {
+  flex: 0 0 auto;
+  display: inline-flex;
+  flex-wrap: nowrap;
   align-items: center;
-  gap: 5px;
-  padding: 4px 8px;
+  gap: 4px;
+  max-width: 100%;
+  white-space: nowrap;
+  padding: 3px 6px 3px 5px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.06);
   color: var(--text);
 }
 
-.multiplayer-players-grid li.disconnected {
+.multiplayer-players-strip li.disconnected {
   opacity: 0.45;
 }
 
 .multiplayer-player-mark {
   display: inline-grid;
   place-items: center;
+  flex-shrink: 0;
 }
 
 .multiplayer-player-name {
+  min-width: 0;
+  max-width: 9ch;
   overflow: hidden;
   font-size: 10px;
   font-weight: 900;
@@ -627,7 +634,7 @@ body, #root { height: 100vh; }
   white-space: nowrap;
 }
 
-.multiplayer-players-grid .multiplayer-symbol-glyph {
+.multiplayer-players-strip .multiplayer-symbol-glyph {
   font-size: 13px;
   width: 1.15em;
   height: 1.15em;
@@ -659,7 +666,7 @@ body, #root { height: 100vh; }
 }
 
 .multiplayer-chat-message.system {
-  color: var(--muted);
+  color: #f5d36a;
   font-weight: 800;
 }
 
