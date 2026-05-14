@@ -1698,10 +1698,13 @@ body, #root { height: 100vh; }
   flex-direction: column;
 }
 
-.board-event-area__skip-col {
+.board-event-area__fab-col {
   flex: 0 0 auto;
   align-self: flex-start;
   pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .board-event-strip {
@@ -1781,6 +1784,110 @@ body, #root { height: 100vh; }
 .board-skip-turn-fab__btn:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+}
+
+.board-surrender-fab {
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
+.board-surrender-fab__btn {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(40px, 8cqw, 48px);
+  height: clamp(40px, 8cqw, 48px);
+  padding: 0;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 140, 140, 0.22);
+  background: linear-gradient(165deg, rgba(72, 38, 42, 0.92), rgba(38, 22, 26, 0.94));
+  color: #ffc9c9;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+}
+
+.board-surrender-fab__btn svg {
+  width: clamp(18px, 4.2cqw, 22px);
+  height: clamp(18px, 4.2cqw, 22px);
+  stroke-width: 2.5;
+}
+
+.board-surrender-fab__btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.board-surrender-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(8px, 2.5vw, 18px);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.board-surrender-backdrop {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(10, 12, 22, 0.82);
+  pointer-events: auto;
+}
+
+.board-surrender-panel {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 300px);
+  max-height: min(88%, 340px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border-radius: 18px;
+  background: radial-gradient(circle at top left, rgba(255, 140, 140, 0.11), transparent 42%), #1e2133;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+  pointer-events: auto;
+}
+
+.board-surrender-header {
+  padding: 14px 16px 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.board-surrender-title {
+  margin: 0;
+  font-size: clamp(16px, 4.5cqw, 19px);
+  font-weight: 1000;
+  text-align: center;
+  color: var(--text);
+}
+
+.board-surrender-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 12px 16px 10px;
+}
+
+.board-surrender-text {
+  margin: 0;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.board-surrender-actions {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 14px 14px;
 }
 
 .board-event-chip {
@@ -2100,6 +2207,12 @@ body, #root { height: 100vh; }
   background: rgba(255, 255, 255, 0.1);
   color: var(--text);
   border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.button.danger {
+  background: linear-gradient(165deg, rgba(190, 72, 72, 0.98), rgba(120, 38, 38, 0.95));
+  color: #fff8f8;
+  border: 1px solid rgba(255, 140, 140, 0.38);
 }
 
 .button.icon.danger {

@@ -20,9 +20,22 @@ import {
   DEFAULT_RESTRICTION_START_UNIT,
   DEFAULT_ROSTER,
   DEFAULT_SINGLE_WINNER,
+  DEFAULT_SKIP_TURN_BLOCK_MODE,
+  DEFAULT_SKIP_TURN_BLOCK_TURNS,
   DEFAULT_UNLIMITED_PIECE_MOVE_MODE
 } from "./defaults";
-import type { ClockMode, CollapseType, GameConfig, GravityDirection, GravityRotateAngle, GravityRotateSpin, IntervalUnit, PieceMoveMode, RosterPlayer } from "./types";
+import type {
+  ClockMode,
+  CollapseType,
+  GameConfig,
+  GravityDirection,
+  GravityRotateAngle,
+  GravityRotateSpin,
+  IntervalUnit,
+  PieceMoveMode,
+  RosterPlayer,
+  SkipTurnBlockMode
+} from "./types";
 import { t } from "../i18n";
 import {
   buildLegacyRestrictionStartBlockedCells,
@@ -77,6 +90,7 @@ const GRAVITY_ROTATE_ANGLES: GravityRotateAngle[] = ["90", "180", "270", "random
 const GRAVITY_ROTATE_SPINS: GravityRotateSpin[] = ["cw", "ccw", "random"];
 const COLLAPSE_TYPES: CollapseType[] = ["left", "right", "up", "down", "horizontal", "vertical", "circular"];
 const INTERVAL_UNITS: IntervalUnit[] = ["turns", "rounds"];
+const SKIP_TURN_BLOCK_MODES: SkipTurnBlockMode[] = ["turns", "rounds", "infinite"];
 
 export function normalizeGravityDirection(value: unknown): GravityDirection {
   return GRAVITY_DIRECTIONS.includes(value as GravityDirection) ? (value as GravityDirection) : DEFAULT_GRAVITY_INITIAL_DIRECTION;
@@ -96,6 +110,10 @@ export function normalizeCollapseType(value: unknown): CollapseType {
 
 export function normalizeIntervalUnit(value: unknown, fallback: IntervalUnit = "turns"): IntervalUnit {
   return INTERVAL_UNITS.includes(value as IntervalUnit) ? (value as IntervalUnit) : fallback;
+}
+
+function normalizeSkipTurnBlockMode(value: unknown): SkipTurnBlockMode {
+  return SKIP_TURN_BLOCK_MODES.includes(value as SkipTurnBlockMode) ? (value as SkipTurnBlockMode) : DEFAULT_SKIP_TURN_BLOCK_MODE;
 }
 
 /** Modo de conteo cuando el cronómetro está activo (solo `bank` | `perTurn`). */
@@ -225,6 +243,29 @@ export function sanitizeConfig(config: GameConfig): GameConfig {
     singleWinner = DEFAULT_SINGLE_WINNER;
   }
 
+  const configRecord = config as unknown as Record<string, unknown>;
+  const looseSkipLegacy = config as GameConfig & { skipTurnEnabled?: boolean };
+  let skipTurnBlockMode = normalizeSkipTurnBlockMode(configRecord.skipTurnBlockMode);
+  let skipTurnBlockTurns = clampInt(
+    Number(configRecord.skipTurnBlockTurns),
+    0,
+    99,
+    DEFAULT_SKIP_TURN_BLOCK_TURNS
+  );
+
+  const hasNewSkipFields =
+    configRecord.skipTurnBlockMode !== undefined || configRecord.skipTurnBlockTurns !== undefined;
+
+  if (!hasNewSkipFields && typeof looseSkipLegacy.skipTurnEnabled === "boolean") {
+    if (!looseSkipLegacy.skipTurnEnabled) {
+      skipTurnBlockMode = "infinite";
+      skipTurnBlockTurns = 0;
+    } else {
+      skipTurnBlockMode = "turns";
+      skipTurnBlockTurns = 0;
+    }
+  }
+
   return {
     columns,
     rows,
@@ -270,7 +311,8 @@ export function sanitizeConfig(config: GameConfig): GameConfig {
     restrictionMovementMode,
     restrictionMovementEatEnabled,
     restrictionMovementConvertEnabled,
-    skipTurnEnabled: Boolean(config.skipTurnEnabled)
+    skipTurnBlockTurns,
+    skipTurnBlockMode
   };
 }
 

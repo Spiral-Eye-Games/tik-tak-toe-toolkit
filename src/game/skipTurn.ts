@@ -2,10 +2,11 @@ import { commitBankAfterVoluntaryPass, clearClockPauseIfNoPendingGravity, isCloc
 import { scheduleGravityRotationIfDue } from "./gravity";
 import { cloneSnapshot, createSnapshot, snapshotToState } from "./history";
 import { advanceTurnAfterNoLine } from "./outcomes";
+import { isSkipTurnUnavailable } from "./skipTurnLock";
 import type { GameState } from "./types";
 
 export function applySkipTurn(state: GameState): GameState {
-  if (!state.config.skipTurnEnabled || state.gameOver || state.pendingGravityRotationTarget !== null) {
+  if (isSkipTurnUnavailable(state) || state.gameOver || state.pendingGravityRotationTarget !== null) {
     return state;
   }
 

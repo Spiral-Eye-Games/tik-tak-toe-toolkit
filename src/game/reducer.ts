@@ -5,6 +5,7 @@ import { createSnapshot, redoMove, undoMove } from "./history";
 import { playMove } from "./moves";
 import { forfeitPlayer } from "./outcomes";
 import { applySkipTurn } from "./skipTurn";
+import { applySurrender } from "./surrender";
 import { createBoard } from "./rules";
 import type { GameAction, GameConfig, GameState, PlayerId } from "./types";
 
@@ -68,6 +69,8 @@ export function reduceGameState(state: GameState, action: GameAction): GameState
       return applyClockPerTurnTimeout(state);
     case "skipTurn":
       return applySkipTurn(state);
+    case "surrender":
+      return applySurrender(state);
     default:
       return state;
   }

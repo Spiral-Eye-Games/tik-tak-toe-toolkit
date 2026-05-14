@@ -33,6 +33,11 @@ function brokenHoleTimePickerMode(config: GameConfig): TimeIntervalPickerMode {
   return config.brokenHoleDurationUnit === "rounds" ? "rounds" : "turns";
 }
 
+function skipTurnBlockPickerMode(config: GameConfig): TimeIntervalPickerMode {
+  if (config.skipTurnBlockMode === "infinite") return "infinite";
+  return config.skipTurnBlockMode === "rounds" ? "rounds" : "turns";
+}
+
 export function GeneralSettingsSection({ config, onChangeConfig, onHelp }: SidebarSectionProps) {
   const lineMax = Math.max(config.columns, config.rows);
 
@@ -87,12 +92,25 @@ export function GeneralSettingsSection({ config, onChangeConfig, onHelp }: Sideb
       </div>
 
       <div className="field-row">
-        <label className="field checkbox boxed">
-          <span>{t("fields.skipTurnEnabled")}</span>
-          <input
-            type="checkbox"
-            checked={config.skipTurnEnabled}
-            onChange={(event) => onChangeConfig({ skipTurnEnabled: event.target.checked })}
+        <label className="field">
+          {t("fields.skipTurnBlock")}
+          <TimeIntervalDraftInput
+            min={0}
+            max={99}
+            step={1}
+            allowedModes={["turns", "rounds", "infinite"]}
+            mode={skipTurnBlockPickerMode(config)}
+            value={config.skipTurnBlockTurns}
+            onValueCommit={(value) => onChangeConfig({ skipTurnBlockTurns: value })}
+            onModeChange={(nextMode) => {
+              if (nextMode === "infinite") {
+                onChangeConfig({ skipTurnBlockMode: "infinite" });
+              } else {
+                onChangeConfig({
+                  skipTurnBlockMode: nextMode === "rounds" ? "rounds" : "turns"
+                });
+              }
+            }}
           />
         </label>
       </div>

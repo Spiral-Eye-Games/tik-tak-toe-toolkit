@@ -68,7 +68,7 @@ export default function App() {
 
   const handleGameAction = useCallback((action: GameAction) => {
     if (multiplayer.isClient) {
-      if (action.type === "playMove" || action.type === "skipTurn") {
+      if (action.type === "playMove" || action.type === "skipTurn" || action.type === "surrender") {
         multiplayer.sendGameAction(action);
       }
       return;
@@ -76,7 +76,7 @@ export default function App() {
 
     if (
       multiplayer.isHost &&
-      (action.type === "playMove" || action.type === "skipTurn") &&
+      (action.type === "playMove" || action.type === "skipTurn" || action.type === "surrender") &&
       multiplayer.localSymbol !== gameState.currentPlayer
     ) {
       return;
@@ -175,6 +175,8 @@ export default function App() {
           victoryUndoDisabled={!multiplayer.canUseUndoRedo}
           skipTurnInteractive={multiplayer.canPlayLocalTurn}
           onSkipTurn={() => handleGameAction({ type: "skipTurn" })}
+          surrenderInteractive={multiplayer.canPlayLocalTurn}
+          onSurrender={() => handleGameAction({ type: "surrender" })}
           victoryOnlineNameContext={victoryOnlineNameContext}
         />
       </main>

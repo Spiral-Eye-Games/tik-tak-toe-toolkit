@@ -1,4 +1,14 @@
-import type { ClockMode, CollapseType, GameConfig, GravityDirection, IntervalUnit, PieceMoveMode, RestrictionMovementMode, RosterPlayer } from "./types";
+import type {
+  ClockMode,
+  CollapseType,
+  GameConfig,
+  GravityDirection,
+  IntervalUnit,
+  PieceMoveMode,
+  RestrictionMovementMode,
+  RosterPlayer,
+  SkipTurnBlockMode
+} from "./types";
 
 /** Tablero clásico 3×3, ganar con 3 en raya, fichas ilimitadas sin movimiento. */
 export const DEFAULT_COLUMNS = 3;
@@ -63,7 +73,8 @@ export const DEFAULT_RESTRICTION_MOVEMENT_MODE: RestrictionMovementMode = "norma
 export const DEFAULT_RESTRICTION_MOVEMENT_EAT_ENABLED = false;
 export const DEFAULT_RESTRICTION_MOVEMENT_CONVERT_ENABLED = false;
 
-export const DEFAULT_SKIP_TURN_ENABLED = false;
+export const DEFAULT_SKIP_TURN_BLOCK_TURNS = 0;
+export const DEFAULT_SKIP_TURN_BLOCK_MODE: SkipTurnBlockMode = "turns";
 
 export const DRAW_IF_NO_LEGAL_MOVES = true;
 
@@ -110,5 +121,6 @@ export const DEFAULT_CONFIG: GameConfig = {
   restrictionMovementMode: DEFAULT_RESTRICTION_MOVEMENT_MODE,
   restrictionMovementEatEnabled: DEFAULT_RESTRICTION_MOVEMENT_EAT_ENABLED,
   restrictionMovementConvertEnabled: DEFAULT_RESTRICTION_MOVEMENT_CONVERT_ENABLED,
-  skipTurnEnabled: DEFAULT_SKIP_TURN_ENABLED
+  skipTurnBlockTurns: DEFAULT_SKIP_TURN_BLOCK_TURNS,
+  skipTurnBlockMode: DEFAULT_SKIP_TURN_BLOCK_MODE
 };

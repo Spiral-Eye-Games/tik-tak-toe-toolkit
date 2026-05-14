@@ -58,15 +58,17 @@ export function resolveActivePlayerLine(snapshot: GameSnapshot, config: GameConf
   return false;
 }
 
-export function forfeitPlayer(state: GameState, playerId: PlayerId): GameState {
+type ForfeitKind = "disconnect" | "surrender";
+
+export function forfeitPlayer(state: GameState, playerId: PlayerId, kind: ForfeitKind = "disconnect"): GameState {
   if (state.gameOver || !state.activePlayerIds.includes(playerId)) return state;
 
   const snap = cloneSnapshot(createSnapshot(state));
-  resolveForfeitLoss(snap, state.config, playerId);
+  resolveForfeitLoss(snap, state.config, playerId, kind);
   return snapshotToState(state, snap, state.undoStack, []);
 }
 
-function resolveForfeitLoss(snapshot: GameSnapshot, config: GameConfig, playerId: PlayerId): void {
+function resolveForfeitLoss(snapshot: GameSnapshot, config: GameConfig, playerId: PlayerId, kind: ForfeitKind): void {
   if (snapshot.gameOver || !snapshot.activePlayerIds.includes(playerId)) return;
 
   const oldActive = [...snapshot.activePlayerIds];
@@ -81,7 +83,9 @@ function resolveForfeitLoss(snapshot: GameSnapshot, config: GameConfig, playerId
     const winnerId = oldActive.find((id) => id !== playerId);
     snapshot.gameEndSummary = winnerId ? { type: "winner", winnerId, loserId: playerId } : { type: "draw" };
     snapshot.statusMessage = winnerId
-      ? t("gameOver.forfeit", { loser: label(playerId), winner: label(winnerId) })
+      ? kind === "surrender"
+        ? t("gameOver.surrender", { loser: label(playerId), winner: label(winnerId) })
+        : t("gameOver.forfeit", { loser: label(playerId), winner: label(winnerId) })
       : t("gameOver.draw");
     return;
   }

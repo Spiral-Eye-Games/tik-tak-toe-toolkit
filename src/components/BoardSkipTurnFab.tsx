@@ -1,14 +1,15 @@
 import { SkipForward } from "lucide-react";
-import { t } from "../i18n";
 import { Tooltip } from "./Tooltip";
 
 interface BoardSkipTurnFabProps {
   disabled: boolean;
+  /** Texto visible y accesible (tooltips cuando está desactivado incluidos). */
+  tooltip: string;
   onSkipTurn: () => void;
 }
 
-export function BoardSkipTurnFab({ disabled, onSkipTurn }: BoardSkipTurnFabProps) {
-  const label = t("board.skipTurn.tooltip");
+export function BoardSkipTurnFab({ disabled, tooltip, onSkipTurn }: BoardSkipTurnFabProps) {
+  const label = tooltip;
 
   return (
     <div className="board-skip-turn-fab">

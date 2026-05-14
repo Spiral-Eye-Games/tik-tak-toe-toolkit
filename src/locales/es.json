@@ -96,7 +96,7 @@
     "lose": "Perder",
     "win": "Ganar",
     "lineLength": "N en raya",
-    "skipTurnEnabled": "Permitir omitir turno",
+    "skipTurnBlock": "Espera antes de omitir",
     "quantity": "Cantidad",
     "pieceMovement": "Movimiento",
     "restrictionMode": "Modo",
@@ -413,6 +413,7 @@
     "clockBankOut": "{{loser}} se quedó sin tiempo. Gana {{winner}}.",
     "collapseOut": "{{loser}} se quedó sin fichas por el colapso. Gana {{winner}}.",
     "forfeit": "{{loser}} se desconectó. Gana {{winner}}.",
+    "surrender": "{{loser}} se rindió. Gana {{winner}}.",
     "winAfterMark": " formó {{lineLength}} en raya y ganó.",
     "loseAfterMark": " formó {{lineLength}} en raya y perdió.",
     "survivorBeforeMark": "¡",
@@ -486,7 +487,8 @@
       "unknownPlayer": "No se pudo validar tu jugador.",
       "hostOnlyAction": "Esa acción solo puede hacerla el host.",
       "notYourTurn": "No es tu turno.",
-      "skipTurnDisabled": "Omitir turno no está habilitado en esta partida.",
+      "skipTurnDisabled": "Todavía no podés omitir el turno o no está disponible en esta partida.",
+      "surrenderTooEarly": "Podés rendirte solo después de la primera ronda completa.",
       "symbolTaken": "Esa ficha ya está equipada por otro jugador."
     },
     "roles": {
@@ -512,7 +514,7 @@
   "help": {
     "general": {
       "title": "General",
-      "html": "<p>Acá definís la base de la partida: tamaño del tablero, objetivo y largo de la línea que decide el resultado.</p><h3>Qué podés configurar</h3><ul><li><strong>N Columnas</strong> y <strong>N Filas</strong> cambian el ancho y alto del tablero.</li><li><strong>Ganar / Perder</strong> decide si formar una raya te hace ganar o perder.</li><li><strong>N en raya</strong> define cuántas fichas seguidas activan esa condición.</li></ul><h3>Cómo impacta en el juego</h3><ul><li>Un tablero más grande da más espacio para variantes con gravedad, bloqueo o colapso.</li><li>Si elegís <strong>Perder</strong>, jugás en modo misère: la raya se vuelve algo a evitar.</li><li>El largo de la raya conviene que entre en el tablero; la app lo limita según filas y columnas.</li></ul>"
+      "html": "<p>Acá definís la base de la partida: tamaño del tablero, objetivo y largo de la línea que decide el resultado.</p><h3>Qué podés configurar</h3><ul><li><strong>N Columnas</strong> y <strong>N Filas</strong> cambian el ancho y alto del tablero.</li><li><strong>Ganar / Perder</strong> decide si formar una raya te hace ganar o perder.</li><li><strong>N en raya</strong> define cuántas fichas seguidas activan esa condición.</li><li><strong>Espera antes de omitir</strong> elige cuántos pasos tipo <strong>T</strong> (turnos/contadores de turno del motor) o <strong>R</strong> rondas completas debe esperarse antes de usar omitir turno; con <strong>∞</strong> el botón queda bloqueado toda la partida.</li></ul><h3>Cómo impacta en el juego</h3><ul><li>Un tablero más grande da más espacio para variantes con gravedad, bloqueo o colapso.</li><li>Si elegís <strong>Perder</strong>, jugás en modo misère: la raya se vuelve algo a evitar.</li><li>El largo de la raya conviene que entre en el tablero; la app lo limita según filas y columnas.</li></ul>"
     },
     "pieces": {
       "title": "Fichas",
@@ -552,7 +554,18 @@
     "outcomeBankChipTitle": "Banca: {{time}}",
     "outcomeAriaBank": "Banca restante {{time}}",
     "skipTurn": {
-      "tooltip": "Omitir turno"
+      "tooltip": "Omitir turno",
+      "tooltipNotYourTurn": "No es tu turno",
+      "tooltipLockedInfinite": "En esta partida no podés omitir turno.",
+      "tooltipLockedCooldown": "Podrás omitir en {{n}} turnos más."
+    },
+    "surrender": {
+      "tooltip": "Rendirse",
+      "tooltipTooEarly": "Rendirse (tras la primera ronda)",
+      "confirmTitle": "¿Rendirse?",
+      "confirmBody": "Perderás la partida al instante.",
+      "cancel": "Seguir jugando",
+      "confirm": "Rendirse"
     },
     "timeline": {
       "stripAriaLabel": "Turno actual y próximos eventos",

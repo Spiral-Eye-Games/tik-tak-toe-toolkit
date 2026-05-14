@@ -96,7 +96,7 @@
     "lose": "Lose",
     "win": "Win",
     "lineLength": "N in a row",
-    "skipTurnEnabled": "Allow skipping a turn",
+    "skipTurnBlock": "Delay before skipping",
     "quantity": "Quantity",
     "pieceMovement": "Movement",
     "restrictionMode": "Mode",
@@ -413,6 +413,7 @@
     "clockBankOut": "{{loser}} ran out of time. {{winner}} wins.",
     "collapseOut": "{{loser}} was left without pieces by the collapse. {{winner}} wins.",
     "forfeit": "{{loser}} disconnected. {{winner}} wins.",
+    "surrender": "{{loser}} surrendered. {{winner}} wins.",
     "winAfterMark": " formed {{lineLength}} in a row and won.",
     "loseAfterMark": " formed {{lineLength}} in a row and lost.",
     "survivorBeforeMark": "",
@@ -486,7 +487,8 @@
       "unknownPlayer": "Could not validate your player.",
       "hostOnlyAction": "Only the host can do that action.",
       "notYourTurn": "It is not your turn.",
-      "skipTurnDisabled": "Skipping a turn is not enabled for this match.",
+      "skipTurnDisabled": "Skipping a turn is not available yet or is disabled for this match.",
+      "surrenderTooEarly": "You can surrender only after the first full round.",
       "symbolTaken": "That piece is already equipped by another player."
     },
     "roles": {
@@ -512,7 +514,7 @@
   "help": {
     "general": {
       "title": "General",
-      "html": "<p>This is where you define the match foundation: board size, objective, and the line length that decides the result.</p><h3>What you can configure</h3><ul><li><strong>N Columns</strong> and <strong>N Rows</strong> change the board width and height.</li><li><strong>Win / Lose</strong> decides whether completing a line makes you win or lose.</li><li><strong>N in a row</strong> defines how many consecutive pieces trigger that condition.</li></ul><h3>How it changes the game</h3><ul><li>A larger board gives more room for variants with gravity, blocking, or collapse.</li><li>If you choose <strong>Lose</strong>, you play misère mode: completing a line becomes something to avoid.</li><li>The line length must fit on the board; the app limits it according to rows and columns.</li></ul>"
+      "html": "<p>This is where you define the match foundation: board size, objective, and the line length that decides the result.</p><h3>What you can configure</h3><ul><li><strong>N Columns</strong> and <strong>N Rows</strong> change the board width and height.</li><li><strong>Win / Lose</strong> decides whether completing a line makes you win or lose.</li><li><strong>N in a row</strong> defines how many consecutive pieces trigger that condition.</li><li><strong>Delay before skipping</strong> chooses how many <strong>T</strong> (turn-based steps) or <strong>R</strong> rounds, or whether skip is unavailable for the entire match (<strong>∞</strong>).</li></ul><h3>How it changes the game</h3><ul><li>A larger board gives more room for variants with gravity, blocking, or collapse.</li><li>If you choose <strong>Lose</strong>, you play misère mode: completing a line becomes something to avoid.</li><li>The line length must fit on the board; the app limits it according to rows and columns.</li></ul>"
     },
     "pieces": {
       "title": "Pieces",
@@ -552,7 +554,18 @@
     "outcomeBankChipTitle": "Bank: {{time}}",
     "outcomeAriaBank": "Bank remaining {{time}}",
     "skipTurn": {
-      "tooltip": "Skip turn"
+      "tooltip": "Skip turn",
+      "tooltipNotYourTurn": "Not your turn",
+      "tooltipLockedInfinite": "Skipping a turn is off for this match.",
+      "tooltipLockedCooldown": "Skip unlocks after {{n}} more turns."
+    },
+    "surrender": {
+      "tooltip": "Surrender",
+      "tooltipTooEarly": "Surrender (after the first round)",
+      "confirmTitle": "Surrender?",
+      "confirmBody": "You will lose this match immediately.",
+      "cancel": "Keep playing",
+      "confirm": "Surrender"
     },
     "timeline": {
       "stripAriaLabel": "Current turn and upcoming events",

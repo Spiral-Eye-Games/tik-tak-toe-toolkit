@@ -28,6 +28,8 @@ export type GravityRotateAngle = "90" | "180" | "270" | "random";
 export type GravityRotateSpin = "cw" | "ccw" | "random";
 export type CollapseType = "left" | "right" | "up" | "down" | "horizontal" | "vertical" | "circular";
 export type IntervalUnit = "turns" | "rounds";
+/** Bloqueo inicial del botón «omitir turno»: N turnos o rondas antes de permitirlo, o infinito (toda la partida). */
+export type SkipTurnBlockMode = IntervalUnit | "infinite";
 export type RestrictionStartZone = "edges" | "corners" | "center";
 export type RestrictionMovementMode =
   | "normal"
@@ -105,8 +107,12 @@ export interface GameConfig {
   restrictionMovementMode: RestrictionMovementMode;
   restrictionMovementEatEnabled: boolean;
   restrictionMovementConvertEnabled: boolean;
-  /** Si está activo, el jugador en turno puede pasar sin jugar (botón en tablero). */
-  skipTurnEnabled: boolean;
+  /**
+   * Turnos de juego (`turnNumber`) que deben transcurrir antes de poder omitir turno.
+   * Con modo `rounds`, cada unidad cuenta como una vuelta completa (× jugadores).
+   */
+  skipTurnBlockTurns: number;
+  skipTurnBlockMode: SkipTurnBlockMode;
 }
 
 export interface Piece {
@@ -174,7 +180,8 @@ export type GameAction =
   | { type: "completePendingGravityRotation" }
   | { type: "clockBankTimeout" }
   | { type: "clockPerTurnTimeout" }
-  | { type: "skipTurn" };
+  | { type: "skipTurn" }
+  | { type: "surrender" };
 
 export interface HelpContent {
   title: string;
