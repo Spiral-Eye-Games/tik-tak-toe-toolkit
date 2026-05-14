@@ -20,6 +20,7 @@ export interface RosterPlayer {
 }
 
 export type LineRule = "lose" | "win";
+export type ObjectiveExtraRuleId = "tieBreakMostPieces" | "exileEmptyBoard";
 export type PieceLimitType = "limited" | "unlimited";
 export type PieceMoveMode = "forcedOldest" | "limitMoveAny" | "limitedFree" | "blocked" | "free";
 
@@ -85,7 +86,6 @@ export interface GameConfig {
   collapseEveryTurns: number;
   collapseEveryUnit: IntervalUnit;
   collapseTimes: number;
-  collapseKillsPlayers: boolean;
   roster: RosterPlayer[];
   playerCount: number;
   /** Con 3+ jugadores: retira del tablero las fichas de quien queda fuera (por perder/ganar ronda o abandono). */
@@ -113,6 +113,10 @@ export interface GameConfig {
    */
   skipTurnBlockTurns: number;
   skipTurnBlockMode: SkipTurnBlockMode;
+  /**
+   * Condiciones opcionales de objetivo (multi-selección).
+   */
+  objectiveExtraRules: ObjectiveExtraRuleId[];
 }
 
 export interface Piece {

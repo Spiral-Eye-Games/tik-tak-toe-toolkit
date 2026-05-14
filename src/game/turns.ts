@@ -17,3 +17,21 @@ export function getNextTurnAfterPlayerRemoved(activePlayerIds: PlayerId[], remov
   }
   return activePlayerIds[0];
 }
+
+/** Siguiente jugador activo en el orden de `oldActive` tras eliminaciones. */
+export function getNextActivePlayerAfterChanges(
+  oldActive: PlayerId[],
+  activePlayerIds: PlayerId[],
+  afterPlayerId: PlayerId
+): PlayerId {
+  if (activePlayerIds.length === 0) return afterPlayerId;
+  const startIndex = oldActive.indexOf(afterPlayerId);
+  if (startIndex < 0) return activePlayerIds[0];
+
+  for (let step = 1; step <= oldActive.length; step++) {
+    const candidate = oldActive[(startIndex + step) % oldActive.length];
+    if (activePlayerIds.includes(candidate)) return candidate;
+  }
+
+  return activePlayerIds[0];
+}

@@ -22,7 +22,8 @@ import {
   DEFAULT_SINGLE_WINNER,
   DEFAULT_SKIP_TURN_BLOCK_MODE,
   DEFAULT_SKIP_TURN_BLOCK_TURNS,
-  DEFAULT_UNLIMITED_PIECE_MOVE_MODE
+  DEFAULT_UNLIMITED_PIECE_MOVE_MODE,
+  DEFAULT_OBJECTIVE_EXTRA_RULES
 } from "./defaults";
 import type {
   ClockMode,
@@ -32,6 +33,7 @@ import type {
   GravityRotateAngle,
   GravityRotateSpin,
   IntervalUnit,
+  ObjectiveExtraRuleId,
   PieceMoveMode,
   RosterPlayer,
   SkipTurnBlockMode
@@ -147,6 +149,15 @@ export function getResolvedCollapseInterval(config: GameConfig): number {
   if (!config.collapseEnabled) return 0;
   const base = clampInt(config.collapseEveryTurns, 1, 99, DEFAULT_COLLAPSE_EVERY_TURNS);
   return config.collapseEveryUnit === "rounds" ? base * config.playerCount : base;
+}
+
+function normalizeObjectiveExtraRules(raw: unknown): ObjectiveExtraRuleId[] {
+  if (!Array.isArray(raw)) return [...DEFAULT_OBJECTIVE_EXTRA_RULES];
+  const set = new Set<ObjectiveExtraRuleId>();
+  for (const item of raw) {
+    if (item === "tieBreakMostPieces" || item === "exileEmptyBoard") set.add(item);
+  }
+  return (["tieBreakMostPieces", "exileEmptyBoard"] as const).filter((id) => set.has(id));
 }
 
 export function sanitizeConfig(config: GameConfig): GameConfig {
@@ -294,7 +305,6 @@ export function sanitizeConfig(config: GameConfig): GameConfig {
     collapseEveryTurns: clampInt(config.collapseEveryTurns, 1, 99, DEFAULT_COLLAPSE_EVERY_TURNS),
     collapseEveryUnit,
     collapseTimes: clampInt(config.collapseTimes, 1, 99, DEFAULT_COLLAPSE_TIMES),
-    collapseKillsPlayers: Boolean(config.collapseKillsPlayers),
     roster,
     playerCount,
     removeOutOfGamePieces: canUseRankingOptions && Boolean(removeOutOfGamePieces),
@@ -312,7 +322,8 @@ export function sanitizeConfig(config: GameConfig): GameConfig {
     restrictionMovementEatEnabled,
     restrictionMovementConvertEnabled,
     skipTurnBlockTurns,
-    skipTurnBlockMode
+    skipTurnBlockMode,
+    objectiveExtraRules: normalizeObjectiveExtraRules(configRecord.objectiveExtraRules)
   };
 }
 

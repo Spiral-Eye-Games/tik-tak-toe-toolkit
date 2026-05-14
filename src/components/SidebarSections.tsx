@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowDown, ChevronsLeftRight, CircleDot, CircleOff, Grid3X3, Info, Lock, Timer, UsersRound } from "lucide-react";
+import { ArrowDown, ChevronsLeftRight, CircleDot, CircleOff, Grid3X3, Info, Lock, Target, Timer, UsersRound } from "lucide-react";
 import { DEFAULT_MAX_PIECES_PER_PLAYER } from "../game/defaults";
 import { normalizeClockStrategy } from "../game/config";
 import { movementSupportsConversion } from "../game/restrictions";
@@ -9,13 +9,15 @@ import type {
   GravityDirection,
   GravityRotateAngle,
   GravityRotateSpin,
-  LineRule,
-  RestrictionMovementMode
+  RestrictionMovementMode,
+  ObjectiveExtraRuleId
 } from "../game/types";
 import { t } from "../i18n";
 import { MovementInfoModal } from "./MovementInfoModal";
 import { NumericDraftInput } from "./NumericDraftInput";
 import { QuantityModeDraftInput, TimeIntervalDraftInput, type TimeIntervalPickerMode } from "./NumericModeInputs";
+import { CustomMultiSelect } from "./CustomMultiSelect";
+import { LineRuleSelect } from "./LineRuleSelect";
 import { PieceMoveModeSelect } from "./PieceMoveModeSelect";
 import { RestrictionGridModal } from "./RestrictionGridModal";
 import { SettingsSection } from "./SettingsSection";
@@ -38,9 +40,9 @@ function skipTurnBlockPickerMode(config: GameConfig): TimeIntervalPickerMode {
   return config.skipTurnBlockMode === "rounds" ? "rounds" : "turns";
 }
 
-export function GeneralSettingsSection({ config, onChangeConfig, onHelp }: SidebarSectionProps) {
-  const lineMax = Math.max(config.columns, config.rows);
+const OBJECTIVE_EXTRA_IDS = ["tieBreakMostPieces", "exileEmptyBoard"] as const satisfies readonly ObjectiveExtraRuleId[];
 
+export function GeneralSettingsSection({ config, onChangeConfig, onHelp }: SidebarSectionProps) {
   return (
     <SettingsSection title={t("sections.general")} icon={<Grid3X3 aria-hidden="true" />} helpKey="general" defaultOpen onHelp={onHelp}>
       <div className="field-row">
@@ -63,30 +65,6 @@ export function GeneralSettingsSection({ config, onChangeConfig, onHelp }: Sideb
             step={1}
             value={config.rows}
             onCommit={(value) => onChangeConfig({ rows: value })}
-          />
-        </label>
-      </div>
-
-      <div className="field-row compact">
-        <label className="field">
-          {t("fields.winLose")}
-          <select
-            value={config.lineRule}
-            onChange={(event) => onChangeConfig({ lineRule: event.target.value as LineRule })}
-          >
-            <option value="lose">{t("fields.lose")}</option>
-            <option value="win">{t("fields.win")}</option>
-          </select>
-        </label>
-
-        <label className="field">
-          {t("fields.lineLength")}
-          <NumericDraftInput
-            min={2}
-            max={lineMax}
-            step={1}
-            value={config.lineLength}
-            onCommit={(value) => onChangeConfig({ lineLength: value })}
           />
         </label>
       </div>
@@ -114,6 +92,60 @@ export function GeneralSettingsSection({ config, onChangeConfig, onHelp }: Sideb
           />
         </label>
       </div>
+    </SettingsSection>
+  );
+}
+
+export function ObjectiveSettingsSection({ config, onChangeConfig, onHelp }: SidebarSectionProps) {
+  const lineMax = Math.max(config.columns, config.rows);
+
+  const objectiveExtraOptions = OBJECTIVE_EXTRA_IDS.map((id) => ({
+    value: id,
+    label: t(`objectiveExtra.${id}.label`),
+    description: t(`objectiveExtra.${id}.description`)
+  }));
+
+  return (
+    <SettingsSection
+      title={t("sections.objective")}
+      icon={<Target aria-hidden="true" />}
+      helpKey="objective"
+      defaultOpen
+      onHelp={onHelp}
+    >
+      <div className="field-row compact">
+        <label className="field">
+          {t("fields.lineRuleMode")}
+          <LineRuleSelect value={config.lineRule} onChange={(rule) => onChangeConfig({ lineRule: rule })} />
+        </label>
+
+        <label className="field">
+          {t("fields.lineLength")}
+          <NumericDraftInput
+            min={2}
+            max={lineMax}
+            step={1}
+            value={config.lineLength}
+            onCommit={(value) => onChangeConfig({ lineLength: value })}
+          />
+        </label>
+      </div>
+
+      <label className="field">
+        {t("fields.objectiveExtraRules")}
+        <CustomMultiSelect<ObjectiveExtraRuleId>
+          options={objectiveExtraOptions}
+          values={config.objectiveExtraRules}
+          onChange={(rules) => onChangeConfig({ objectiveExtraRules: rules })}
+          placeholder={t("objectiveExtra.multi.placeholder")}
+          getTriggerLabel={(selected) => t("objectiveExtra.multi.summary", { count: selected.length })}
+          triggerAriaLabel={t("objectiveExtra.multi.triggerAria", { count: config.objectiveExtraRules.length })}
+          getChipRemoveAriaLabel={(_value, chipLabel) =>
+            t("objectiveExtra.multi.removeChip", { label: chipLabel })
+          }
+          chipListAriaLabel={t("objectiveExtra.multi.chipListAria")}
+        />
+      </label>
     </SettingsSection>
   );
 }
@@ -520,16 +552,6 @@ export function CollapseSettingsSection({ config, onChangeConfig, onHelp }: Side
           />
         </label>
       </div>
-
-      <label className="field checkbox boxed">
-        <span>{t("fields.collapseKillsPlayers")}</span>
-        <input
-          type="checkbox"
-          disabled={!config.collapseEnabled}
-          checked={config.collapseKillsPlayers}
-          onChange={(event) => onChangeConfig({ collapseKillsPlayers: event.target.checked })}
-        />
-      </label>
     </SettingsSection>
   );
 }

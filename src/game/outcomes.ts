@@ -4,14 +4,19 @@ import { getPlayerLabel } from "./formatters";
 import { scheduleGravityRotationIfDue } from "./gravity";
 import { cloneSnapshot, createSnapshot, snapshotToState } from "./history";
 import { t } from "../i18n";
+import { applyGravity } from "./gravity";
 import {
-  applyGravity,
+  applyStalemateTieBreakMostPieces,
+  resolveExileEmptyBoard
+} from "./objectiveExtras";
+import {
   findLine,
   getDefaultSelectedPieceIdForcedOldest,
   removeAllPiecesForPlayer,
   shouldDrawIfNoLegalMoves,
   tickBrokenHoles
 } from "./rules";
+import { getNextActivePlayerAfterChanges } from "./turns";
 import type { BoardPosition, GameConfig, GameSnapshot, GameState, PlayerId } from "./types";
 
 export function advanceTurnAfterNoLine(snapshot: GameSnapshot, config: GameConfig): void {
@@ -36,6 +41,10 @@ export function finishTurn(snapshot: GameSnapshot, config: GameConfig): void {
     handleCompletedLine(snapshot, config, completedLine);
   } else {
     advanceTurnAfterNoLine(snapshot, config);
+  }
+
+  if (!snapshot.gameOver) {
+    resolveExileEmptyBoard(snapshot, config);
   }
 
   scheduleGravityRotationIfDue(snapshot, config);
@@ -263,12 +272,18 @@ function advanceAfterPlayerRemoved(
 }
 
 function finishIfNoLegalMoves(snapshot: GameSnapshot, config: GameConfig): boolean {
+  resolveExileEmptyBoard(snapshot, config);
+  if (snapshot.gameOver) return true;
   if (!shouldDrawIfNoLegalMoves(snapshot, config)) return false;
 
   snapshot.gameOver = true;
   if (snapshot.placementOrderWin.length > 0 || snapshot.eliminationOrderLose.length > 0) {
     snapshot.gameEndSummary = { type: "ranking", orderedIds: buildResolvedRanking(snapshot) };
     snapshot.statusMessage = t("gameOver.rankingComplete");
+    return true;
+  }
+
+  if (applyStalemateTieBreakMostPieces(snapshot, config)) {
     return true;
   }
 
@@ -284,19 +299,6 @@ function buildResolvedRanking(snapshot: GameSnapshot): PlayerId[] {
     ...[...snapshot.eliminationOrderLose].reverse()
   ];
   return orderedIds.filter((id, index) => orderedIds.indexOf(id) === index);
-}
-
-function getNextActivePlayerAfterChanges(oldActive: PlayerId[], activePlayerIds: PlayerId[], afterPlayerId: PlayerId): PlayerId {
-  if (activePlayerIds.length === 0) return afterPlayerId;
-  const startIndex = oldActive.indexOf(afterPlayerId);
-  if (startIndex < 0) return activePlayerIds[0];
-
-  for (let step = 1; step <= oldActive.length; step++) {
-    const candidate = oldActive[(startIndex + step) % oldActive.length];
-    if (activePlayerIds.includes(candidate)) return candidate;
-  }
-
-  return activePlayerIds[0];
 }
 
 function getActivePlayersStartingFromCurrent(snapshot: GameSnapshot): PlayerId[] {

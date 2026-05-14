@@ -11,6 +11,7 @@ import {
   CollapseSettingsSection,
   GeneralSettingsSection,
   GravitySettingsSection,
+  ObjectiveSettingsSection,
   PiecesSettingsSection,
   PlayersSettingsSection,
   RestrictionsSettingsSection
@@ -76,6 +77,7 @@ export function Sidebar({
 
       <fieldset className="sidebar-content sidebar-content-fieldset" disabled={readOnlyConfig}>
         <GeneralSettingsSection config={config} onChangeConfig={onChangeConfig} onHelp={onHelp} />
+        <ObjectiveSettingsSection config={config} onChangeConfig={onChangeConfig} onHelp={onHelp} />
         <PiecesSettingsSection config={config} onChangeConfig={onChangeConfig} onHelp={onHelp} />
         <PlayersSettingsSection
           config={config}

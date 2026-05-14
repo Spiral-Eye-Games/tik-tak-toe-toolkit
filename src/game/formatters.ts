@@ -120,6 +120,13 @@ export function buildRulesHtml(config: GameConfig): string {
       : t("rules.current.objectiveWin", { lineLength: config.lineLength })
   ];
 
+  if (config.objectiveExtraRules.includes("tieBreakMostPieces")) {
+    boardItems.push(t("rules.current.objectiveExtraTieBreak"));
+  }
+  if (config.objectiveExtraRules.includes("exileEmptyBoard")) {
+    boardItems.push(t("rules.current.objectiveExtraExile"));
+  }
+
   const pieceItems = [
     config.pieceLimitType === "unlimited"
       ? t("rules.current.piecesUnlimited")
@@ -224,7 +231,7 @@ export function buildRulesHtml(config: GameConfig): string {
       times: config.collapseTimes
     }));
 
-    if (config.collapseKillsPlayers) {
+    if (config.objectiveExtraRules.includes("exileEmptyBoard")) {
       mechanicItems.push(t("rules.current.collapseKills"));
     }
   }
@@ -318,7 +325,9 @@ export function buildRulesText(config: GameConfig): string {
       type: t(`rules.collapse.type.${config.collapseType}`),
       intervalText: collapseIntervalText,
       times: config.collapseTimes,
-      killsText: config.collapseKillsPlayers ? t("rules.collapse.kills") : t("rules.collapse.noKills")
+      killsText: config.objectiveExtraRules.includes("exileEmptyBoard")
+        ? t("rules.collapse.kills")
+        : t("rules.collapse.noKills")
     });
 
   return t("rules.summary", {

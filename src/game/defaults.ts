@@ -4,6 +4,7 @@ import type {
   GameConfig,
   GravityDirection,
   IntervalUnit,
+  ObjectiveExtraRuleId,
   PieceMoveMode,
   RestrictionMovementMode,
   RosterPlayer,
@@ -39,7 +40,6 @@ export const DEFAULT_COLLAPSE_TYPE: CollapseType = "circular";
 export const DEFAULT_COLLAPSE_EVERY_TURNS = 3;
 export const DEFAULT_COLLAPSE_EVERY_UNIT: IntervalUnit = "turns";
 export const DEFAULT_COLLAPSE_TIMES = 1;
-export const DEFAULT_COLLAPSE_KILLS_PLAYERS = false;
 
 export const DEFAULT_ROSTER: RosterPlayer[] = [
   { id: "cross", color: "#2f5eed" },
@@ -76,6 +76,8 @@ export const DEFAULT_RESTRICTION_MOVEMENT_CONVERT_ENABLED = false;
 export const DEFAULT_SKIP_TURN_BLOCK_TURNS = 0;
 export const DEFAULT_SKIP_TURN_BLOCK_MODE: SkipTurnBlockMode = "turns";
 
+export const DEFAULT_OBJECTIVE_EXTRA_RULES: ObjectiveExtraRuleId[] = [];
+
 export const DRAW_IF_NO_LEGAL_MOVES = true;
 
 export const DEFAULT_CONFIG: GameConfig = {
@@ -104,7 +106,6 @@ export const DEFAULT_CONFIG: GameConfig = {
   collapseEveryTurns: DEFAULT_COLLAPSE_EVERY_TURNS,
   collapseEveryUnit: DEFAULT_COLLAPSE_EVERY_UNIT,
   collapseTimes: DEFAULT_COLLAPSE_TIMES,
-  collapseKillsPlayers: DEFAULT_COLLAPSE_KILLS_PLAYERS,
   roster: DEFAULT_ROSTER,
   playerCount: DEFAULT_PLAYER_COUNT,
   removeOutOfGamePieces: DEFAULT_REMOVE_OUT_OF_GAME_PIECES,
@@ -122,5 +123,6 @@ export const DEFAULT_CONFIG: GameConfig = {
   restrictionMovementEatEnabled: DEFAULT_RESTRICTION_MOVEMENT_EAT_ENABLED,
   restrictionMovementConvertEnabled: DEFAULT_RESTRICTION_MOVEMENT_CONVERT_ENABLED,
   skipTurnBlockTurns: DEFAULT_SKIP_TURN_BLOCK_TURNS,
-  skipTurnBlockMode: DEFAULT_SKIP_TURN_BLOCK_MODE
+  skipTurnBlockMode: DEFAULT_SKIP_TURN_BLOCK_MODE,
+  objectiveExtraRules: [...DEFAULT_OBJECTIVE_EXTRA_RULES]
 };

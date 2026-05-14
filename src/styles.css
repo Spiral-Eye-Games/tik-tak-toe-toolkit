@@ -1339,6 +1339,114 @@ body, #root { height: 100vh; }
   color: rgba(255, 255, 255, 0.9);
 }
 
+/* Multi-select: chips bajo el trigger, mismas bases visuales que .custom-select */
+.custom-multi-select {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.custom-multi-select__option-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  width: 100%;
+}
+
+.custom-multi-select__option-row .custom-select__option-label {
+  flex: 1;
+  min-width: 0;
+}
+
+.custom-multi-select__check {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  border-radius: 5px;
+  border: 2px solid rgba(255, 255, 255, 0.28);
+  box-sizing: border-box;
+  position: relative;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.custom-multi-select__check[data-on="true"] {
+  border-color: rgba(255, 209, 102, 0.8);
+  background: rgba(255, 209, 102, 0.2);
+}
+
+.custom-multi-select__check[data-on="true"]::after {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 1px;
+  width: 5px;
+  height: 8px;
+  border: solid rgba(255, 209, 102, 0.95);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.custom-multi-select__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.custom-multi-select__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  max-width: 100%;
+  padding: 3px 4px 3px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--text);
+}
+
+.custom-multi-select__chip-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 160px;
+}
+
+.custom-multi-select__chip-remove {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.custom-multi-select__chip-remove:hover:not(:disabled) {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.custom-multi-select__chip-remove:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
 .field input[type="checkbox"] {
   width: 19px;
   height: 19px;
