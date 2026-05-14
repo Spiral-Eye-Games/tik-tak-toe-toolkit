@@ -120,7 +120,8 @@ export function ObjectiveSettingsSection({ config, onChangeConfig, onHelp }: Sid
 
   const objectiveExtraOptions = OBJECTIVE_EXTRA_IDS.map((id) => ({
     value: id,
-    label: t(`objectiveExtra.${id}.label`)
+    label: t(`objectiveExtra.${id}.label`),
+    description: t(`objectiveExtra.${id}.description`)
   }));
 
   return (
