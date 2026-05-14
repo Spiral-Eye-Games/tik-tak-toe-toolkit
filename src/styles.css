@@ -1660,7 +1660,7 @@ body, #root { height: 100vh; }
 }
 
 .board-event-area {
-  --board-event-list-width: clamp(120px, 19cqw, 188px);
+  --board-event-list-width: clamp(100px, calc(19cqw - 20px), 168px);
 
   position: absolute;
   top: clamp(10px, 1.8cqh, 22px);
