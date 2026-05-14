@@ -5,7 +5,8 @@ import {
 import type { Board, BoardPosition, GameConfig, GameSnapshot, Piece, RestrictionMovementMode, RestrictionStartZone } from "./types";
 
 const RESTRICTION_START_ZONES: RestrictionStartZone[] = ["edges", "corners", "center"];
-const RESTRICTION_MOVEMENT_MODES: RestrictionMovementMode[] = [
+/** Orden estable del menú «modo restricción» en la configuración. */
+export const RESTRICTION_MOVEMENT_MODES_ORDER: readonly RestrictionMovementMode[] = [
   "normal",
   "king",
   "grandKing",
@@ -106,7 +107,7 @@ export function buildLegacyRestrictionStartBlockedCells(
 
 export function normalizeRestrictionMovementMode(value: unknown): RestrictionMovementMode {
   if (value === "shortRook") return "rook";
-  return RESTRICTION_MOVEMENT_MODES.includes(value as RestrictionMovementMode)
+  return RESTRICTION_MOVEMENT_MODES_ORDER.includes(value as RestrictionMovementMode)
     ? (value as RestrictionMovementMode)
     : "normal";
 }

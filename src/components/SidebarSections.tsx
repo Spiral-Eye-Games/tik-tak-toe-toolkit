@@ -2,21 +2,24 @@ import { useState } from "react";
 import { ArrowDown, ChevronsLeftRight, CircleDot, CircleOff, Grid3X3, Info, Lock, Target, Timer, UsersRound } from "lucide-react";
 import { DEFAULT_MAX_PIECES_PER_PLAYER } from "../game/defaults";
 import { normalizeClockStrategy } from "../game/config";
-import { movementSupportsConversion } from "../game/restrictions";
+import { movementSupportsConversion, RESTRICTION_MOVEMENT_MODES_ORDER } from "../game/restrictions";
 import type {
+  ClockMode,
   CollapseType,
   GameConfig,
   GravityDirection,
   GravityRotateAngle,
   GravityRotateSpin,
-  RestrictionMovementMode,
-  ObjectiveExtraRuleId
+  ObjectiveExtraRuleId,
+  RestrictionMovementMode
 } from "../game/types";
 import { t } from "../i18n";
+import { CustomSelect } from "./CustomSelect";
 import { MovementInfoModal } from "./MovementInfoModal";
 import { NumericDraftInput } from "./NumericDraftInput";
 import { QuantityModeDraftInput, TimeIntervalDraftInput, type TimeIntervalPickerMode } from "./NumericModeInputs";
 import { CustomMultiSelect } from "./CustomMultiSelect";
+import { CustomToggle } from "./CustomToggle";
 import { LineRuleSelect } from "./LineRuleSelect";
 import { PieceMoveModeSelect } from "./PieceMoveModeSelect";
 import { RestrictionGridModal } from "./RestrictionGridModal";
@@ -41,6 +44,22 @@ function skipTurnBlockPickerMode(config: GameConfig): TimeIntervalPickerMode {
 }
 
 const OBJECTIVE_EXTRA_IDS = ["tieBreakMostPieces", "exileEmptyBoard"] as const satisfies readonly ObjectiveExtraRuleId[];
+
+const GRAVITY_DIRECTIONS_ORDER: GravityDirection[] = ["down", "up", "left", "right"];
+const GRAVITY_ROTATE_ANGLES_ORDER: GravityRotateAngle[] = ["90", "180", "270", "random"];
+const GRAVITY_ROTATE_SPINS_ORDER: GravityRotateSpin[] = ["cw", "ccw", "random"];
+
+const COLLAPSE_TYPES_ORDER: CollapseType[] = [
+  "left",
+  "right",
+  "up",
+  "down",
+  "horizontal",
+  "vertical",
+  "circular"
+];
+
+const CLOCK_MODES_ORDER: ClockMode[] = ["bank", "perTurn"];
 
 export function GeneralSettingsSection({ config, onChangeConfig, onHelp }: SidebarSectionProps) {
   return (
@@ -101,8 +120,7 @@ export function ObjectiveSettingsSection({ config, onChangeConfig, onHelp }: Sid
 
   const objectiveExtraOptions = OBJECTIVE_EXTRA_IDS.map((id) => ({
     value: id,
-    label: t(`objectiveExtra.${id}.label`),
-    description: t(`objectiveExtra.${id}.description`)
+    label: t(`objectiveExtra.${id}.label`)
   }));
 
   return (
@@ -188,28 +206,18 @@ export function PiecesSettingsSection({ config, onChangeConfig, onHelp }: Sideba
           <label className="field">
             {t("fields.restrictionMode")}
             <div className="select-with-info">
-              <select
+              <CustomSelect<RestrictionMovementMode>
+                options={RESTRICTION_MOVEMENT_MODES_ORDER.map((mode) => ({
+                  value: mode,
+                  label: t(`restrictions.movement.${mode}`),
+                  description: t(`movementInfo.modes.${mode}`)
+                }))}
                 value={config.restrictionMovementMode}
-                onChange={(event) => onChangeConfig({ restrictionMovementMode: event.target.value as RestrictionMovementMode })}
-              >
-              {([
-                "normal",
-                "king",
-                "grandKing",
-                "queen",
-                "rook",
-                "pillar",
-                "bishop",
-                "monk",
-                "knight",
-                "neon",
-                "checkers",
-                "horsemen",
-                "mage"
-              ] as RestrictionMovementMode[]).map((mode) => (
-                  <option key={mode} value={mode}>{t(`restrictions.movement.${mode}`)}</option>
-                ))}
-              </select>
+                onChange={(mode) => onChangeConfig({ restrictionMovementMode: mode })}
+                triggerAriaLabel={t("settingsSelectTriggers.restrictionMovement", {
+                  mode: t(`restrictions.movement.${config.restrictionMovementMode}`)
+                })}
+              />
               <button
                 className="help-button movement-info-button"
                 type="button"
@@ -225,32 +233,32 @@ export function PiecesSettingsSection({ config, onChangeConfig, onHelp }: Sideba
           {config.restrictionMovementMode !== "normal" && (
             <div className="field-row movement-effect-row">
               <Tooltip text={t("fields.restrictionMovementEatTooltip")} className="movement-effect-tooltip" passAriaLabel={false}>
-                <label className="field checkbox boxed">
-                  <span>{t("fields.restrictionMovementEat")}</span>
-                  <input
-                    type="checkbox"
-                    checked={config.restrictionMovementEatEnabled}
-                    onChange={(event) => onChangeConfig({
-                      restrictionMovementEatEnabled: event.target.checked,
-                      restrictionMovementConvertEnabled: event.target.checked ? false : config.restrictionMovementConvertEnabled
-                    })}
-                  />
-                </label>
+                <CustomToggle
+                  checked={config.restrictionMovementEatEnabled}
+                  onChange={(next) =>
+                    onChangeConfig({
+                      restrictionMovementEatEnabled: next,
+                      restrictionMovementConvertEnabled: next ? false : config.restrictionMovementConvertEnabled
+                    })
+                  }
+                >
+                  {t("fields.restrictionMovementEat")}
+                </CustomToggle>
               </Tooltip>
 
               {movementSupportsConversion(config.restrictionMovementMode) && (
                 <Tooltip text={t("fields.restrictionMovementConvertTooltip")} className="movement-effect-tooltip" passAriaLabel={false}>
-                  <label className="field checkbox boxed">
-                    <span>{t("fields.restrictionMovementConvert")}</span>
-                    <input
-                      type="checkbox"
-                      checked={config.restrictionMovementConvertEnabled}
-                      onChange={(event) => onChangeConfig({
-                        restrictionMovementConvertEnabled: event.target.checked,
-                        restrictionMovementEatEnabled: event.target.checked ? false : config.restrictionMovementEatEnabled
-                      })}
-                    />
-                  </label>
+                  <CustomToggle
+                    checked={config.restrictionMovementConvertEnabled}
+                    onChange={(next) =>
+                      onChangeConfig({
+                        restrictionMovementConvertEnabled: next,
+                        restrictionMovementEatEnabled: next ? false : config.restrictionMovementEatEnabled
+                      })
+                    }
+                  >
+                    {t("fields.restrictionMovementConvert")}
+                  </CustomToggle>
                 </Tooltip>
               )}
             </div>
@@ -280,50 +288,42 @@ export function PlayersSettingsSection({
         <div className="field-row field-row--player-count">
           <label className="field">
             {t("fields.playerCount")}
-            <select
-              value={config.playerCount}
-              onChange={(event) => onChangeConfig({ playerCount: Number(event.target.value) })}
-            >
-              {playerOptions.map((value) => (
-                <option key={value} value={value}>{value}</option>
-              ))}
-            </select>
+            <CustomSelect
+              options={playerOptions.map((n) => ({ value: String(n), label: String(n) }))}
+              value={String(config.playerCount)}
+              onChange={(v) => onChangeConfig({ playerCount: Number(v) })}
+              triggerAriaLabel={t("settingsSelectTriggers.playerCount", { mode: String(config.playerCount) })}
+            />
           </label>
 
           <Tooltip text={t("fields.removeOutOfGamePiecesTooltip")} passAriaLabel={false}>
-            <label className="field checkbox boxed">
-              <span>{t("fields.removeOutOfGamePieces")}</span>
-              <input
-                type="checkbox"
-                checked={config.removeOutOfGamePieces}
-                onChange={(event) => onChangeConfig({ removeOutOfGamePieces: event.target.checked })}
-              />
-            </label>
+            <CustomToggle
+              checked={config.removeOutOfGamePieces}
+              onChange={(next) => onChangeConfig({ removeOutOfGamePieces: next })}
+            >
+              {t("fields.removeOutOfGamePieces")}
+            </CustomToggle>
           </Tooltip>
         </div>
       ) : (
         <label className="field">
           {t("fields.playerCount")}
-          <select
-            value={config.playerCount}
-            onChange={(event) => onChangeConfig({ playerCount: Number(event.target.value) })}
-          >
-            {playerOptions.map((value) => (
-              <option key={value} value={value}>{value}</option>
-            ))}
-          </select>
+          <CustomSelect
+            options={playerOptions.map((n) => ({ value: String(n), label: String(n) }))}
+            value={String(config.playerCount)}
+            onChange={(v) => onChangeConfig({ playerCount: Number(v) })}
+            triggerAriaLabel={t("settingsSelectTriggers.playerCount", { mode: String(config.playerCount) })}
+          />
         </label>
       )}
 
       {config.lineRule === "win" && config.playerCount > 2 && (
-        <label className="field checkbox boxed">
-          <span>{t("fields.singleWinner")}</span>
-          <input
-            type="checkbox"
-            checked={config.singleWinner}
-            onChange={(event) => onChangeConfig({ singleWinner: event.target.checked })}
-          />
-        </label>
+        <CustomToggle
+          checked={config.singleWinner}
+          onChange={(next) => onChangeConfig({ singleWinner: next })}
+        >
+          {t("fields.singleWinner")}
+        </CustomToggle>
       )}
     </SettingsSection>
   );
@@ -341,8 +341,10 @@ export function BrokenHolesSettingsSection({ config, onChangeConfig, onHelp }: S
         <label className="section-toggle" title={t("fields.enableBrokenHoles")} onClick={(event) => event.stopPropagation()}>
           <input
             type="checkbox"
+            className="section-toggle-input"
             checked={config.brokenEnabled}
             onChange={(event) => onChangeConfig({ brokenEnabled: event.target.checked })}
+            aria-label={t("fields.enableBrokenHoles")}
           />
         </label>
       }
@@ -376,17 +378,13 @@ export function BrokenHolesSettingsSection({ config, onChangeConfig, onHelp }: S
 
         <div className="broken-rupture-obstacle-cell">
           <Tooltip text={t("fields.brokenRuptureGravityCollisionHelp")} passAriaLabel={false}>
-            <label className="field checkbox boxed broken-rupture-check">
-              <span>{t("fields.brokenRuptureGravityCollision")}</span>
-              <input
-                type="checkbox"
-                disabled={!config.brokenEnabled || !config.gravityEnabled}
-                checked={config.brokenRuptureGravityCollision}
-                onChange={(event) =>
-                  onChangeConfig({ brokenRuptureGravityCollision: event.target.checked })
-                }
-              />
-            </label>
+            <CustomToggle
+              disabled={!config.brokenEnabled || !config.gravityEnabled}
+              checked={config.brokenRuptureGravityCollision}
+              onChange={(next) => onChangeConfig({ brokenRuptureGravityCollision: next })}
+            >
+              {t("fields.brokenRuptureGravityCollision")}
+            </CustomToggle>
           </Tooltip>
         </div>
       </div>
@@ -406,62 +404,71 @@ export function GravitySettingsSection({ config, onChangeConfig, onHelp }: Sideb
         <label className="section-toggle" title={t("fields.enableGravity")} onClick={(event) => event.stopPropagation()}>
           <input
             type="checkbox"
+            className="section-toggle-input"
             checked={config.gravityEnabled}
             onChange={(event) => onChangeConfig({ gravityEnabled: event.target.checked })}
+            aria-label={t("fields.enableGravity")}
           />
         </label>
       }
     >
       <label className="field">
         {t("fields.gravityInitialDirection")}
-        <select
+        <CustomSelect<GravityDirection>
           disabled={!config.gravityEnabled}
+          options={GRAVITY_DIRECTIONS_ORDER.map((dir) => ({
+            value: dir,
+            label: t(`rules.gravity.direction.${dir}`)
+          }))}
           value={config.gravityInitialDirection}
-          onChange={(event) => onChangeConfig({ gravityInitialDirection: event.target.value as GravityDirection })}
-        >
-          <option value="down">{t("rules.gravity.direction.down")}</option>
-          <option value="up">{t("rules.gravity.direction.up")}</option>
-          <option value="left">{t("rules.gravity.direction.left")}</option>
-          <option value="right">{t("rules.gravity.direction.right")}</option>
-        </select>
-      </label>
-
-      <label className="field checkbox boxed">
-        <span>{t("fields.gravityRotate")}</span>
-        <input
-          type="checkbox"
-          disabled={!config.gravityEnabled}
-          checked={config.gravityRotateEnabled}
-          onChange={(event) => onChangeConfig({ gravityRotateEnabled: event.target.checked })}
+          onChange={(dir) => onChangeConfig({ gravityInitialDirection: dir })}
+          triggerAriaLabel={t("settingsSelectTriggers.gravityDirection", {
+            mode: t(`rules.gravity.direction.${config.gravityInitialDirection}`)
+          })}
         />
       </label>
+
+      <CustomToggle
+        disabled={!config.gravityEnabled}
+        checked={config.gravityRotateEnabled}
+        onChange={(next) => onChangeConfig({ gravityRotateEnabled: next })}
+      >
+        {t("fields.gravityRotate")}
+      </CustomToggle>
 
       {config.gravityEnabled && config.gravityRotateEnabled && (
         <>
           <div className="field-row">
             <label className="field">
               {t("fields.gravityRotateAngle")}
-              <select
+              <CustomSelect<GravityRotateAngle>
+                disabled={!config.gravityEnabled}
+                options={GRAVITY_ROTATE_ANGLES_ORDER.map((angle) => ({
+                  value: angle,
+                  label: t(`rules.gravity.rotateAngle.${angle}`)
+                }))}
                 value={config.gravityRotateAngle}
-                onChange={(event) => onChangeConfig({ gravityRotateAngle: event.target.value as GravityRotateAngle })}
-              >
-                <option value="90">{t("rules.gravity.rotateAngle.90")}</option>
-                <option value="180">{t("rules.gravity.rotateAngle.180")}</option>
-                <option value="270">{t("rules.gravity.rotateAngle.270")}</option>
-                <option value="random">{t("rules.gravity.rotateAngle.random")}</option>
-              </select>
+                onChange={(angle) => onChangeConfig({ gravityRotateAngle: angle })}
+                triggerAriaLabel={t("settingsSelectTriggers.gravityRotateAngle", {
+                  mode: t(`rules.gravity.rotateAngle.${config.gravityRotateAngle}`)
+                })}
+              />
             </label>
 
             <label className="field">
               {t("fields.gravityRotateSpin")}
-              <select
+              <CustomSelect<GravityRotateSpin>
+                disabled={!config.gravityEnabled}
+                options={GRAVITY_ROTATE_SPINS_ORDER.map((spin) => ({
+                  value: spin,
+                  label: t(`rules.gravity.rotateSpin.${spin}`)
+                }))}
                 value={config.gravityRotateSpin}
-                onChange={(event) => onChangeConfig({ gravityRotateSpin: event.target.value as GravityRotateSpin })}
-              >
-                <option value="cw">{t("rules.gravity.rotateSpin.cw")}</option>
-                <option value="ccw">{t("rules.gravity.rotateSpin.ccw")}</option>
-                <option value="random">{t("rules.gravity.rotateSpin.random")}</option>
-              </select>
+                onChange={(spin) => onChangeConfig({ gravityRotateSpin: spin })}
+                triggerAriaLabel={t("settingsSelectTriggers.gravityRotateSpin", {
+                  mode: t(`rules.gravity.rotateSpin.${config.gravityRotateSpin}`)
+                })}
+              />
             </label>
           </div>
 
@@ -499,27 +506,28 @@ export function CollapseSettingsSection({ config, onChangeConfig, onHelp }: Side
         <label className="section-toggle" title={t("fields.collapseEnabled")} onClick={(event) => event.stopPropagation()}>
           <input
             type="checkbox"
+            className="section-toggle-input"
             checked={config.collapseEnabled}
             onChange={(event) => onChangeConfig({ collapseEnabled: event.target.checked })}
+            aria-label={t("fields.collapseEnabled")}
           />
         </label>
       }
     >
       <label className="field">
         {t("fields.collapseType")}
-        <select
+        <CustomSelect<CollapseType>
           disabled={!config.collapseEnabled}
+          options={COLLAPSE_TYPES_ORDER.map((kind) => ({
+            value: kind,
+            label: t(`rules.collapse.type.${kind}`)
+          }))}
           value={config.collapseType}
-          onChange={(event) => onChangeConfig({ collapseType: event.target.value as CollapseType })}
-        >
-          <option value="left">{t("rules.collapse.type.left")}</option>
-          <option value="right">{t("rules.collapse.type.right")}</option>
-          <option value="up">{t("rules.collapse.type.up")}</option>
-          <option value="down">{t("rules.collapse.type.down")}</option>
-          <option value="horizontal">{t("rules.collapse.type.horizontal")}</option>
-          <option value="vertical">{t("rules.collapse.type.vertical")}</option>
-          <option value="circular">{t("rules.collapse.type.circular")}</option>
-        </select>
+          onChange={(kind) => onChangeConfig({ collapseType: kind })}
+          triggerAriaLabel={t("settingsSelectTriggers.collapseType", {
+            mode: t(`rules.collapse.type.${config.collapseType}`)
+          })}
+        />
       </label>
 
       <div className="field-row field-row--collapse-interval">
@@ -568,8 +576,10 @@ export function ClockSettingsSection({ config, onChangeConfig, onHelp }: Sidebar
         <label className="section-toggle" title={t("fields.clockEnabled")} onClick={(event) => event.stopPropagation()}>
           <input
             type="checkbox"
+            className="section-toggle-input"
             checked={config.clockEnabled}
             onChange={(event) => onChangeConfig({ clockEnabled: event.target.checked })}
+            aria-label={t("fields.clockEnabled")}
           />
         </label>
       }
@@ -577,13 +587,18 @@ export function ClockSettingsSection({ config, onChangeConfig, onHelp }: Sidebar
       {config.clockEnabled && (
         <label className="field">
           {t("fields.clockType")}
-          <select
+          <CustomSelect<ClockMode>
+            options={CLOCK_MODES_ORDER.map((mode) => ({
+              value: mode,
+              label: t(`clock.modes.${mode}.label`),
+              description: t(`clock.modes.${mode}.description`)
+            }))}
             value={config.clockMode}
-            onChange={(event) => onChangeConfig({ clockMode: normalizeClockStrategy(event.target.value) })}
-          >
-            <option value="bank">{t("clock.modes.bank")}</option>
-            <option value="perTurn">{t("clock.modes.perTurn")}</option>
-          </select>
+            onChange={(mode) => onChangeConfig({ clockMode: normalizeClockStrategy(mode) })}
+            triggerAriaLabel={t("settingsSelectTriggers.clockMode", {
+              mode: t(`clock.modes.${config.clockMode}.label`)
+            })}
+          />
         </label>
       )}
 
@@ -644,8 +659,10 @@ export function RestrictionsSettingsSection({ config, onChangeConfig, onHelp }: 
         <label className="section-toggle" title={t("fields.blockingEnabled")} onClick={(event) => event.stopPropagation()}>
           <input
             type="checkbox"
+            className="section-toggle-input"
             checked={config.restrictionsEnabled}
             onChange={(event) => onChangeConfig({ restrictionsEnabled: event.target.checked })}
+            aria-label={t("fields.blockingEnabled")}
           />
         </label>
       }

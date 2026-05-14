@@ -16,7 +16,7 @@ export function NumericDraftInput({
   onBlur,
   ...props
 }: NumericDraftInputProps) {
-  const { step, min, max } = props;
+  const { step, min, max, className, ...passThrough } = props;
   const [draftValue, setDraftValue] = useState(String(value));
   const commitTimeoutRef = useRef<number | undefined>(undefined);
 
@@ -96,7 +96,8 @@ export function NumericDraftInput({
 
   return (
     <input
-      {...props}
+      {...passThrough}
+      className={["custom-field-input", className].filter(Boolean).join(" ")}
       type="number"
       disabled={disabled}
       value={draftValue}

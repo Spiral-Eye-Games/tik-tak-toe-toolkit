@@ -135,9 +135,24 @@
   },
   "clock": {
     "modes": {
-      "bank": "Total bank",
-      "perTurn": "Per-turn clock"
+      "bank": {
+        "label": "Total bank",
+        "description": "Each player spends from one shared countdown across turns until time runs out (can recover seconds after moves in bank settings)."
+      },
+      "perTurn": {
+        "label": "Per-turn clock",
+        "description": "Each turn receives its own countdown that resets when it's your move again."
+      }
     }
+  },
+  "settingsSelectTriggers": {
+    "playerCount": "Number of players: {{mode}}. Open to choose.",
+    "restrictionMovement": "Movement pattern when moving pieces: {{mode}}. Open to choose.",
+    "gravityDirection": "Initial gravity direction: {{mode}}. Open to choose.",
+    "gravityRotateAngle": "Rotation step: {{mode}}. Open to choose.",
+    "gravityRotateSpin": "Rotation direction: {{mode}}. Open to choose.",
+    "collapseType": "Collapse movement: {{mode}}. Open to choose.",
+    "clockMode": "Clock type: {{mode}}. Open to choose."
   },
   "intervalUnits": {
     "turns": "Turns",

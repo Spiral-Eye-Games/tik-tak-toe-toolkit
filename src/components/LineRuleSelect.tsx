@@ -16,8 +16,7 @@ interface LineRuleSelectProps {
 export function LineRuleSelect({ value, disabled, onChange }: LineRuleSelectProps) {
   const options = LINE_RULE_OPTIONS.map((o) => ({
     value: o.value,
-    label: t(`lineRuleSelect.options.${o.value}.label`),
-    description: t(`lineRuleSelect.options.${o.value}.description`)
+    label: t(`lineRuleSelect.options.${o.value}.label`)
   }));
   const currentLabel = t(`lineRuleSelect.options.${value}.label`);
 

@@ -116,7 +116,7 @@
     "collapseType": "Tipo",
     "collapseEvery": "Cada N",
     "collapseTimes": "Veces",
-    "playerCount": "Cantidad de jugadores",
+    "playerCount": "Cantidad",
     "removeOutOfGamePieces": "Limpiar fichas",
     "removeOutOfGamePiecesTooltip": "Cuando un jugador queda fuera de la partida (pierde la raya, gana una ronda de ranking y deja de jugar, abandono, eliminación por tiempo, etc.), se retiran sus fichas del tablero.",
     "singleWinner": "Solo un ganador",
@@ -135,9 +135,24 @@
   },
   "clock": {
     "modes": {
-      "bank": "Banca total",
-      "perTurn": "Reloj por turno"
+      "bank": {
+        "label": "Banca total",
+        "description": "Cada jugador gasta tiempo de una misma cuenta atrás durante todos los turnos hasta llegar a cero (en ajustes de banca podés sumar tiempo al mover)."
+      },
+      "perTurn": {
+        "label": "Reloj por turno",
+        "description": "Cada turno tiene su propio contador que se reinicia cuando te toca mover de nuevo."
+      }
     }
+  },
+  "settingsSelectTriggers": {
+    "playerCount": "Cantidad de jugadores: {{mode}}. Abrí para elegir.",
+    "restrictionMovement": "Patrón al mover fichas: {{mode}}. Abrí para elegir.",
+    "gravityDirection": "Dirección inicial de la gravedad: {{mode}}. Abrí para elegir.",
+    "gravityRotateAngle": "Paso de rotación: {{mode}}. Abrí para elegir.",
+    "gravityRotateSpin": "Sentido de rotación: {{mode}}. Abrí para elegir.",
+    "collapseType": "Tipo de colapso del tablero: {{mode}}. Abrí para elegir.",
+    "clockMode": "Tipo de reloj: {{mode}}. Abrí para elegir."
   },
   "intervalUnits": {
     "turns": "Turnos",
