@@ -7,6 +7,7 @@ import { Sidebar } from "./components/Sidebar";
 import { TopBar } from "./components/TopBar";
 import { DEFAULT_CONFIG, DEFAULT_ROSTER } from "./game/defaults";
 import { loadLastSettings } from "./game/sessionCache";
+import { t } from "./i18n";
 import { isDev } from "./isDev";
 import { getStatusText } from "./game/formatters";
 import { createInitialGameState, reduceGameState } from "./game/reducer";
@@ -67,7 +68,7 @@ export default function App() {
 
   const handleGameAction = useCallback((action: GameAction) => {
     if (multiplayer.isClient) {
-      if (action.type === "playMove") {
+      if (action.type === "playMove" || action.type === "skipTurn") {
         multiplayer.sendGameAction(action);
       }
       return;
@@ -75,7 +76,7 @@ export default function App() {
 
     if (
       multiplayer.isHost &&
-      action.type === "playMove" &&
+      (action.type === "playMove" || action.type === "skipTurn") &&
       multiplayer.localSymbol !== gameState.currentPlayer
     ) {
       return;
@@ -167,6 +168,8 @@ export default function App() {
           interactionLocked={multiplayer.isOnline && !multiplayer.canPlayLocalTurn}
           victoryNewGameDisabled={!multiplayer.canStartNewGame}
           victoryUndoDisabled={!multiplayer.canUseUndoRedo}
+          skipTurnInteractive={multiplayer.canPlayLocalTurn}
+          onSkipTurn={() => handleGameAction({ type: "skipTurn" })}
         />
       </main>
 
@@ -178,6 +181,12 @@ export default function App() {
       />
 
       {isDevUrl && <FloatingMultiplayerPanel multiplayer={multiplayer} />}
+
+      {multiplayer.hostDisconnectedToastOpen && (
+        <div className="host-disconnect-toast-layer" role="status" aria-live="polite">
+          <div className="host-disconnect-toast">{t("multiplayer.system.hostDisconnected")}</div>
+        </div>
+      )}
     </div>
   );
 }

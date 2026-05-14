@@ -4,6 +4,7 @@ import { sanitizeConfig } from "./config";
 import { createSnapshot, redoMove, undoMove } from "./history";
 import { playMove } from "./moves";
 import { forfeitPlayer } from "./outcomes";
+import { applySkipTurn } from "./skipTurn";
 import { createBoard } from "./rules";
 import type { GameAction, GameConfig, GameState, PlayerId } from "./types";
 
@@ -65,6 +66,8 @@ export function reduceGameState(state: GameState, action: GameAction): GameState
       return applyClockBankTimeout(state);
     case "clockPerTurnTimeout":
       return applyClockPerTurnTimeout(state);
+    case "skipTurn":
+      return applySkipTurn(state);
     default:
       return state;
   }

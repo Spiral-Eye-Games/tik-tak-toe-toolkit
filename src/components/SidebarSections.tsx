@@ -190,6 +190,17 @@ export function GeneralSettingsSection({ config, onChangeConfig, onHelp }: Sideb
           />
         </label>
       </div>
+
+      <div className="field-row">
+        <label className="field checkbox boxed">
+          <span>{t("fields.skipTurnEnabled")}</span>
+          <input
+            type="checkbox"
+            checked={config.skipTurnEnabled}
+            onChange={(event) => onChangeConfig({ skipTurnEnabled: event.target.checked })}
+          />
+        </label>
+      </div>
     </SettingsSection>
   );
 }

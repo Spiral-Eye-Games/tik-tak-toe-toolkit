@@ -1,7 +1,9 @@
 import type { CSSProperties } from "react";
+import { getBoardEventCountdowns } from "../game/eventCountdowns";
 import type { GameState } from "../game/types";
 import { BoardEventStrip } from "./BoardEventStrip";
 import { BoardOutcomeStrip } from "./BoardOutcomeStrip";
+import { BoardSkipTurnFab } from "./BoardSkipTurnFab";
 import { Cell } from "./Cell";
 import { VictoryModal } from "./VictoryModal";
 
@@ -13,6 +15,8 @@ interface BoardProps {
   interactionLocked?: boolean;
   victoryNewGameDisabled?: boolean;
   victoryUndoDisabled?: boolean;
+  skipTurnInteractive?: boolean;
+  onSkipTurn?: () => void;
 }
 
 export function Board({
@@ -22,9 +26,18 @@ export function Board({
   onVictoryUndo,
   interactionLocked = false,
   victoryNewGameDisabled = false,
-  victoryUndoDisabled = false
+  victoryUndoDisabled = false,
+  skipTurnInteractive = false,
+  onSkipTurn
 }: BoardProps) {
   const boardMaxAxis = Math.max(state.config.columns, state.config.rows);
+  const upcomingEvents = getBoardEventCountdowns(state, state.config);
+  const showSkipFab =
+    Boolean(onSkipTurn) &&
+    state.config.skipTurnEnabled &&
+    !state.gameOver &&
+    state.pendingGravityRotationTarget === null;
+  const showEventArea = upcomingEvents.length > 0 || showSkipFab;
 
   return (
     <section className="board-section">
@@ -55,7 +68,14 @@ export function Board({
             )}
           </section>
 
-          <BoardEventStrip state={state} />
+          {showEventArea && (
+            <div className="board-event-area">
+              <BoardEventStrip state={state} />
+              {showSkipFab && onSkipTurn && (
+                <BoardSkipTurnFab disabled={!skipTurnInteractive} onSkipTurn={onSkipTurn} />
+              )}
+            </div>
+          )}
           <BoardOutcomeStrip state={state} />
         </div>
 

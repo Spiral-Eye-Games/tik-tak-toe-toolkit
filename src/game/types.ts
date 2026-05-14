@@ -97,6 +97,8 @@ export interface GameConfig {
   restrictionMovementMode: RestrictionMovementMode;
   restrictionMovementEatEnabled: boolean;
   restrictionMovementConvertEnabled: boolean;
+  /** Si está activo, el jugador en turno puede pasar sin jugar (botón en tablero). */
+  skipTurnEnabled: boolean;
 }
 
 export interface Piece {
@@ -161,7 +163,8 @@ export type GameAction =
   | { type: "redo" }
   | { type: "completePendingGravityRotation" }
   | { type: "clockBankTimeout" }
-  | { type: "clockPerTurnTimeout" };
+  | { type: "clockPerTurnTimeout" }
+  | { type: "skipTurn" };
 
 export interface HelpContent {
   title: string;

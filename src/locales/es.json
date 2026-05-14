@@ -82,6 +82,7 @@
     "lose": "Perder",
     "win": "Ganar",
     "lineLength": "N en raya",
+    "skipTurnEnabled": "Permitir omitir turno",
     "unlimitedPieces": "Ilimitadas",
     "quantity": "Cantidad",
     "changePiecePlace": "Cambiar fichas de lugar",
@@ -431,7 +432,7 @@
       "playerConnected": "{{player}} conectado.",
       "playerLeftRoom": "{{player}} salió de la sala.",
       "hostDisconnected": "El host se desconectó.",
-      "negotiationFailed": "No se pudo abrir el enlace con un jugador (red P2P). El resto de la sala sigue; puede reintentar.",
+      "negotiationFailed": "No se pudo abrir el enlace con un jugador.",
       "peerUnreachable": "No se pudo alcanzar al otro jugador por la red. Comprobá firewall o VPN.",
       "signalingDisconnected": "Se cortó el enlace con el servidor de señalización. Si falla la partida, volvé a crear la sala.",
       "invalidWireData": "Se recibieron datos inválidos por la red y se ignoraron.",
@@ -451,6 +452,7 @@
       "unknownPlayer": "No se pudo validar tu jugador.",
       "hostOnlyAction": "Esa acción solo puede hacerla el host.",
       "notYourTurn": "No es tu turno.",
+      "skipTurnDisabled": "Omitir turno no está habilitado en esta partida.",
       "symbolTaken": "Esa ficha ya está equipada por otro jugador."
     },
     "roles": {
@@ -511,6 +513,9 @@
     "outcomeStripLabel": "Resultados en la partida",
     "outcomeEliminated": "{{player}} eliminado",
     "outcomeRoundWin": "{{player}} ganó la ronda",
+    "skipTurn": {
+      "tooltip": "Omitir turno"
+    },
     "events": {
       "label": "Próximos eventos de la partida",
       "collapseIn": "Colapso en {{amount}} {{unit}}",

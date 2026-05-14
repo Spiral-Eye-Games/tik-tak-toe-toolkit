@@ -82,6 +82,7 @@
     "lose": "Lose",
     "win": "Win",
     "lineLength": "N in a row",
+    "skipTurnEnabled": "Allow skipping a turn",
     "unlimitedPieces": "Unlimited",
     "quantity": "Quantity",
     "changePiecePlace": "Move pieces",
@@ -431,7 +432,7 @@
       "playerConnected": "{{player}} connected.",
       "playerLeftRoom": "{{player}} left the room.",
       "hostDisconnected": "The host disconnected.",
-      "negotiationFailed": "Could not open the link with a player (P2P). The room keeps going; they can try again.",
+      "negotiationFailed": "Could not open the link with a player.",
       "peerUnreachable": "Could not reach the other player on the network. Check firewall or VPN.",
       "signalingDisconnected": "Lost connection to the signaling server. If the game breaks, create the room again.",
       "invalidWireData": "Invalid data was received on the network and was ignored.",
@@ -451,6 +452,7 @@
       "unknownPlayer": "Could not validate your player.",
       "hostOnlyAction": "Only the host can do that action.",
       "notYourTurn": "It is not your turn.",
+      "skipTurnDisabled": "Skipping a turn is not enabled for this match.",
       "symbolTaken": "That piece is already equipped by another player."
     },
     "roles": {
@@ -511,6 +513,9 @@
     "outcomeStripLabel": "Match results",
     "outcomeEliminated": "{{player}} eliminated",
     "outcomeRoundWin": "{{player}} won the round",
+    "skipTurn": {
+      "tooltip": "Skip turn"
+    },
     "events": {
       "label": "Upcoming match events",
       "collapseIn": "Collapse in {{amount}} {{unit}}",

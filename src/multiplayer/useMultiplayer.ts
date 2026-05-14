@@ -57,6 +57,8 @@ export interface MultiplayerState {
   canUseUndoRedo: boolean;
   canPlayLocalTurn: boolean;
   canChangeProfile: boolean;
+  /** Aviso visual cuando el cliente pierde al host estando en sala. */
+  hostDisconnectedToastOpen: boolean;
   createRoom: () => void;
   setLocalPlayerName: (name: string) => void;
   requestSymbolChange: (symbol: GamePlayerId | null) => void;
@@ -103,6 +105,10 @@ export function useMultiplayer({
   const [debugMessages, setDebugMessages] = useState<string[]>([]);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const issueDedupeRef = useRef<{ signature: string; at: number } | null>(null);
+  /** Cliente que ya recibió `WELCOME` (sesión de sala activa). Se limpia al inicio de `clearMultiplayerUi`. */
+  const clientRoomSyncedRef = useRef(false);
+  const [hostDisconnectedToastOpen, setHostDisconnectedToastOpen] = useState(false);
+  const hostDisconnectToastTimerRef = useRef<number | null>(null);
 
   const localPlayerName = normalizePlayerName(localPlayerNameInput, fallbackPlayerName);
 
@@ -181,8 +187,13 @@ export function useMultiplayer({
       return;
     }
 
-    if (message.action.type !== "playMove") {
+    if (message.action.type !== "playMove" && message.action.type !== "skipTurn") {
       sendErrorTo(connectionId, t("multiplayer.errors.hostOnlyAction"));
+      return;
+    }
+
+    if (message.action.type === "skipTurn" && !gameStateRef.current.config.skipTurnEnabled) {
+      sendErrorTo(connectionId, t("multiplayer.errors.skipTurnDisabled"));
       return;
     }
 
@@ -254,6 +265,7 @@ export function useMultiplayer({
   }, [role, updatePlayer, addIssueMessageDeduped]);
 
   const clearMultiplayerUi = useCallback(() => {
+    clientRoomSyncedRef.current = false;
     serviceRef.current?.close();
     serviceRef.current = null;
     connectionPlayersRef.current.clear();
@@ -360,6 +372,7 @@ export function useMultiplayer({
 
   const handleClientMessage = useCallback((message: NetworkMessage) => {
     if (message.type === "WELCOME") {
+      clientRoomSyncedRef.current = true;
       setLocalSymbol(message.assignedSymbol);
       playersRef.current = message.players;
       setPlayers(message.players);
@@ -532,9 +545,19 @@ export function useMultiplayer({
       onMessage: handleClientMessage,
       onClose: () => {
         if (roleRef.current !== "client") return;
+        const lostHostWhileInRoom = clientRoomSyncedRef.current;
         resetSession();
+        if (!lostHostWhileInRoom) return;
         queueMicrotask(() => {
           addSystemMessage(t("multiplayer.system.hostDisconnected"));
+          if (hostDisconnectToastTimerRef.current !== null) {
+            window.clearTimeout(hostDisconnectToastTimerRef.current);
+          }
+          setHostDisconnectedToastOpen(true);
+          hostDisconnectToastTimerRef.current = window.setTimeout(() => {
+            setHostDisconnectedToastOpen(false);
+            hostDisconnectToastTimerRef.current = null;
+          }, 4200);
         });
       },
       onConnectionSetupFailed: (_remotePeerId, err) => {
@@ -613,6 +636,9 @@ export function useMultiplayer({
 
   useEffect(() => () => {
     serviceRef.current?.close();
+    if (hostDisconnectToastTimerRef.current !== null) {
+      window.clearTimeout(hostDisconnectToastTimerRef.current);
+    }
   }, []);
 
   const isOnline = role !== "offline";
@@ -651,6 +677,7 @@ export function useMultiplayer({
     canUseUndoRedo,
     canPlayLocalTurn,
     canChangeProfile,
+    hostDisconnectedToastOpen,
     createRoom,
     setLocalPlayerName,
     requestSymbolChange,

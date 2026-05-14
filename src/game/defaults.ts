@@ -62,6 +62,8 @@ export const DEFAULT_RESTRICTION_MOVEMENT_MODE: RestrictionMovementMode = "norma
 export const DEFAULT_RESTRICTION_MOVEMENT_EAT_ENABLED = false;
 export const DEFAULT_RESTRICTION_MOVEMENT_CONVERT_ENABLED = false;
 
+export const DEFAULT_SKIP_TURN_ENABLED = false;
+
 export const DRAW_IF_NO_LEGAL_MOVES = true;
 
 export const DEFAULT_CONFIG: GameConfig = {
@@ -105,5 +107,6 @@ export const DEFAULT_CONFIG: GameConfig = {
   restrictionStartBlockedCells: DEFAULT_RESTRICTION_START_BLOCKED_CELLS.map((position) => ({ ...position })),
   restrictionMovementMode: DEFAULT_RESTRICTION_MOVEMENT_MODE,
   restrictionMovementEatEnabled: DEFAULT_RESTRICTION_MOVEMENT_EAT_ENABLED,
-  restrictionMovementConvertEnabled: DEFAULT_RESTRICTION_MOVEMENT_CONVERT_ENABLED
+  restrictionMovementConvertEnabled: DEFAULT_RESTRICTION_MOVEMENT_CONVERT_ENABLED,
+  skipTurnEnabled: DEFAULT_SKIP_TURN_ENABLED
 };

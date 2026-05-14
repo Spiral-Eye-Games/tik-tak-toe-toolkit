@@ -68,6 +68,33 @@ export function commitBankAfterSuccessfulMove(
   snapshot.clockBankRemaining[pid] = next;
 }
 
+/** Descuenta el tiempo transcurrido del turno en modo banca, sin recuperación (pase u omisión de jugada). */
+export function commitBankAfterVoluntaryPass(
+  snapshot: GameSnapshot,
+  config: GameConfig,
+  nowMs: number,
+  options?: CommitBankClockOptions
+): void {
+  if (!config.clockEnabled || config.clockMode !== "bank" || !snapshot.clockBankRemaining) return;
+
+  const turnStart = snapshot.clockTurnStartedAtMs;
+  const pauseStart = snapshot.clockPauseStartedAtMs;
+  const effectiveNow =
+    snapshot.pendingGravityRotationTarget !== null && pauseStart !== null ? pauseStart : nowMs;
+  let elapsedSec = Math.max(0, (effectiveNow - turnStart) / 1000);
+  if (options?.ignoreElapsed) {
+    elapsedSec = 0;
+  }
+
+  const pid = snapshot.currentPlayer;
+  const bank = snapshot.clockBankRemaining[pid];
+  if (bank === undefined) return;
+
+  let next = bank - elapsedSec;
+  next = Math.max(0, Math.min(config.clockBankSeconds, next));
+  snapshot.clockBankRemaining[pid] = next;
+}
+
 export function restartTurnClock(snapshot: GameSnapshot, config: GameConfig, nowMs: number): void {
   if (!isClockEnabled(config)) return;
   snapshot.clockTurnStartedAtMs = nowMs;

@@ -1381,17 +1381,61 @@ body, #root { height: 100vh; }
   line-height: 1;
 }
 
-.board-event-strip {
+.board-event-area {
   position: absolute;
   top: clamp(10px, 2vmin, 22px);
   left: clamp(6px, 1.5vmin, 14px);
   z-index: 4;
   display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 10px;
+  max-width: calc(100% - clamp(36px, 9vmin, 72px));
+  pointer-events: none;
+}
+
+.board-event-strip {
+  display: flex;
   flex-direction: column;
   align-items: stretch;
   gap: 8px;
   width: clamp(112px, 14vmin, 170px);
+  flex: 0 0 auto;
   pointer-events: none;
+}
+
+.board-skip-turn-fab {
+  flex: 0 0 auto;
+  align-self: flex-start;
+  pointer-events: none;
+}
+
+.board-skip-turn-fab__btn {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(40px, 5.5vmin, 48px);
+  height: clamp(40px, 5.5vmin, 48px);
+  padding: 0;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: linear-gradient(165deg, rgba(42, 62, 98, 0.95), rgba(22, 32, 52, 0.92));
+  color: var(--text);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+}
+
+.board-skip-turn-fab__btn svg {
+  width: clamp(18px, 2.8vmin, 22px);
+  height: clamp(18px, 2.8vmin, 22px);
+  stroke-width: 2.5;
+}
+
+.board-skip-turn-fab__btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .board-event-chip {
@@ -1701,6 +1745,43 @@ body, #root { height: 100vh; }
 .button.icon.danger {
   color: #ffb4b4;
   border-color: rgba(255, 100, 100, 0.25);
+}
+
+.host-disconnect-toast-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 2147482200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  pointer-events: none;
+}
+
+.host-disconnect-toast {
+  max-width: min(92vw, 400px);
+  padding: 16px 22px;
+  border-radius: 16px;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 1000;
+  line-height: 1.35;
+  color: var(--text);
+  background: radial-gradient(circle at top left, rgba(255, 120, 120, 0.12), transparent 45%), #252838;
+  border: 1px solid rgba(255, 140, 140, 0.22);
+  box-shadow: 0 20px 56px rgba(0, 0, 0, 0.5);
+  animation: hostDisconnectToastIn 0.22s ease-out;
+}
+
+@keyframes hostDisconnectToastIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .modal-backdrop {

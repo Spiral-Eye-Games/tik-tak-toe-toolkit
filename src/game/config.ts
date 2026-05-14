@@ -232,7 +232,8 @@ export function sanitizeConfig(config: GameConfig): GameConfig {
     restrictionStartBlockedCells,
     restrictionMovementMode,
     restrictionMovementEatEnabled,
-    restrictionMovementConvertEnabled
+    restrictionMovementConvertEnabled,
+    skipTurnEnabled: Boolean(config.skipTurnEnabled)
   };
 }
 
