@@ -28,7 +28,7 @@ interface UseMultiplayerOptions {
   applyGameActionAsHost: (action: GameAction) => GameState;
   replaceGameState: (state: GameState) => void;
   replaceDraftConfig: (config: GameConfig) => void;
-  /** Si es `false`, no se escribe nickname ni ficha preferida en `localStorage` (modo `?dev`). */
+  /** Si es `false`, no se lee ni escribe nickname ni ficha preferida en `localStorage` (p. ej. modo `?dev`). */
   persistNickname?: boolean;
   /** Al salir como cliente, restaurar config local guardada (p. ej. desde `App`). */
   onClientSessionEnd?: () => void;
@@ -90,7 +90,9 @@ export function useMultiplayer({
   onClientSessionEndRef.current = onClientSessionEnd;
   const localPlayerId = useMemo(() => createPlayerId(), []);
   const fallbackPlayerName = useMemo(() => createPlayerName(), []);
-  const [localPlayerNameInput, setLocalPlayerNameInput] = useState(() => loadMultiplayerNickname());
+  const [localPlayerNameInput, setLocalPlayerNameInput] = useState(() =>
+    persistNickname ? loadMultiplayerNickname() : ""
+  );
   const initialPreferredSymbol = persistNickname ? loadMultiplayerPreferredSymbol() : null;
   const [preferredSymbol, setPreferredSymbol] = useState<GamePlayerId | null>(initialPreferredSymbol);
   const localPlayerIdRef = useRef(localPlayerId);
