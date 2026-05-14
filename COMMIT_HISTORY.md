@@ -8,6 +8,11 @@ Tabla complementaria de **`CHANGELOG.md`**: mapeo **SHA corto** ↔ **semver asi
 
 | Commit   | Mensaje original (Git)           | Versión revisada |
 |----------|-----------------------------------|------------------|
+| `ec25d3a` | mini fix 2                      | **v2.13.2** |
+| `da5879a` | mini fix                        | **v2.13.2** |
+| `821df0b` | better fields                   | **v2.13.1** |
+| `655d2c3` | nuevos objetivos                | **v2.13.0** |
+| `b9e7a31` | added changelog                 | **v2.12.1** |
 | `93bd07b` | omision and surrender            | **v2.12.0** |
 | `03d54e8` | gravity coliders                 | **v2.11.0** |
 | `4233298` | fixes                            | **v2.10.2** |

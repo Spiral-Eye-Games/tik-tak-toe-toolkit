@@ -1,5 +1,29 @@
 # Changelog
 
+## [v2.13.2] — 2026-05-14 — Ajustes menores en sidebar y toggle (`ec25d3a`)
+
+**Resumen revisado:** corrección puntual en **`SidebarSections`** y pulido de **`CustomToggle`** (commits `da5879a`, `ec25d3a`).
+
+---
+
+## [v2.13.1] — 2026-05-14 — Campos de formulario y reorganización del panel (`821df0b`)
+
+**Resumen revisado:** componentes **`CustomInput`** y **`CustomToggle`**; refactor amplio de **`SidebarSections`**; toques en **`LineRuleSelect`**, **`NumericDraftInput`**, **`PresetModal`**, **`MultiplayerPanel`**, **`restrictions`**, CSS e i18n.
+
+---
+
+## [v2.13.0] — 2026-05-14 — Objetivos extras y multiselect (`655d2c3`)
+
+**Resumen revisado:** módulo **`objectiveExtras`** y ampliación de **objetivos** en dominio (`config`, `defaults`, `types`, **`turns`**, **`outcomes`**, **`collapse`**, **`formatters`**); UI con **`CustomMultiSelect`**, **`LineRuleSelect`** y refactor de **`CustomSelect`** + **`customSelectMenuShared`**; sidebar, estilos y traducciones.
+
+---
+
+## [v2.12.1] — 2026-05-14 — Changelog versionado e histórico de commits (`b9e7a31`)
+
+**Resumen revisado:** añade **`CHANGELOG.md`**, **`COMMIT_HISTORY.md`** y la regla **`.cursor/rules/changelog.mdc`** (política semver / proceso de release revisado).
+
+---
+
 ## [v2.12.0] — 2026-05-14 — Omisión de turno y rendición (`93bd07b`)
 
 **Resumen revisado:** flujo para **omitir turno** (FAB, bloqueos con `skipTurnLock`) y **rendirse** (FAB + modal de confirmación); extensión de `config`/`defaults`, `outcomes`, red `useMultiplayer`, estilos e i18n.
