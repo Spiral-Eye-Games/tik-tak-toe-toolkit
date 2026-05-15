@@ -1,5 +1,6 @@
 import { getResolvedCollapseInterval } from "./config";
 import { getPlayerLabel } from "./formatters";
+import { hasObjectiveRule } from "./objectiveExtras";
 import { getNextTurnAfterPlayerRemoved } from "./turns";
 import { t } from "../i18n";
 import type { BoardPosition, GameConfig, GameSnapshot, PlayerId } from "./types";
@@ -21,13 +22,14 @@ export function applyCollapseIfDue(snapshot: GameSnapshot, config: GameConfig): 
     cell.piece = null;
     cell.brokenTurns = 0;
     cell.brokenCreatedOnTurn = snapshot.turnNumber;
+    cell.gravityCollisionSolid = true;
   }
 
   rebuildPieceHistoryFromBoard(snapshot);
   snapshot.selectedPieceId = null;
   snapshot.collapseCount++;
 
-  if (config.collapseKillsPlayers) {
+  if (hasObjectiveRule(config, "exileEmptyBoard")) {
     eliminatePlayersLeftWithoutPieces(snapshot, config, beforeCounts);
   }
 }

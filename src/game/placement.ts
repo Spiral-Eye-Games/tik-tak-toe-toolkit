@@ -71,10 +71,10 @@ export function isGravityPlacementClick(
   if (isBroken(cell) || cell.piece !== null) return false;
 
   if (isVerticalGravity(direction)) {
-    const landingRow = scanColumnLanding(board, config, direction, col, null);
+    const landingRow = scanColumnLanding(board, config, direction, col, null, snapshot);
     return landingRow !== null && !isStartPlacementRestricted(snapshot, config, landingRow, col);
   }
-  const landingCol = scanRowLanding(board, config, direction, row, null);
+  const landingCol = scanRowLanding(board, config, direction, row, null, snapshot);
   return landingCol !== null && !isStartPlacementRestricted(snapshot, config, row, landingCol);
 }
 
@@ -117,10 +117,10 @@ export function isGravityLandingCell(
 ): boolean {
   const board = snapshot.board;
   if (isVerticalGravity(direction)) {
-    const landRow = scanColumnLanding(board, config, direction, col, null);
+    const landRow = scanColumnLanding(board, config, direction, col, null, snapshot);
     return landRow !== null && landRow === row && !isStartPlacementRestricted(snapshot, config, row, col);
   }
-  const landCol = scanRowLanding(board, config, direction, row, null);
+  const landCol = scanRowLanding(board, config, direction, row, null, snapshot);
   return landCol !== null && landCol === col && !isStartPlacementRestricted(snapshot, config, row, col);
 }
 
@@ -129,13 +129,13 @@ export function hasLegalMove(snapshot: GameSnapshot, config: GameConfig): boolea
     const d = snapshot.gravityDirection;
     if (isVerticalGravity(d)) {
       for (let col = 0; col < config.columns; col++) {
-        const row = scanColumnLanding(snapshot.board, config, d, col, null);
+        const row = scanColumnLanding(snapshot.board, config, d, col, null, snapshot);
         if (row !== null && !isStartPlacementRestricted(snapshot, config, row, col)) return true;
       }
       return false;
     }
     for (let row = 0; row < config.rows; row++) {
-      const col = scanRowLanding(snapshot.board, config, d, row, null);
+      const col = scanRowLanding(snapshot.board, config, d, row, null, snapshot);
       if (col !== null && !isStartPlacementRestricted(snapshot, config, row, col)) return true;
     }
     return false;

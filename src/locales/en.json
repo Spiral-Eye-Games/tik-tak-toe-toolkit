@@ -81,6 +81,7 @@
   },
   "sections": {
     "general": "General",
+    "objective": "Objective",
     "players": "Players",
     "pieces": "Pieces",
     "holes": "Rupture",
@@ -92,11 +93,10 @@
   "fields": {
     "columns": "N Columns",
     "rows": "N Rows",
-    "winLose": "Win / Lose",
-    "lose": "Lose",
-    "win": "Win",
+    "lineRuleMode": "Mode",
     "lineLength": "N in a row",
-    "skipTurnEnabled": "Allow skipping a turn",
+    "objectiveExtraRules": "Extra conditions",
+    "skipTurnBlock": "Delay before skipping",
     "quantity": "Quantity",
     "pieceMovement": "Movement",
     "restrictionMode": "Mode",
@@ -105,41 +105,29 @@
     "enableGravity": "Enable gravity",
     "turns": "Turns",
     "brokenDuration": "Duration",
-    "brokenTurnsInfo": "Duration in turns (from the next turn onward).",
-    "brokenTurnsInfoUnlimited": "The break lasts until the end of the match.",
-    "brokenTurnsInfoRounds": "{{amount}} rounds × {{players}} players = {{total}} turns of break duration.",
+    "brokenRuptureGravityCollision": "Is obstacle",
+    "brokenRuptureGravityCollisionHelp": "While gravity is on: if enabled, cells broken by moving a piece behave like solids and stop sliding pieces.",
     "gravityInitialDirection": "Initial direction",
     "gravityRotate": "Rotate gravity",
     "gravityRotateAngle": "Rotation step",
     "gravityRotateSpin": "Turn direction",
     "gravityRotateEvery": "Every N",
-    "gravityRotateInfoTurns": "The direction changes every {{amount}} completed turns (after board settles).",
-    "gravityRotateInfoRounds": "{{amount}} rounds × {{players}} players = {{turns}} turns between rotations.",
     "collapseEnabled": "Enable collapse",
     "collapseType": "Type",
     "collapseEvery": "Every N",
     "collapseTimes": "Times",
-    "collapseKillsPlayers": "Kill players",
-    "collapseInfoTurns": "Collapses every {{amount}} completed turns, up to {{times}} times.",
-    "collapseInfoRounds": "{{amount}} rounds × {{players}} players = {{turns}} turns between collapses, up to {{times}} times.",
     "playerCount": "Number of players",
-    "eliminateLosers": "Eliminate losers (remove their pieces when they complete a line)",
-    "continueRanking": "Continue for ranking (multiple winners in order)",
-    "eliminateWinners": "Eliminate winners (remove their pieces when they complete a line in ranking)",
+    "removeOutOfGamePieces": "Clear pieces",
+    "removeOutOfGamePiecesTooltip": "When a player is out of the match (losing line, winning a ranking round and leaving play, forfeit, bank elimination, etc.), their pieces are removed from the board.",
+    "singleWinner": "Single winner only",
     "clockEnabled": "Enable clock",
     "clockType": "Clock type",
     "clockBankSeconds": "Total bank (s)",
     "clockRecoverSeconds": "Recover on move (s)",
     "clockPerTurnSeconds": "Time per turn (s)",
-    "clockHintBank": "Total time carried across turns; at 0 you lose. Recovery adds seconds after each completed move (capped at the initial bank).",
-    "clockHintPerTurn": "Each turn resets to the same allowance; at 0 you forfeit the turn (no place or move).",
     "blockingEnabled": "Enable blocking",
     "restrictionStartEvery": "For N",
     "editRestrictionStartGrid": "Edit blocked cells",
-    "restrictionStartGridSummary": "{{count}} cells blocked at the start.",
-    "restrictionStartInfoTurns": "Blocks painted cells during the first {{amount}} turns.",
-    "restrictionStartInfoRounds": "{{amount}} rounds × {{players}} players = {{turns}} turns with blocked cells.",
-    "restrictionMovementHint": "Normal changes nothing. Eat removes enemy pieces; Capture converts them to your player.",
     "restrictionMovementEat": "Eat",
     "restrictionMovementEatTooltip": "Allows removing enemy pieces according to the movement pattern. Turns off if you enable Capture.",
     "restrictionMovementConvert": "Capture",
@@ -147,9 +135,24 @@
   },
   "clock": {
     "modes": {
-      "bank": "Total bank",
-      "perTurn": "Per-turn clock"
+      "bank": {
+        "label": "Total bank",
+        "description": "Each player spends from one shared countdown across turns until time runs out (can recover seconds after moves in bank settings)."
+      },
+      "perTurn": {
+        "label": "Per-turn clock",
+        "description": "Each turn receives its own countdown that resets when it's your move again."
+      }
     }
+  },
+  "settingsSelectTriggers": {
+    "playerCount": "Number of players: {{mode}}. Open to choose.",
+    "restrictionMovement": "Movement pattern when moving pieces: {{mode}}. Open to choose.",
+    "gravityDirection": "Initial gravity direction: {{mode}}. Open to choose.",
+    "gravityRotateAngle": "Rotation step: {{mode}}. Open to choose.",
+    "gravityRotateSpin": "Rotation direction: {{mode}}. Open to choose.",
+    "collapseType": "Collapse movement: {{mode}}. Open to choose.",
+    "clockMode": "Clock type: {{mode}}. Open to choose."
   },
   "intervalUnits": {
     "turns": "Turns",
@@ -222,6 +225,36 @@
   },
   "pieceMoveSelect": {
     "triggerAria": "Movement: {{mode}}. Open to choose another mode."
+  },
+  "lineRuleSelect": {
+    "triggerAria": "Mode: {{mode}}. Open to choose another mode.",
+    "options": {
+      "win": {
+        "label": "Connect",
+        "description": "Standard mode: align N pieces in a row to complete the line and win the match."
+      },
+      "lose": {
+        "label": "Avoid",
+        "description": "Misère mode: completing the line of N loses; you want to avoid forming it."
+      }
+    }
+  },
+  "objectiveExtra": {
+    "tieBreakMostPieces": {
+      "label": "Domination",
+      "description": "If no one can play and the match would end in a draw otherwise, whoever has the most of their own pieces on the board wins. If that count is tied, it stays a draw."
+    },
+    "exileEmptyBoard": {
+      "label": "Exile",
+      "description": "If you have no pieces left on the board, you lose the match."
+    },
+    "multi": {
+      "placeholder": "No extra conditions",
+      "summary": "{{count}} active: open to edit",
+      "triggerAria": "Objective extra conditions: {{count}} selected. Open the list.",
+      "removeChip": "Remove {{label}}",
+      "chipListAria": "Selected extra conditions"
+    }
   },
   "restrictions": {
     "startBlockedCell": "Block",
@@ -309,8 +342,8 @@
     "collapse": {
       "disabled": "collapse disabled.",
       "enabled": "{{type}} collapse every {{intervalText}}, {{times}} times; {{killsText}}.",
-      "kills": "players left without pieces by the collapse lose",
-      "noKills": "players left without pieces by the collapse keep playing",
+      "kills": "with Exile enabled under Objective, anyone left with no pieces after collapse loses or is eliminated",
+      "noKills": "without Exile under Objective, collapse does not eliminate players left with no pieces",
       "type": {
         "left": "left",
         "right": "right",
@@ -369,6 +402,8 @@
       "boardSize": "{{columns}} columns by {{rows}} rows board.",
       "objectiveWin": "The player who makes {{lineLength}} in a row wins.",
       "objectiveLose": "The player who makes {{lineLength}} in a row loses.",
+      "objectiveExtraTieBreak": "Domination: on a no-legal-moves draw, the player with more pieces on the board wins if that maximum is unique.",
+      "objectiveExtraExile": "Exile: you lose if you have no pieces left on the board (once the match is underway).",
       "piecesUnlimited": "Each player can place unlimited pieces.",
       "piecesLimited": "Each player can have up to {{maxPieces}} live pieces.",
       "moveMode": {
@@ -381,11 +416,13 @@
       "movementEat": "Eat is active: enemy pieces reached by the pattern are removed.",
       "movementConvert": "Capture is active: jumped pieces become your own pieces.",
       "playerCount": "{{players}} players participate.",
-      "eliminateLosers": "When a player loses, their pieces are removed from the board.",
-      "continueRanking": "The match continues after the first winner to build standings.",
-      "eliminateWinners": "When a player wins a ranking round, their pieces are removed.",
+      "removeOutOfGamePieces": "When a player is out of the match, their pieces are removed from the board.",
+      "rankingContinues": "Win mode (3+ players): play continues after the first winner to build a ranking.",
+      "singleWinnerWinMode": "Win mode (3+ players): the match ends as soon as there is a first winner.",
       "brokenUntilEnd": "Rupture: abandoned cells stay broken until the end.",
       "brokenForTurns": "Rupture: abandoned cells stay broken for {{turns}} turns.",
+      "brokenRuptureGravitySolid": "Rupture holes act as solid obstacles for gravity (pieces cannot fall through).",
+      "brokenRuptureGravityPassthrough": "Rupture holes do not collide with gravity (pieces can fall through gaps).",
       "gravityDirection": "Gravity: pieces fall toward {{direction}}.",
       "gravityRotation": "Gravity rotates every {{intervalText}} with {{angle}} step and {{spin}}.",
       "clockBank": "Clock: each player has a {{total}} s total bank.",
@@ -393,7 +430,7 @@
       "clockPerTurn": "Clock: each move has {{seconds}} s.",
       "restrictionStart": "Opening blocking: {{cells}} cells reject new pieces for {{turns}} turns.",
       "collapse": "{{type}} collapse every {{intervalText}}, up to {{times}} times.",
-      "collapseKills": "If collapse leaves a player without pieces, that player loses or is eliminated."
+      "collapseKills": "With <strong>Exile</strong> under extra conditions, a collapse that leaves someone with no pieces on the board triggers that elimination."
     },
     "summary": "{{columns}} columns x {{rows}} rows. {{lineText}} if you make {{lineLength}} in a row. {{piecesText}}. {{moveText}}. {{movementLimitText}} {{brokenText}}. {{gravityText}} {{collapseText}} {{clockText}} {{restrictionsText}}",
     "modal": {
@@ -417,11 +454,17 @@
     "lose": "{{player}} formed {{lineLength}} in a row and lost.",
     "win": "{{player}} formed {{lineLength}} in a row and won.",
     "draw": "Draw: no legal moves left.",
+    "stalemateDominio": "{{winner}} wins with no legal moves left: most pieces on the board ({{count}}).",
+    "stalemateDominioRanking": "{{winner}} wins the no-moves tie-break with {{count}} pieces on the board; full order by territory.",
+    "exilio": "{{loser}} has no pieces left on the board.",
+    "exilioWinner": "{{loser}} has no pieces left on the board. {{winner}} wins.",
+    "exilioBatch": "No pieces on the board: {{players}}.",
     "survivorWin": "{{player}} is the last one standing and wins!",
     "rankingComplete": "Final ranking is set.",
     "clockBankOut": "{{loser}} ran out of time. {{winner}} wins.",
     "collapseOut": "{{loser}} was left without pieces by the collapse. {{winner}} wins.",
     "forfeit": "{{loser}} disconnected. {{winner}} wins.",
+    "surrender": "{{loser}} surrendered. {{winner}} wins.",
     "winAfterMark": " formed {{lineLength}} in a row and won.",
     "loseAfterMark": " formed {{lineLength}} in a row and lost.",
     "survivorBeforeMark": "",
@@ -495,7 +538,8 @@
       "unknownPlayer": "Could not validate your player.",
       "hostOnlyAction": "Only the host can do that action.",
       "notYourTurn": "It is not your turn.",
-      "skipTurnDisabled": "Skipping a turn is not enabled for this match.",
+      "skipTurnDisabled": "Skipping a turn is not available yet or is disabled for this match.",
+      "surrenderTooEarly": "You can surrender only after the first full round.",
       "symbolTaken": "That piece is already equipped by another player."
     },
     "roles": {
@@ -521,7 +565,11 @@
   "help": {
     "general": {
       "title": "General",
-      "html": "<p>This is where you define the match foundation: board size, objective, and the line length that decides the result.</p><h3>What you can configure</h3><ul><li><strong>N Columns</strong> and <strong>N Rows</strong> change the board width and height.</li><li><strong>Win / Lose</strong> decides whether completing a line makes you win or lose.</li><li><strong>N in a row</strong> defines how many consecutive pieces trigger that condition.</li></ul><h3>How it changes the game</h3><ul><li>A larger board gives more room for variants with gravity, blocking, or collapse.</li><li>If you choose <strong>Lose</strong>, you play misère mode: completing a line becomes something to avoid.</li><li>The line length must fit on the board; the app limits it according to rows and columns.</li></ul>"
+      "html": "<p>Define board size and when <strong>skip turn</strong> becomes available.</p><h3>What you can configure</h3><ul><li><strong>N Columns</strong> and <strong>N Rows</strong> set the board width and height.</li><li><strong>Delay before skipping</strong> chooses how many <strong>T</strong> (turn steps) or <strong>R</strong> full rounds to wait, or <strong>∞</strong> to block skip for the whole match.</li></ul><h3>How it changes the game</h3><ul><li>A larger board leaves more room for gravity, blocking, or collapse variants.</li></ul>"
+    },
+    "objective": {
+      "title": "Objective",
+      "html": "<p>Define what completing the line means and how many pieces in a row count.</p><h3>What you can configure</h3><ul><li><strong>Mode</strong> opens a selector with hover descriptions: <strong>Connect</strong> (win if you complete the line) or <strong>Avoid</strong> (misère: lose if you complete it).</li><li><strong>N in a row</strong> sets how many consecutive aligned pieces trigger that condition.</li><li><strong>Extra conditions</strong> enables optional rules with tooltips: <strong>Domination</strong> (board-count tie-break when no moves remain) and <strong>Exile</strong> (lose if you have no pieces on the board).</li></ul><h3>How it changes the game</h3><ul><li>In <strong>Avoid</strong>, the line is something you block, not something you try to finish.</li><li>The maximum length is capped by the current rows and columns.</li></ul>"
     },
     "pieces": {
       "title": "Pieces",
@@ -529,15 +577,15 @@
     },
     "holes": {
       "title": "Rupture",
-      "html": "<p>Rupture makes a cell unusable after a piece leaves it.</p><h3>What you can configure</h3><ul><li>The title switch enables or disables this mechanic.</li><li><strong>Duration</strong> sets how long the rupture lasts, with a mode button: <strong>T</strong> counts turns, <strong>R</strong> counts rounds (converted to turns using the player count), and <strong>∞</strong> blocks the cell until the match ends.</li></ul><h3>How it changes the game</h3><ul><li>If disabled, moving a piece leaves the cell immediately available.</li><li>If enabled, movement has a spatial cost: you can close paths or block areas.</li><li>Broken cells also interfere with line movement and gravity.</li></ul>"
+      "html": "<p>Rupture makes a cell unusable after a piece leaves it.</p><h3>What you can configure</h3><ul><li>The title switch enables or disables this mechanic.</li><li><strong>Duration</strong> sets how long the rupture lasts, with a mode button: <strong>T</strong> counts turns, <strong>R</strong> counts rounds (converted to turns using the player count), and <strong>∞</strong> blocks the cell until the match ends.</li><li>With gravity enabled: <strong>Block gravity</strong> controls whether rupture holes behave like solids for sliding pieces (collapse holes and opening blocked squares are always solids).</li></ul><h3>How it changes the game</h3><ul><li>If disabled, moving a piece leaves the cell immediately available.</li><li>If enabled, movement has a spatial cost: you can close paths or block areas.</li><li>Broken cells interfere with movement patterns; gravity interaction depends on the collision toggle and on whether the hole was caused by rupture or collapse.</li></ul>"
     },
     "gravity": {
       "title": "Gravity",
-      "html": "<p>Gravity pulls every piece toward one side of the board, as if that side were the floor.</p><h3>What you can configure</h3><ul><li>The title switch enables or disables gravity.</li><li><strong>Initial direction</strong> sets where pieces fall at the start.</li><li><strong>Rotate gravity</strong> can change the direction after every N completed turns or rounds; the compact field uses <strong>T</strong> (turns) or <strong>R</strong> (rounds) next to the number.</li><li><strong>Rotation step</strong> chooses how much gravity turns each time: 90°, 180°, 270°, or random.</li><li><strong>Turn direction</strong> sets clockwise, counter-clockwise, or random rotation.</li></ul><h3>How to play with gravity</h3><ul><li>When placing, tap an empty cell in the column or row: the piece falls to its landing spot.</li><li>Strong arrows show where the piece will land; faint arrows are shortcuts in the same fall line.</li><li>When moving a piece, choose an empty cell and then the whole board settles in the current direction.</li><li>Broken cells act as obstacles and can split a column or row into separate segments.</li><li>When gravity rotates, there is a short pause before pieces settle again.</li></ul>"
+      "html": "<p>Gravity pulls every piece toward one side of the board, as if that side were the floor.</p><h3>What you can configure</h3><ul><li>The title switch enables or disables gravity.</li><li><strong>Initial direction</strong> sets where pieces fall at the start.</li><li><strong>Rotate gravity</strong> can change the direction after every N completed turns or rounds; the compact field uses <strong>T</strong> (turns) or <strong>R</strong> (rounds) next to the number.</li><li><strong>Rotation step</strong> chooses how much gravity turns each time: 90°, 180°, 270°, or random.</li><li><strong>Turn direction</strong> sets clockwise, counter-clockwise, or random rotation.</li></ul><h3>How to play with gravity</h3><ul><li>When placing, tap an empty cell in the column or row: the piece falls to its landing spot.</li><li>Strong arrows show where the piece will land; faint arrows are shortcuts in the same fall line.</li><li>When moving a piece, choose an empty cell and then the whole board settles in the current direction.</li><li>Opening blocked squares (during the countdown) behave like solids for gravity.</li><li>Collapsed cells behave like solids; rupture holes can block gravity or let pieces fall through, depending on the rupture collision toggle.</li><li>When gravity rotates, there is a short pause before pieces settle again.</li></ul>"
     },
     "players": {
       "title": "Players",
-      "html": "<p>This is where you choose how many players join and how matches with more than two players resolve.</p><h3>What you can configure</h3><ul><li><strong>Number of players</strong> uses the first players in the list, in that turn order.</li><li>With more than two players in <strong>Lose</strong> mode, <strong>Eliminate losers</strong> can clear their pieces when they are removed.</li><li>With more than two players in <strong>Win</strong> mode, <strong>Continue for ranking</strong> lets play continue after the first winner.</li><li>If ranking continues, <strong>Eliminate winners</strong> decides whether a winner's pieces are removed or kept as obstacles.</li></ul><h3>How it changes the game</h3><ul><li>In two-player matches, winning or losing ends the match normally.</li><li>In three-or-more-player matches, elimination options decide whether the board partially clears or keeps pieces that affect the remaining players.</li><li>Player icons and colors are edited from the players panel.</li></ul>"
+      "html": "<p>This is where you choose how many players join and how matches with more than two players resolve.</p><h3>What you can configure</h3><ul><li><strong>Number of players</strong> uses the first players in the list, in that turn order.</li><li>With more than two players, <strong>Remove out-of-game pieces</strong> (same row) clears the board pieces of anyone who is eliminated or leaves after winning a ranking round—regardless of other ranking options.</li><li>With more than two players in <strong>Connect</strong> mode, <strong>Single winner only</strong> ends the match on the first completed winning line; if it is off, play continues for a full ranking.</li></ul><h3>How it changes the game</h3><ul><li>In two-player matches, winning or losing ends the match normally.</li><li>In three-or-more-player matches, clearing pieces changes whether eliminated players leave obstacles behind.</li><li>Player icons and colors are edited from the players panel.</li></ul>"
     },
     "clock": {
       "title": "Clock",
@@ -545,11 +593,11 @@
     },
     "restrictions": {
       "title": "Blocking",
-      "html": "<p>Blocking reserves cells that cannot be used at the start of the match.</p><h3>What you can configure</h3><ul><li>The title switch enables or disables opening blocked cells.</li><li><strong>For N</strong> sets how long they stay blocked, with <strong>T</strong> (turns) or <strong>R</strong> (rounds) next to the number.</li><li><strong>Edit</strong> (same row) opens a grid matching the current board so you can paint and unpaint cells.</li></ul><h3>How it changes the game</h3><ul><li>While blocking lasts, new pieces cannot be placed on painted cells.</li><li>When the countdown ends, those cells become available again.</li><li>The board event indicator shows when blocking will release.</li></ul>"
+      "html": "<p>Blocking reserves cells that cannot be used at the start of the match.</p><h3>What you can configure</h3><ul><li>The title switch enables or disables opening blocked cells.</li><li><strong>For N</strong> sets how long they stay blocked, with <strong>T</strong> (turns) or <strong>R</strong> (rounds) next to the number.</li><li><strong>Edit</strong> (same row) opens a grid matching the current board so you can paint and unpaint cells.</li></ul><h3>How it changes the game</h3><ul><li>While blocking lasts, new pieces cannot be placed on painted cells.</li><li>The same squares stop gravity from pulling pieces through them until the countdown ends.</li><li>When the countdown ends, those cells become available again.</li><li>The board event indicator shows when blocking will release.</li></ul>"
     },
     "collapse": {
       "title": "Collapse",
-      "html": "<p>Collapse shrinks the board by breaking edges at scheduled moments.</p><h3>What you can configure</h3><ul><li>The title switch enables or disables the mechanic.</li><li><strong>Type</strong> chooses which edge or edges break: left, right, up, down, horizontal, vertical, or circular.</li><li><strong>Every N</strong> sets the interval with <strong>T</strong> (turns) or <strong>R</strong> (rounds) next to the number; <strong>Times</strong> sits on the same row and caps how many collapses can happen.</li><li><strong>Kill players</strong> decides whether a player left without pieces by collapse loses or keeps playing.</li></ul><h3>How it changes the game</h3><ul><li>Each collapse advances one layer inward; for example, circular breaks the next ring of the board.</li><li>Collapsed cells stay broken until the end of the match.</li><li>If there were pieces on those cells, they are destroyed when the collapse happens.</li><li>The event indicator warns when the next collapse is coming.</li></ul>"
+      "html": "<p>Collapse shrinks the board by breaking edges at scheduled moments.</p><h3>What you can configure</h3><ul><li>The title switch enables or disables the mechanic.</li><li><strong>Type</strong> chooses which edge or edges break: left, right, up, down, horizontal, vertical, or circular.</li><li><strong>Every N</strong> sets the interval with <strong>T</strong> (turns) or <strong>R</strong> (rounds) next to the number; <strong>Times</strong> sits on the same row and caps how many collapses can happen.</li></ul><h3>How it changes the game</h3><ul><li>Each collapse advances one layer inward; for example, circular breaks the next ring of the board.</li><li>Collapsed cells stay broken until the end of the match.</li><li>If there were pieces on those cells, they are destroyed when the collapse happens.</li><li>Only if <strong>Exile</strong> is enabled under <strong>Objective</strong> extra conditions does losing all pieces on the board to a collapse eliminate you like other Exile cases.</li><li>The event indicator warns when the next collapse is coming.</li></ul>"
     }
   },
   "board": {
@@ -561,7 +609,18 @@
     "outcomeBankChipTitle": "Bank: {{time}}",
     "outcomeAriaBank": "Bank remaining {{time}}",
     "skipTurn": {
-      "tooltip": "Skip turn"
+      "tooltip": "Skip turn",
+      "tooltipNotYourTurn": "Not your turn",
+      "tooltipLockedInfinite": "Skipping a turn is off for this match.",
+      "tooltipLockedCooldown": "Skip unlocks after {{n}} more turns."
+    },
+    "surrender": {
+      "tooltip": "Surrender",
+      "tooltipTooEarly": "Surrender (after the first round)",
+      "confirmTitle": "Surrender?",
+      "confirmBody": "You will lose this match immediately.",
+      "cancel": "Keep playing",
+      "confirm": "Surrender"
     },
     "timeline": {
       "stripAriaLabel": "Current turn and upcoming events",

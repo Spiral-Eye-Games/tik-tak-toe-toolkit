@@ -2,14 +2,16 @@ import { commitBankAfterVoluntaryPass, clearClockPauseIfNoPendingGravity, isCloc
 import { scheduleGravityRotationIfDue } from "./gravity";
 import { cloneSnapshot, createSnapshot, snapshotToState } from "./history";
 import { advanceTurnAfterNoLine } from "./outcomes";
+import { isSkipTurnUnavailable } from "./skipTurnLock";
 import type { GameState } from "./types";
 
 export function applySkipTurn(state: GameState): GameState {
-  if (!state.config.skipTurnEnabled || state.gameOver || state.pendingGravityRotationTarget !== null) {
+  if (isSkipTurnUnavailable(state) || state.gameOver || state.pendingGravityRotationTarget !== null) {
     return state;
   }
 
-  const snap = cloneSnapshot(createSnapshot(state));
+  const previousSnapshot = createSnapshot(state);
+  const snap = cloneSnapshot(previousSnapshot);
   commitBankAfterVoluntaryPass(snap, state.config, Date.now(), { ignoreElapsed: state.turnNumber === 0 });
   snap.turnNumber++;
   snap.statusMessage = "";
@@ -21,5 +23,5 @@ export function applySkipTurn(state: GameState): GameState {
     restartTurnClock(snap, state.config, Date.now());
   }
 
-  return snapshotToState(state, snap, state.undoStack, []);
+  return snapshotToState(state, snap, [...state.undoStack, previousSnapshot], []);
 }

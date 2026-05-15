@@ -4,14 +4,19 @@ import { getPlayerLabel } from "./formatters";
 import { scheduleGravityRotationIfDue } from "./gravity";
 import { cloneSnapshot, createSnapshot, snapshotToState } from "./history";
 import { t } from "../i18n";
+import { applyGravity } from "./gravity";
 import {
-  applyGravity,
+  applyStalemateTieBreakMostPieces,
+  resolveExileEmptyBoard
+} from "./objectiveExtras";
+import {
   findLine,
   getDefaultSelectedPieceIdForcedOldest,
   removeAllPiecesForPlayer,
   shouldDrawIfNoLegalMoves,
   tickBrokenHoles
 } from "./rules";
+import { getNextActivePlayerAfterChanges } from "./turns";
 import type { BoardPosition, GameConfig, GameSnapshot, GameState, PlayerId } from "./types";
 
 export function advanceTurnAfterNoLine(snapshot: GameSnapshot, config: GameConfig): void {
@@ -21,7 +26,7 @@ export function advanceTurnAfterNoLine(snapshot: GameSnapshot, config: GameConfi
   applyCollapseIfDue(snapshot, config);
   if (snapshot.gameOver) return;
 
-  if (config.gravityEnabled) applyGravity(snapshot.board, config, snapshot.gravityDirection);
+  if (config.gravityEnabled) applyGravity(snapshot.board, config, snapshot.gravityDirection, snapshot);
 
   snapshot.currentPlayer = getNextActivePlayerAfterChanges(oldActive, snapshot.activePlayerIds, completedPlayer);
   snapshot.selectedPieceId = getDefaultSelectedPieceIdForcedOldest(snapshot, config);
@@ -36,6 +41,10 @@ export function finishTurn(snapshot: GameSnapshot, config: GameConfig): void {
     handleCompletedLine(snapshot, config, completedLine);
   } else {
     advanceTurnAfterNoLine(snapshot, config);
+  }
+
+  if (!snapshot.gameOver) {
+    resolveExileEmptyBoard(snapshot, config);
   }
 
   scheduleGravityRotationIfDue(snapshot, config);
@@ -58,15 +67,17 @@ export function resolveActivePlayerLine(snapshot: GameSnapshot, config: GameConf
   return false;
 }
 
-export function forfeitPlayer(state: GameState, playerId: PlayerId): GameState {
+type ForfeitKind = "disconnect" | "surrender";
+
+export function forfeitPlayer(state: GameState, playerId: PlayerId, kind: ForfeitKind = "disconnect"): GameState {
   if (state.gameOver || !state.activePlayerIds.includes(playerId)) return state;
 
   const snap = cloneSnapshot(createSnapshot(state));
-  resolveForfeitLoss(snap, state.config, playerId);
+  resolveForfeitLoss(snap, state.config, playerId, kind);
   return snapshotToState(state, snap, state.undoStack, []);
 }
 
-function resolveForfeitLoss(snapshot: GameSnapshot, config: GameConfig, playerId: PlayerId): void {
+function resolveForfeitLoss(snapshot: GameSnapshot, config: GameConfig, playerId: PlayerId, kind: ForfeitKind): void {
   if (snapshot.gameOver || !snapshot.activePlayerIds.includes(playerId)) return;
 
   const oldActive = [...snapshot.activePlayerIds];
@@ -81,13 +92,15 @@ function resolveForfeitLoss(snapshot: GameSnapshot, config: GameConfig, playerId
     const winnerId = oldActive.find((id) => id !== playerId);
     snapshot.gameEndSummary = winnerId ? { type: "winner", winnerId, loserId: playerId } : { type: "draw" };
     snapshot.statusMessage = winnerId
-      ? t("gameOver.forfeit", { loser: label(playerId), winner: label(winnerId) })
+      ? kind === "surrender"
+        ? t("gameOver.surrender", { loser: label(playerId), winner: label(winnerId) })
+        : t("gameOver.forfeit", { loser: label(playerId), winner: label(winnerId) })
       : t("gameOver.draw");
     return;
   }
 
   snapshot.eliminationOrderLose.push(playerId);
-  if (config.eliminateLosers) {
+  if (config.removeOutOfGamePieces) {
     removeAllPiecesForPlayer(snapshot, config, playerId);
   }
   snapshot.activePlayerIds = oldActive.filter((id) => id !== playerId);
@@ -128,7 +141,7 @@ function handleWinningLine(
   activeCount: number,
   label: (id: PlayerId) => string
 ): void {
-  if (!config.continueRanking) {
+  if (config.singleWinner) {
     snapshot.gameOver = true;
     snapshot.gameEndSummary = { type: "winner", winnerId: snapshot.currentPlayer };
     snapshot.statusMessage = t("gameOver.win", {
@@ -144,7 +157,7 @@ function handleWinningLine(
   if (activeCount === 2) {
     const loserId = oldActive.find((id) => id !== winnerId);
     snapshot.placementOrderWin.push(winnerId);
-    if (config.eliminateWinners) {
+    if (config.removeOutOfGamePieces) {
       removeAllPiecesForPlayer(snapshot, config, winnerId);
     }
     snapshot.activePlayerIds = [];
@@ -157,7 +170,7 @@ function handleWinningLine(
   }
 
   snapshot.placementOrderWin.push(winnerId);
-  if (config.eliminateWinners) {
+  if (config.removeOutOfGamePieces) {
     removeAllPiecesForPlayer(snapshot, config, winnerId);
   }
   snapshot.activePlayerIds = oldActive.filter((id) => id !== winnerId);
@@ -218,7 +231,7 @@ function handleLosingLine(
 
   const eliminatedId = snapshot.currentPlayer;
   snapshot.eliminationOrderLose.push(eliminatedId);
-  if (config.eliminateLosers) {
+  if (config.removeOutOfGamePieces) {
     removeAllPiecesForPlayer(snapshot, config, eliminatedId);
   }
 
@@ -251,7 +264,7 @@ function advanceAfterPlayerRemoved(
   applyCollapseIfDue(snapshot, config);
   if (snapshot.gameOver) return;
 
-  if (config.gravityEnabled) applyGravity(snapshot.board, config, snapshot.gravityDirection);
+  if (config.gravityEnabled) applyGravity(snapshot.board, config, snapshot.gravityDirection, snapshot);
   snapshot.currentPlayer = getNextActivePlayerAfterChanges(oldActive, snapshot.activePlayerIds, removedId);
   snapshot.selectedPieceId = getDefaultSelectedPieceIdForcedOldest(snapshot, config);
 
@@ -259,12 +272,18 @@ function advanceAfterPlayerRemoved(
 }
 
 function finishIfNoLegalMoves(snapshot: GameSnapshot, config: GameConfig): boolean {
+  resolveExileEmptyBoard(snapshot, config);
+  if (snapshot.gameOver) return true;
   if (!shouldDrawIfNoLegalMoves(snapshot, config)) return false;
 
   snapshot.gameOver = true;
   if (snapshot.placementOrderWin.length > 0 || snapshot.eliminationOrderLose.length > 0) {
     snapshot.gameEndSummary = { type: "ranking", orderedIds: buildResolvedRanking(snapshot) };
     snapshot.statusMessage = t("gameOver.rankingComplete");
+    return true;
+  }
+
+  if (applyStalemateTieBreakMostPieces(snapshot, config)) {
     return true;
   }
 
@@ -280,19 +299,6 @@ function buildResolvedRanking(snapshot: GameSnapshot): PlayerId[] {
     ...[...snapshot.eliminationOrderLose].reverse()
   ];
   return orderedIds.filter((id, index) => orderedIds.indexOf(id) === index);
-}
-
-function getNextActivePlayerAfterChanges(oldActive: PlayerId[], activePlayerIds: PlayerId[], afterPlayerId: PlayerId): PlayerId {
-  if (activePlayerIds.length === 0) return afterPlayerId;
-  const startIndex = oldActive.indexOf(afterPlayerId);
-  if (startIndex < 0) return activePlayerIds[0];
-
-  for (let step = 1; step <= oldActive.length; step++) {
-    const candidate = oldActive[(startIndex + step) % oldActive.length];
-    if (activePlayerIds.includes(candidate)) return candidate;
-  }
-
-  return activePlayerIds[0];
 }
 
 function getActivePlayersStartingFromCurrent(snapshot: GameSnapshot): PlayerId[] {
@@ -328,7 +334,7 @@ export function resolveBankTimeoutLoss(snapshot: GameSnapshot, config: GameConfi
 
   const eliminatedId = timedOutId;
   snapshot.eliminationOrderLose.push(eliminatedId);
-  if (config.eliminateLosers) {
+  if (config.removeOutOfGamePieces) {
     removeAllPiecesForPlayer(snapshot, config, eliminatedId);
   }
 

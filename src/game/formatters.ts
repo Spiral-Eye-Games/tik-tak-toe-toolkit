@@ -58,6 +58,14 @@ export function getVictoryModalPlayerDisplayName(
   return getPlayerFigureDisplayName(playerId);
 }
 
+/** Etiqueta en la franja de turnos del tablero: offline → nombre de la figura; online → nickname si hay. */
+export function getBoardTimelineTurnLabel(
+  playerId: PlayerId,
+  context: VictoryOnlineNameContext | null | undefined
+): string {
+  return getVictoryModalPlayerDisplayName(playerId, context);
+}
+
 export function getColumnLetter(col: number): string {
   let label = "";
   let n = col;
@@ -112,6 +120,13 @@ export function buildRulesHtml(config: GameConfig): string {
       : t("rules.current.objectiveWin", { lineLength: config.lineLength })
   ];
 
+  if (config.objectiveExtraRules.includes("tieBreakMostPieces")) {
+    boardItems.push(t("rules.current.objectiveExtraTieBreak"));
+  }
+  if (config.objectiveExtraRules.includes("exileEmptyBoard")) {
+    boardItems.push(t("rules.current.objectiveExtraExile"));
+  }
+
   const pieceItems = [
     config.pieceLimitType === "unlimited"
       ? t("rules.current.piecesUnlimited")
@@ -138,14 +153,15 @@ export function buildRulesHtml(config: GameConfig): string {
     t("rules.current.playerCount", { players: config.playerCount })
   ];
 
-  if (config.playerCount > 2 && config.lineRule === "lose" && config.eliminateLosers) {
-    playerItems.push(t("rules.current.eliminateLosers"));
+  if (config.playerCount > 2 && config.removeOutOfGamePieces) {
+    playerItems.push(t("rules.current.removeOutOfGamePieces"));
   }
 
-  if (config.playerCount > 2 && config.lineRule === "win" && config.continueRanking) {
-    playerItems.push(t("rules.current.continueRanking"));
-    if (config.eliminateWinners) {
-      playerItems.push(t("rules.current.eliminateWinners"));
+  if (config.playerCount > 2 && config.lineRule === "win") {
+    if (config.singleWinner) {
+      playerItems.push(t("rules.current.singleWinnerWinMode"));
+    } else {
+      playerItems.push(t("rules.current.rankingContinues"));
     }
   }
 
@@ -174,6 +190,14 @@ export function buildRulesHtml(config: GameConfig): string {
         angle: t(`rules.gravity.rotateAngle.${config.gravityRotateAngle}`),
         spin: t(`rules.gravity.rotateSpin.${config.gravityRotateSpin}`)
       }));
+    }
+
+    if (config.brokenEnabled) {
+      mechanicItems.push(
+        config.brokenRuptureGravityCollision
+          ? t("rules.current.brokenRuptureGravitySolid")
+          : t("rules.current.brokenRuptureGravityPassthrough")
+      );
     }
   }
 
@@ -207,7 +231,7 @@ export function buildRulesHtml(config: GameConfig): string {
       times: config.collapseTimes
     }));
 
-    if (config.collapseKillsPlayers) {
+    if (config.objectiveExtraRules.includes("exileEmptyBoard")) {
       mechanicItems.push(t("rules.current.collapseKills"));
     }
   }
@@ -301,7 +325,9 @@ export function buildRulesText(config: GameConfig): string {
       type: t(`rules.collapse.type.${config.collapseType}`),
       intervalText: collapseIntervalText,
       times: config.collapseTimes,
-      killsText: config.collapseKillsPlayers ? t("rules.collapse.kills") : t("rules.collapse.noKills")
+      killsText: config.objectiveExtraRules.includes("exileEmptyBoard")
+        ? t("rules.collapse.kills")
+        : t("rules.collapse.noKills")
     });
 
   return t("rules.summary", {
@@ -355,5 +381,5 @@ export function victoryModalShowsRanking(config: GameConfig, summary: GameEndSum
   if (config.lineRule === "lose") {
     return config.playerCount > 2;
   }
-  return config.continueRanking;
+  return !config.singleWinner;
 }

@@ -12,6 +12,7 @@ import {
 import { sanitizeConfig } from "../game/config";
 import type { GameConfig } from "../game/types";
 import { t } from "../i18n";
+import { CustomInput } from "./CustomInput";
 import { ModalPortal } from "./ModalPortal";
 
 interface PresetModalProps {
@@ -92,8 +93,7 @@ export function PresetModal({ open, draftConfig, onClose, onApplyPreset }: Prese
               <div className="preset-save-row">
                 <label className="preset-save-label">
                   <span className="preset-save-label-text">{t("presets.saveNameLabel")}</span>
-                  <input
-                    className="preset-save-input"
+                  <CustomInput
                     type="text"
                     maxLength={80}
                     value={saveName}

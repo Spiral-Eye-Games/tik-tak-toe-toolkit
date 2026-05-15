@@ -20,6 +20,7 @@ export interface RosterPlayer {
 }
 
 export type LineRule = "lose" | "win";
+export type ObjectiveExtraRuleId = "tieBreakMostPieces" | "exileEmptyBoard";
 export type PieceLimitType = "limited" | "unlimited";
 export type PieceMoveMode = "forcedOldest" | "limitMoveAny" | "limitedFree" | "blocked" | "free";
 
@@ -28,6 +29,8 @@ export type GravityRotateAngle = "90" | "180" | "270" | "random";
 export type GravityRotateSpin = "cw" | "ccw" | "random";
 export type CollapseType = "left" | "right" | "up" | "down" | "horizontal" | "vertical" | "circular";
 export type IntervalUnit = "turns" | "rounds";
+/** Bloqueo inicial del botón «omitir turno»: N turnos o rondas antes de permitirlo, o infinito (toda la partida). */
+export type SkipTurnBlockMode = IntervalUnit | "infinite";
 export type RestrictionStartZone = "edges" | "corners" | "center";
 export type RestrictionMovementMode =
   | "normal"
@@ -66,6 +69,11 @@ export interface GameConfig {
   brokenHoleDurationUnit: IntervalUnit;
   brokenHoleUnlimited: boolean;
   brokenHoleTurnsPerPlayer: boolean;
+  /**
+   * Con gravedad: si una casilla rota por ruptura (al moverse una ficha) se comporta como bloque para la caída.
+   * Las roturas por colapso y las celdas bloqueadas al inicio siempre frenan la gravedad.
+   */
+  brokenRuptureGravityCollision: boolean;
   gravityEnabled: boolean;
   gravityInitialDirection: GravityDirection;
   gravityRotateEnabled: boolean;
@@ -78,12 +86,12 @@ export interface GameConfig {
   collapseEveryTurns: number;
   collapseEveryUnit: IntervalUnit;
   collapseTimes: number;
-  collapseKillsPlayers: boolean;
   roster: RosterPlayer[];
   playerCount: number;
-  eliminateLosers: boolean;
-  continueRanking: boolean;
-  eliminateWinners: boolean;
+  /** Con 3+ jugadores: retira del tablero las fichas de quien queda fuera (por perder/ganar ronda o abandono). */
+  removeOutOfGamePieces: boolean;
+  /** Con 3+ jugadores en modo ganar: si true, la partida termina al primer ganador (sin ranking). */
+  singleWinner: boolean;
   clockEnabled: boolean;
   clockMode: ClockMode;
   /** Modo banca: segundos iniciales (y tope tras recuperación) por jugador. */
@@ -99,8 +107,16 @@ export interface GameConfig {
   restrictionMovementMode: RestrictionMovementMode;
   restrictionMovementEatEnabled: boolean;
   restrictionMovementConvertEnabled: boolean;
-  /** Si está activo, el jugador en turno puede pasar sin jugar (botón en tablero). */
-  skipTurnEnabled: boolean;
+  /**
+   * Turnos de juego (`turnNumber`) que deben transcurrir antes de poder omitir turno.
+   * Con modo `rounds`, cada unidad cuenta como una vuelta completa (× jugadores).
+   */
+  skipTurnBlockTurns: number;
+  skipTurnBlockMode: SkipTurnBlockMode;
+  /**
+   * Condiciones opcionales de objetivo (multi-selección).
+   */
+  objectiveExtraRules: ObjectiveExtraRuleId[];
 }
 
 export interface Piece {
@@ -112,6 +128,8 @@ export interface BoardCell {
   piece: Piece | null;
   brokenTurns: number | null;
   brokenCreatedOnTurn: number | null;
+  /** Si la casilla está rota (`brokenTurns !== null`): equivale a “sólido” para la gravedad. Predefinido al crear la rotura (ruptura/colapso). */
+  gravityCollisionSolid: boolean;
 }
 
 export type Board = BoardCell[][];
@@ -166,7 +184,8 @@ export type GameAction =
   | { type: "completePendingGravityRotation" }
   | { type: "clockBankTimeout" }
   | { type: "clockPerTurnTimeout" }
-  | { type: "skipTurn" };
+  | { type: "skipTurn" }
+  | { type: "surrender" };
 
 export interface HelpContent {
   title: string;

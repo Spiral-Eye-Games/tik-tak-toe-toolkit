@@ -6,21 +6,38 @@ import {
   DEFAULT_CLOCK_BANK_SECONDS,
   DEFAULT_CLOCK_PER_TURN_SECONDS,
   DEFAULT_CLOCK_RECOVER_SECONDS,
-  DEFAULT_ELIMINATE_WINNERS,
   DEFAULT_BROKEN_HOLE_DURATION_UNIT,
   DEFAULT_BROKEN_HOLE_TURNS,
+  DEFAULT_BROKEN_RUPTURE_GRAVITY_COLLISION,
   DEFAULT_GRAVITY_INITIAL_DIRECTION,
   DEFAULT_GRAVITY_ROTATE_EVERY_TURNS,
   DEFAULT_GRAVITY_ROTATE_EVERY_UNIT,
   DEFAULT_LIMITED_PIECE_MOVE_MODE,
   DEFAULT_MAX_PIECES_PER_PLAYER,
   DEFAULT_PLAYER_COUNT,
+  DEFAULT_REMOVE_OUT_OF_GAME_PIECES,
   DEFAULT_RESTRICTION_START_TURNS,
   DEFAULT_RESTRICTION_START_UNIT,
   DEFAULT_ROSTER,
-  DEFAULT_UNLIMITED_PIECE_MOVE_MODE
+  DEFAULT_SINGLE_WINNER,
+  DEFAULT_SKIP_TURN_BLOCK_MODE,
+  DEFAULT_SKIP_TURN_BLOCK_TURNS,
+  DEFAULT_UNLIMITED_PIECE_MOVE_MODE,
+  DEFAULT_OBJECTIVE_EXTRA_RULES
 } from "./defaults";
-import type { ClockMode, CollapseType, GameConfig, GravityDirection, GravityRotateAngle, GravityRotateSpin, IntervalUnit, PieceMoveMode, RosterPlayer } from "./types";
+import type {
+  ClockMode,
+  CollapseType,
+  GameConfig,
+  GravityDirection,
+  GravityRotateAngle,
+  GravityRotateSpin,
+  IntervalUnit,
+  ObjectiveExtraRuleId,
+  PieceMoveMode,
+  RosterPlayer,
+  SkipTurnBlockMode
+} from "./types";
 import { t } from "../i18n";
 import {
   buildLegacyRestrictionStartBlockedCells,
@@ -75,6 +92,7 @@ const GRAVITY_ROTATE_ANGLES: GravityRotateAngle[] = ["90", "180", "270", "random
 const GRAVITY_ROTATE_SPINS: GravityRotateSpin[] = ["cw", "ccw", "random"];
 const COLLAPSE_TYPES: CollapseType[] = ["left", "right", "up", "down", "horizontal", "vertical", "circular"];
 const INTERVAL_UNITS: IntervalUnit[] = ["turns", "rounds"];
+const SKIP_TURN_BLOCK_MODES: SkipTurnBlockMode[] = ["turns", "rounds", "infinite"];
 
 export function normalizeGravityDirection(value: unknown): GravityDirection {
   return GRAVITY_DIRECTIONS.includes(value as GravityDirection) ? (value as GravityDirection) : DEFAULT_GRAVITY_INITIAL_DIRECTION;
@@ -94,6 +112,10 @@ export function normalizeCollapseType(value: unknown): CollapseType {
 
 export function normalizeIntervalUnit(value: unknown, fallback: IntervalUnit = "turns"): IntervalUnit {
   return INTERVAL_UNITS.includes(value as IntervalUnit) ? (value as IntervalUnit) : fallback;
+}
+
+function normalizeSkipTurnBlockMode(value: unknown): SkipTurnBlockMode {
+  return SKIP_TURN_BLOCK_MODES.includes(value as SkipTurnBlockMode) ? (value as SkipTurnBlockMode) : DEFAULT_SKIP_TURN_BLOCK_MODE;
 }
 
 /** Modo de conteo cuando el cronómetro está activo (solo `bank` | `perTurn`). */
@@ -127,6 +149,15 @@ export function getResolvedCollapseInterval(config: GameConfig): number {
   if (!config.collapseEnabled) return 0;
   const base = clampInt(config.collapseEveryTurns, 1, 99, DEFAULT_COLLAPSE_EVERY_TURNS);
   return config.collapseEveryUnit === "rounds" ? base * config.playerCount : base;
+}
+
+function normalizeObjectiveExtraRules(raw: unknown): ObjectiveExtraRuleId[] {
+  if (!Array.isArray(raw)) return [...DEFAULT_OBJECTIVE_EXTRA_RULES];
+  const set = new Set<ObjectiveExtraRuleId>();
+  for (const item of raw) {
+    if (item === "tieBreakMostPieces" || item === "exileEmptyBoard") set.add(item);
+  }
+  return (["tieBreakMostPieces", "exileEmptyBoard"] as const).filter((id) => set.has(id));
 }
 
 export function sanitizeConfig(config: GameConfig): GameConfig {
@@ -195,6 +226,57 @@ export function sanitizeConfig(config: GameConfig): GameConfig {
   const restrictionMovementEatEnabled =
     !restrictionMovementConvertEnabled && restrictionMovementMode !== "normal" && Boolean(config.restrictionMovementEatEnabled);
 
+  const looseRanking = config as GameConfig & {
+    eliminateLosers?: boolean;
+    eliminateWinners?: boolean;
+    continueRanking?: boolean;
+  };
+
+  let removeOutOfGamePieces: boolean;
+  if (typeof config.removeOutOfGamePieces === "boolean") {
+    removeOutOfGamePieces = config.removeOutOfGamePieces;
+  } else {
+    const el = looseRanking.eliminateLosers;
+    const ew = looseRanking.eliminateWinners;
+    if (typeof el === "boolean" || typeof ew === "boolean") {
+      removeOutOfGamePieces = Boolean(el || ew);
+    } else {
+      removeOutOfGamePieces = DEFAULT_REMOVE_OUT_OF_GAME_PIECES;
+    }
+  }
+
+  let singleWinner: boolean;
+  if (typeof config.singleWinner === "boolean") {
+    singleWinner = config.singleWinner;
+  } else if (typeof looseRanking.continueRanking === "boolean") {
+    singleWinner = !looseRanking.continueRanking;
+  } else {
+    singleWinner = DEFAULT_SINGLE_WINNER;
+  }
+
+  const configRecord = config as unknown as Record<string, unknown>;
+  const looseSkipLegacy = config as GameConfig & { skipTurnEnabled?: boolean };
+  let skipTurnBlockMode = normalizeSkipTurnBlockMode(configRecord.skipTurnBlockMode);
+  let skipTurnBlockTurns = clampInt(
+    Number(configRecord.skipTurnBlockTurns),
+    0,
+    99,
+    DEFAULT_SKIP_TURN_BLOCK_TURNS
+  );
+
+  const hasNewSkipFields =
+    configRecord.skipTurnBlockMode !== undefined || configRecord.skipTurnBlockTurns !== undefined;
+
+  if (!hasNewSkipFields && typeof looseSkipLegacy.skipTurnEnabled === "boolean") {
+    if (!looseSkipLegacy.skipTurnEnabled) {
+      skipTurnBlockMode = "infinite";
+      skipTurnBlockTurns = 0;
+    } else {
+      skipTurnBlockMode = "turns";
+      skipTurnBlockTurns = 0;
+    }
+  }
+
   return {
     columns,
     rows,
@@ -210,6 +292,7 @@ export function sanitizeConfig(config: GameConfig): GameConfig {
     brokenHoleDurationUnit,
     brokenHoleUnlimited,
     brokenHoleTurnsPerPlayer,
+    brokenRuptureGravityCollision: Boolean((config as GameConfig & { brokenRuptureGravityCollision?: boolean }).brokenRuptureGravityCollision ?? DEFAULT_BROKEN_RUPTURE_GRAVITY_COLLISION),
     gravityEnabled: config.gravityEnabled,
     gravityInitialDirection: normalizeGravityDirection(config.gravityInitialDirection),
     gravityRotateEnabled: Boolean(config.gravityRotateEnabled),
@@ -222,12 +305,10 @@ export function sanitizeConfig(config: GameConfig): GameConfig {
     collapseEveryTurns: clampInt(config.collapseEveryTurns, 1, 99, DEFAULT_COLLAPSE_EVERY_TURNS),
     collapseEveryUnit,
     collapseTimes: clampInt(config.collapseTimes, 1, 99, DEFAULT_COLLAPSE_TIMES),
-    collapseKillsPlayers: Boolean(config.collapseKillsPlayers),
     roster,
     playerCount,
-    eliminateLosers: canUseRankingOptions && Boolean(config.eliminateLosers),
-    continueRanking: canUseRankingOptions && Boolean(config.continueRanking),
-    eliminateWinners: canUseRankingOptions && (typeof config.eliminateWinners === "boolean" ? config.eliminateWinners : DEFAULT_ELIMINATE_WINNERS),
+    removeOutOfGamePieces: canUseRankingOptions && Boolean(removeOutOfGamePieces),
+    singleWinner: canUseRankingOptions && Boolean(singleWinner),
     clockEnabled,
     clockMode,
     clockBankSeconds: clampInt(config.clockBankSeconds, 10, 7200, DEFAULT_CLOCK_BANK_SECONDS),
@@ -240,7 +321,9 @@ export function sanitizeConfig(config: GameConfig): GameConfig {
     restrictionMovementMode,
     restrictionMovementEatEnabled,
     restrictionMovementConvertEnabled,
-    skipTurnEnabled: Boolean(config.skipTurnEnabled)
+    skipTurnBlockTurns,
+    skipTurnBlockMode,
+    objectiveExtraRules: normalizeObjectiveExtraRules(configRecord.objectiveExtraRules)
   };
 }
 

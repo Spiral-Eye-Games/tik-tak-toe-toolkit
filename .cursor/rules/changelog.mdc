@@ -1,0 +1,42 @@
+---
+description: >-
+  Mantener CHANGELOG.md y COMMIT_HISTORY.md (índice commit→versión). Cuando
+  pidan «actualiza el changelog», «changelog», RELEASE_NOTES, etc.
+alwaysApply: true
+---
+
+# Changelog (`CHANGELOG.md`)
+
+El archivo debe contener **solo el historial**: título `# Changelog`, una línea en blanco y entradas de versión (más reciente arriba) separadas por `---`. **No** tablas índice ni «referencia commit → versión» en el mismo archivo: el índice vive en **`COMMIT_HISTORY.md`** (raíz del repo); la tabla **semver / política** sigue aquí debajo.
+
+## Semver para este proyecto (vX.Y.Z)
+
+| Parte | Uso |
+|--------|-----|
+| **X** | Hitos enormes: **v1** = núcleo del juego sin multijugador en red; **v2** = aparece PeerJS / online (commit **`95269ca`** como primera base); incrementar **X** solo ante un cambio comparable a «offline → online». |
+| **Y** | Mecánica grande, módulo de juego nuevo, cambio muy visible en multiplayer o UX amplia. |
+| **Z** | Fix chico, deploy, polish, refactor sin nueva mecánica visible. |
+
+Versión vigente según esta convención: **la primera** cabecera `## [vX.Y.Z]` en `CHANGELOG.md` (cabecera de `HEAD`). Opcionalmente alinear **`package.json` → `version`** si el usuario también lo pidió explícitamente.
+
+## Cuándo ejecutar estas instrucciones
+
+Si la petición menciona algo como:
+
+- «actualiza el changelog» · «actualizar el changelog»
+- «nueva entrada del changelog» · «changelog release»
+- «CHANGELOG» / **`CHANGELOG.md`**
+
+entonces debés **ejecutar** la actualización (no solo dar instrucciones de git al usuario si tenés herramientas/shell disponibles).
+
+## Cómo actualizar
+
+1. **Descubrir novedades:** `git log` reciente desde el hash del último cambio ya documentado (primer `(<hash>`) de la entrada más nueva de **`CHANGELOG.md`**; si falta evidencia, `git log -20 --oneline` y contrastar contra **`COMMIT_HISTORY.md`** (o desde `HEAD` si aún no figura ahí).
+2. **Mensajes vagos:** si dice `fix` / `fixes` / `refactor`, inspeccionar **`git show <hash> --stat`** (y el diff puntual si hace falta) y titular/asignar nivel en base al **impacto**, no solo al mensaje.
+3. **Asignar versión:** nueva cabecera `## [vX.Y.Z] — YYYY-MM-DD — … (`hash`)`; elegir bump en **Z** primero si es corrección menor; **Y** si hay mecánica grande; **X** solo con hitos del nivel del salto a online PeerJS y similares.
+4. **Escribir la entrada:** título corto más **Resumen revisado:** técnico, en español, alineado a archivos tocados.
+5. **Orden:** la entrada nueva va **por encima** de las previas (`HEAD` más arriba).
+6. **Índice de commits:** añadir fila(s) en **`COMMIT_HISTORY.md`** en la tabla (nuevos commits **encima**, coherente con `CHANGELOG.md`), no editar esta regla por rutina.
+7. **Notas política v1:** si cambian reglas históricas poco usuales (p. ej. cómo agrupar parches tempranos), actualizar solo el párrafo **Notas (política v1)** al final **`COMMIT_HISTORY.md`**.
+
+No duplicar en el changelog el texto del commit si es poco útil para humanos.

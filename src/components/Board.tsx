@@ -1,10 +1,16 @@
 import type { CSSProperties } from "react";
+import { useEffect, useState } from "react";
 import { getBoardTurnTimeline } from "../game/boardTurnTimeline";
 import type { VictoryOnlineNameContext } from "../game/formatters";
+import { canSurrender } from "../game/surrender";
+import { isSkipTurnUnavailable, skipTurnRemainderTicks } from "../game/skipTurnLock";
 import type { GameState } from "../game/types";
+import { t } from "../i18n";
 import { BoardEventStrip } from "./BoardEventStrip";
 import { BoardOutcomeStrip } from "./BoardOutcomeStrip";
 import { BoardSkipTurnFab } from "./BoardSkipTurnFab";
+import { BoardSurrenderConfirmModal } from "./BoardSurrenderConfirmModal";
+import { BoardSurrenderFab } from "./BoardSurrenderFab";
 import { BoardUndoRedoRow } from "./BoardUndoRedoRow";
 import { Cell } from "./Cell";
 import { VictoryModal } from "./VictoryModal";
@@ -23,6 +29,8 @@ interface BoardProps {
   victoryUndoDisabled?: boolean;
   skipTurnInteractive?: boolean;
   onSkipTurn?: () => void;
+  surrenderInteractive?: boolean;
+  onSurrender?: () => void;
   victoryOnlineNameContext?: VictoryOnlineNameContext | null;
 }
 
@@ -40,16 +48,37 @@ export function Board({
   victoryUndoDisabled = false,
   skipTurnInteractive = false,
   onSkipTurn,
+  surrenderInteractive = false,
+  onSurrender,
   victoryOnlineNameContext = null
 }: BoardProps) {
+  const [surrenderConfirmOpen, setSurrenderConfirmOpen] = useState(false);
   const boardMaxAxis = Math.max(state.config.columns, state.config.rows);
   const turnTimeline = getBoardTurnTimeline(state, state.config);
   const showSkipFab =
-    Boolean(onSkipTurn) &&
-    state.config.skipTurnEnabled &&
-    !state.gameOver &&
-    state.pendingGravityRotationTarget === null;
+    Boolean(onSkipTurn) && !state.gameOver && state.pendingGravityRotationTarget === null;
+  const skipTurnLocked = isSkipTurnUnavailable(state);
+  const skipTurnRemainder = skipTurnRemainderTicks(state);
+  let skipTurnTooltip = t("board.skipTurn.tooltip");
+  if (!skipTurnInteractive) {
+    skipTurnTooltip = t("board.skipTurn.tooltipNotYourTurn");
+  } else if (skipTurnLocked) {
+    skipTurnTooltip =
+      state.config.skipTurnBlockMode === "infinite"
+        ? t("board.skipTurn.tooltipLockedInfinite")
+        : t("board.skipTurn.tooltipLockedCooldown", { n: skipTurnRemainder });
+  }
+  const showSurrenderFab =
+    Boolean(onSurrender) && !state.gameOver && state.pendingGravityRotationTarget === null;
   const showTimeline = turnTimeline.length > 0;
+  const surrenderAllowedByRules = canSurrender(state);
+  const surrenderTooltip = surrenderAllowedByRules
+    ? t("board.surrender.tooltip")
+    : t("board.surrender.tooltipTooEarly");
+
+  useEffect(() => {
+    if (state.gameOver) setSurrenderConfirmOpen(false);
+  }, [state.gameOver]);
 
   return (
     <section className="board-section">
@@ -84,14 +113,31 @@ export function Board({
             <div className="board-event-area__left-col">
               {showTimeline && (
                 <div className="board-event-area__timeline-clip">
-                  <BoardEventStrip state={state} rows={turnTimeline} />
+                  <BoardEventStrip
+                    state={state}
+                    rows={turnTimeline}
+                    onlineNameContext={victoryOnlineNameContext}
+                  />
                 </div>
               )}
               <BoardUndoRedoRow canUndo={canUndo} canRedo={canRedo} onUndo={onUndo} onRedo={onRedo} />
             </div>
-            {showSkipFab && onSkipTurn && (
-              <div className="board-event-area__skip-col">
-                <BoardSkipTurnFab disabled={!skipTurnInteractive} onSkipTurn={onSkipTurn} />
+            {(showSkipFab || showSurrenderFab) && (
+              <div className="board-event-area__fab-col">
+                {showSkipFab && onSkipTurn && (
+                  <BoardSkipTurnFab
+                    disabled={!skipTurnInteractive || skipTurnLocked}
+                    tooltip={skipTurnTooltip}
+                    onSkipTurn={onSkipTurn}
+                  />
+                )}
+                {showSurrenderFab && onSurrender && (
+                  <BoardSurrenderFab
+                    disabled={!surrenderInteractive || !surrenderAllowedByRules}
+                    tooltip={surrenderTooltip}
+                    onOpenConfirm={() => setSurrenderConfirmOpen(true)}
+                  />
+                )}
               </div>
             )}
           </div>
@@ -105,6 +151,15 @@ export function Board({
           newGameDisabled={victoryNewGameDisabled}
           undoDisabled={victoryUndoDisabled}
           onlineNameContext={victoryOnlineNameContext}
+        />
+
+        <BoardSurrenderConfirmModal
+          open={surrenderConfirmOpen}
+          onClose={() => setSurrenderConfirmOpen(false)}
+          onConfirm={() => {
+            setSurrenderConfirmOpen(false);
+            onSurrender?.();
+          }}
         />
       </div>
     </section>

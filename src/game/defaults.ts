@@ -1,4 +1,15 @@
-import type { ClockMode, CollapseType, GameConfig, GravityDirection, IntervalUnit, PieceMoveMode, RestrictionMovementMode, RosterPlayer } from "./types";
+import type {
+  ClockMode,
+  CollapseType,
+  GameConfig,
+  GravityDirection,
+  IntervalUnit,
+  ObjectiveExtraRuleId,
+  PieceMoveMode,
+  RestrictionMovementMode,
+  RosterPlayer,
+  SkipTurnBlockMode
+} from "./types";
 
 /** Tablero clásico 3×3, ganar con 3 en raya, fichas ilimitadas sin movimiento. */
 export const DEFAULT_COLUMNS = 3;
@@ -16,6 +27,7 @@ export const DEFAULT_BROKEN_HOLE_TURNS = 1;
 export const DEFAULT_BROKEN_HOLE_DURATION_UNIT: IntervalUnit = "turns";
 export const DEFAULT_BROKEN_HOLE_UNLIMITED = true;
 export const DEFAULT_BROKEN_HOLE_TURNS_PER_PLAYER = false;
+export const DEFAULT_BROKEN_RUPTURE_GRAVITY_COLLISION = true;
 export const DEFAULT_GRAVITY_ENABLED = false;
 export const DEFAULT_GRAVITY_INITIAL_DIRECTION: GravityDirection = "down";
 export const DEFAULT_GRAVITY_ROTATE_ENABLED = false;
@@ -28,7 +40,6 @@ export const DEFAULT_COLLAPSE_TYPE: CollapseType = "circular";
 export const DEFAULT_COLLAPSE_EVERY_TURNS = 3;
 export const DEFAULT_COLLAPSE_EVERY_UNIT: IntervalUnit = "turns";
 export const DEFAULT_COLLAPSE_TIMES = 1;
-export const DEFAULT_COLLAPSE_KILLS_PLAYERS = false;
 
 export const DEFAULT_ROSTER: RosterPlayer[] = [
   { id: "cross", color: "#2f5eed" },
@@ -46,9 +57,8 @@ export const DEFAULT_ROSTER: RosterPlayer[] = [
 ];
 
 export const DEFAULT_PLAYER_COUNT = 2;
-export const DEFAULT_ELIMINATE_LOSERS = true;
-export const DEFAULT_CONTINUE_RANKING = false;
-export const DEFAULT_ELIMINATE_WINNERS = false;
+export const DEFAULT_REMOVE_OUT_OF_GAME_PIECES = true;
+export const DEFAULT_SINGLE_WINNER = false;
 
 export const DEFAULT_CLOCK_ENABLED = false;
 export const DEFAULT_CLOCK_MODE: ClockMode = "bank";
@@ -63,7 +73,10 @@ export const DEFAULT_RESTRICTION_MOVEMENT_MODE: RestrictionMovementMode = "norma
 export const DEFAULT_RESTRICTION_MOVEMENT_EAT_ENABLED = false;
 export const DEFAULT_RESTRICTION_MOVEMENT_CONVERT_ENABLED = false;
 
-export const DEFAULT_SKIP_TURN_ENABLED = false;
+export const DEFAULT_SKIP_TURN_BLOCK_TURNS = 0;
+export const DEFAULT_SKIP_TURN_BLOCK_MODE: SkipTurnBlockMode = "turns";
+
+export const DEFAULT_OBJECTIVE_EXTRA_RULES: ObjectiveExtraRuleId[] = [];
 
 export const DRAW_IF_NO_LEGAL_MOVES = true;
 
@@ -80,6 +93,7 @@ export const DEFAULT_CONFIG: GameConfig = {
   brokenHoleDurationUnit: DEFAULT_BROKEN_HOLE_DURATION_UNIT,
   brokenHoleUnlimited: DEFAULT_BROKEN_HOLE_UNLIMITED,
   brokenHoleTurnsPerPlayer: DEFAULT_BROKEN_HOLE_TURNS_PER_PLAYER,
+  brokenRuptureGravityCollision: DEFAULT_BROKEN_RUPTURE_GRAVITY_COLLISION,
   gravityEnabled: DEFAULT_GRAVITY_ENABLED,
   gravityInitialDirection: DEFAULT_GRAVITY_INITIAL_DIRECTION,
   gravityRotateEnabled: DEFAULT_GRAVITY_ROTATE_ENABLED,
@@ -92,12 +106,10 @@ export const DEFAULT_CONFIG: GameConfig = {
   collapseEveryTurns: DEFAULT_COLLAPSE_EVERY_TURNS,
   collapseEveryUnit: DEFAULT_COLLAPSE_EVERY_UNIT,
   collapseTimes: DEFAULT_COLLAPSE_TIMES,
-  collapseKillsPlayers: DEFAULT_COLLAPSE_KILLS_PLAYERS,
   roster: DEFAULT_ROSTER,
   playerCount: DEFAULT_PLAYER_COUNT,
-  eliminateLosers: DEFAULT_ELIMINATE_LOSERS,
-  continueRanking: DEFAULT_CONTINUE_RANKING,
-  eliminateWinners: DEFAULT_ELIMINATE_WINNERS,
+  removeOutOfGamePieces: DEFAULT_REMOVE_OUT_OF_GAME_PIECES,
+  singleWinner: DEFAULT_SINGLE_WINNER,
   clockEnabled: DEFAULT_CLOCK_ENABLED,
   clockMode: DEFAULT_CLOCK_MODE,
   clockBankSeconds: DEFAULT_CLOCK_BANK_SECONDS,
@@ -110,5 +122,7 @@ export const DEFAULT_CONFIG: GameConfig = {
   restrictionMovementMode: DEFAULT_RESTRICTION_MOVEMENT_MODE,
   restrictionMovementEatEnabled: DEFAULT_RESTRICTION_MOVEMENT_EAT_ENABLED,
   restrictionMovementConvertEnabled: DEFAULT_RESTRICTION_MOVEMENT_CONVERT_ENABLED,
-  skipTurnEnabled: DEFAULT_SKIP_TURN_ENABLED
+  skipTurnBlockTurns: DEFAULT_SKIP_TURN_BLOCK_TURNS,
+  skipTurnBlockMode: DEFAULT_SKIP_TURN_BLOCK_MODE,
+  objectiveExtraRules: [...DEFAULT_OBJECTIVE_EXTRA_RULES]
 };

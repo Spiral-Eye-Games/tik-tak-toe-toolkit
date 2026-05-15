@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DEFAULT_ROSTER } from "../game/defaults";
+import { isSkipTurnUnavailable } from "../game/skipTurnLock";
+import { canSurrender } from "../game/surrender";
 import type { GameAction, GameConfig, GameState, PlayerId as GamePlayerId } from "../game/types";
 import {
   loadMultiplayerNickname,
@@ -189,13 +191,22 @@ export function useMultiplayer({
       return;
     }
 
-    if (message.action.type !== "playMove" && message.action.type !== "skipTurn") {
+    if (
+      message.action.type !== "playMove" &&
+      message.action.type !== "skipTurn" &&
+      message.action.type !== "surrender"
+    ) {
       sendErrorTo(connectionId, t("multiplayer.errors.hostOnlyAction"));
       return;
     }
 
-    if (message.action.type === "skipTurn" && !gameStateRef.current.config.skipTurnEnabled) {
+    if (message.action.type === "skipTurn" && isSkipTurnUnavailable(gameStateRef.current)) {
       sendErrorTo(connectionId, t("multiplayer.errors.skipTurnDisabled"));
+      return;
+    }
+
+    if (message.action.type === "surrender" && !canSurrender(gameStateRef.current)) {
+      sendErrorTo(connectionId, t("multiplayer.errors.surrenderTooEarly"));
       return;
     }
 

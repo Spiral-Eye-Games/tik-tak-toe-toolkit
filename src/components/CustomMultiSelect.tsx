@@ -3,11 +3,13 @@ import {
   useEffect,
   useId,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   type PointerEvent as ReactPointerEvent
 } from "react";
 import { createPortal } from "react-dom";
+import type { CustomSelectOption } from "./CustomSelect";
 import {
   MENU_GAP,
   MENU_MAX_HEIGHT,
@@ -16,32 +18,52 @@ import {
   useDescTooltipPosition
 } from "./customSelectMenuShared";
 
-export type CustomSelectOption<T extends string = string> = {
-  value: T;
-  label: string;
-  /** Texto largo; en UI se muestra al hacer hover (tooltip a la derecha). */
-  description?: string;
-};
-
-export type CustomSelectProps<T extends string> = {
+export type CustomMultiSelectProps<T extends string> = {
   options: CustomSelectOption<T>[];
-  value: T;
-  onChange: (value: T) => void;
+  /** Valores seleccionados (controlado). El orden se respeta en los chips. */
+  values: readonly T[];
+  onChange: (values: T[]) => void;
   disabled?: boolean;
   className?: string;
+  /** Texto del botón cuando la lista está vacía. */
+  placeholder: string;
+  /** Texto del botón cerrado cuando hay al menos un ítem (ej. resumen con cantidad). */
+  getTriggerLabel: (selected: CustomSelectOption<T>[]) => string;
+  /** aria-label del botón que abre/cierra la lista. */
   triggerAriaLabel: string;
+  /** aria-label del botón que quita un chip. */
+  getChipRemoveAriaLabel: (value: T, label: string) => string;
+  /** Opcional: describe el grupo de chips para lectores de pantalla. */
+  chipListAriaLabel?: string;
 };
 
-export function CustomSelect<T extends string>({
+function optionMap<T extends string>(options: CustomSelectOption<T>[]) {
+  const m = new Map<T, CustomSelectOption<T>>();
+  for (const o of options) m.set(o.value, o);
+  return m;
+}
+
+export function CustomMultiSelect<T extends string>({
   options,
-  value,
+  values,
   onChange,
   disabled,
   className,
-  triggerAriaLabel
-}: CustomSelectProps<T>) {
+  placeholder,
+  getTriggerLabel,
+  triggerAriaLabel,
+  getChipRemoveAriaLabel,
+  chipListAriaLabel
+}: CustomMultiSelectProps<T>) {
   const listId = useId();
-  const current = options.find((o) => o.value === value) ?? options[0];
+  const chipsId = `${listId}-chips`;
+  const byValue = useMemo(() => optionMap(options), [options]);
+
+  const selectedOptions = useMemo(
+    () => values.map((v) => byValue.get(v) ?? { value: v, label: v }),
+    [values, byValue]
+  );
+
   const [open, setOpen] = useState(false);
   const [menuBox, setMenuBox] = useState<{
     left: number;
@@ -55,6 +77,8 @@ export function CustomSelect<T extends string>({
   const [descAnchor, setDescAnchor] = useState<HTMLElement | null>(null);
   const [descText, setDescText] = useState<string | null>(null);
   const { box: descBox, sync: syncDesc } = useDescTooltipPosition(descAnchor);
+
+  const selectedSet = useMemo(() => new Set(values), [values]);
 
   const repositionMenu = useCallback(() => {
     const el = triggerRef.current;
@@ -125,7 +149,29 @@ export function CustomSelect<T extends string>({
     if (!open) hideDesc();
   }, [open, hideDesc]);
 
-  const rootClass = ["custom-select", open ? "custom-select--open" : "", className].filter(Boolean).join(" ");
+  const toggleValue = useCallback(
+    (v: T) => {
+      if (selectedSet.has(v)) {
+        onChange(values.filter((x) => x !== v));
+      } else {
+        onChange([...values, v]);
+      }
+    },
+    [selectedSet, values, onChange]
+  );
+
+  const removeChip = useCallback(
+    (v: T) => {
+      onChange(values.filter((x) => x !== v));
+    },
+    [values, onChange]
+  );
+
+  const triggerText = values.length === 0 ? placeholder : getTriggerLabel(selectedOptions);
+
+  const rootClass = ["custom-multi-select", "custom-select", open ? "custom-select--open" : "", className]
+    .filter(Boolean)
+    .join(" ");
 
   const menuPortal =
     open &&
@@ -137,6 +183,7 @@ export function CustomSelect<T extends string>({
         id={listId}
         className="custom-select__list"
         role="listbox"
+        aria-multiselectable="true"
         style={{
           position: "fixed",
           left: menuBox.left,
@@ -150,15 +197,16 @@ export function CustomSelect<T extends string>({
         {options.map((option) => {
           const descId = `${listId}-desc-${option.value}`;
           const desc = option.description?.trim();
+          const isOn = selectedSet.has(option.value);
           return (
             <li key={option.value} role="none">
               <button
                 type="button"
                 role="option"
-                aria-selected={option.value === value}
+                aria-selected={isOn}
                 aria-describedby={desc ? descId : undefined}
                 className={
-                  option.value === value
+                  isOn
                     ? "custom-select__option custom-select__option--active"
                     : "custom-select__option"
                 }
@@ -172,13 +220,12 @@ export function CustomSelect<T extends string>({
                   if (menuRef.current?.contains(next)) return;
                   hideDesc();
                 }}
-                onClick={() => {
-                  onChange(option.value);
-                  setOpen(false);
-                  hideDesc();
-                }}
+                onClick={() => toggleValue(option.value)}
               >
-                <span className="custom-select__option-label">{option.label}</span>
+                <span className="custom-multi-select__option-row">
+                  <span className="custom-multi-select__check" aria-hidden data-on={isOn ? "true" : "false"} />
+                  <span className="custom-select__option-label">{option.label}</span>
+                </span>
                 {desc ? (
                   <span id={descId} className="custom-select__sr">
                     {desc}
@@ -225,11 +272,34 @@ export function CustomSelect<T extends string>({
         aria-haspopup="listbox"
         aria-controls={listId}
         aria-label={triggerAriaLabel}
+        aria-describedby={selectedOptions.length > 0 && chipListAriaLabel ? chipsId : undefined}
         onClick={() => setOpen((p) => !p)}
       >
-        <span className="custom-select__current">{current?.label ?? ""}</span>
+        <span className="custom-select__current">{triggerText}</span>
         <span className="custom-select__chevron" aria-hidden />
       </button>
+      {selectedOptions.length > 0 ? (
+        <ul
+          id={chipsId}
+          className="custom-multi-select__chips"
+          {...(chipListAriaLabel ? { "aria-label": chipListAriaLabel } : {})}
+        >
+          {selectedOptions.map((opt) => (
+            <li key={opt.value} className="custom-multi-select__chip">
+              <span className="custom-multi-select__chip-label">{opt.label}</span>
+              <button
+                type="button"
+                className="custom-multi-select__chip-remove"
+                aria-label={getChipRemoveAriaLabel(opt.value, opt.label)}
+                disabled={disabled}
+                onClick={() => removeChip(opt.value)}
+              >
+                ×
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
       {menuPortal}
       {descPortal}
     </div>

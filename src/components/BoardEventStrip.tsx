@@ -1,7 +1,8 @@
 import { ArrowDown, ChevronsLeftRight, LockOpen } from "lucide-react";
 import type { BoardTimelineRow } from "../game/boardTurnTimeline";
+import type { VictoryOnlineNameContext } from "../game/formatters";
+import { getBoardTimelineTurnLabel } from "../game/formatters";
 import type { GameState } from "../game/types";
-import { getPlayerLabel } from "../game/formatters";
 import { t } from "../i18n";
 import { PlayerMarkSpan } from "./PlayerMarkSpan";
 
@@ -18,9 +19,11 @@ function TimelineIcon({ row }: { row: BoardTimelineRow }) {
   return null;
 }
 
-function getTimelineRowText(state: GameState, row: BoardTimelineRow): string {
+function getTimelineRowText(row: BoardTimelineRow, onlineNameContext: VictoryOnlineNameContext | null): string {
   if (row.kind === "player" && row.playerId) {
-    return t("board.timeline.playerTurn", { player: getPlayerLabel(state.config, row.playerId) });
+    return t("board.timeline.playerTurn", {
+      player: getBoardTimelineTurnLabel(row.playerId, onlineNameContext)
+    });
   }
   if (row.kind === "gravityPending") {
     return t("board.timeline.gravityPending");
@@ -37,14 +40,22 @@ function getTimelineRowText(state: GameState, row: BoardTimelineRow): string {
   return "";
 }
 
-export function BoardEventStrip({ state, rows }: { state: GameState; rows: BoardTimelineRow[] }) {
+export function BoardEventStrip({
+  state,
+  rows,
+  onlineNameContext = null
+}: {
+  state: GameState;
+  rows: BoardTimelineRow[];
+  onlineNameContext?: VictoryOnlineNameContext | null;
+}) {
   if (rows.length === 0) return null;
 
   return (
     <aside className="board-event-strip" aria-label={t("board.timeline.stripAriaLabel")}>
       {rows.map((row, index) => {
         const isCurrent = index === 0;
-        const text = getTimelineRowText(state, row);
+        const text = getTimelineRowText(row, onlineNameContext ?? null);
         const icon = row.kind === "player" ? null : <TimelineIcon row={row} />;
 
         if (row.kind === "player" && row.playerId) {
@@ -62,7 +73,9 @@ export function BoardEventStrip({ state, rows }: { state: GameState; rows: Board
               title={text}
             >
               <PlayerMarkSpan config={state.config} playerId={row.playerId} className="board-event-strip__mark" />
-              <span className="board-event-chip__text">{getPlayerLabel(state.config, row.playerId)}</span>
+              <span className="board-event-chip__text">
+                {getBoardTimelineTurnLabel(row.playerId, onlineNameContext ?? null)}
+              </span>
             </div>
           );
         }

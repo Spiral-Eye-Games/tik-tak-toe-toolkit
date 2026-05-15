@@ -49,12 +49,12 @@ function placeNewPiece(state: GameState, clickedRow: number, clickedCol: number)
   let col = clickedCol;
   if (state.config.gravityEnabled) {
     if (isVerticalGravity(d)) {
-      const r = scanColumnLanding(state.board, state.config, d, clickedCol, null);
+      const r = scanColumnLanding(state.board, state.config, d, clickedCol, null, state);
       if (r === null) return state;
       row = r;
       col = clickedCol;
     } else {
-      const c = scanRowLanding(state.board, state.config, d, clickedRow, null);
+      const c = scanRowLanding(state.board, state.config, d, clickedRow, null, state);
       if (c === null) return state;
       row = clickedRow;
       col = c;
@@ -72,7 +72,7 @@ function placeNewPiece(state: GameState, clickedRow: number, clickedCol: number)
   next.board[row][col].piece = piece;
   next.pieceHistory[next.currentPlayer].push(piece.id);
 
-  if (state.config.gravityEnabled) applyGravity(next.board, state.config, next.gravityDirection);
+  if (state.config.gravityEnabled) applyGravity(next.board, state.config, next.gravityDirection, next);
   commitBankAfterSuccessfulMove(next, state.config, Date.now(), { ignoreElapsed: state.turnNumber === 0 });
   finishTurn(next, state.config);
   if (!next.gameOver && isClockEnabled(state.config)) {
@@ -123,7 +123,7 @@ function moveSelectedPiece(state: GameState, clickedRow: number, clickedCol: num
   next.board[nextSource.row][nextSource.col].piece = null;
   abandonCellForBroken(next, state.config, nextSource);
 
-  if (state.config.gravityEnabled) applyGravity(next.board, state.config, next.gravityDirection);
+  if (state.config.gravityEnabled) applyGravity(next.board, state.config, next.gravityDirection, next);
 
   const destCell = next.board[clickedRow]?.[clickedCol];
   if (!destCell || destCell.piece !== null || isBroken(destCell)) return state;
@@ -132,7 +132,7 @@ function moveSelectedPiece(state: GameState, clickedRow: number, clickedCol: num
   movePieceToNewest(next, piece.owner, piece.id);
   next.selectedPieceId = null;
 
-  if (state.config.gravityEnabled) applyGravity(next.board, state.config, next.gravityDirection);
+  if (state.config.gravityEnabled) applyGravity(next.board, state.config, next.gravityDirection, next);
   commitBankAfterSuccessfulMove(next, state.config, Date.now(), { ignoreElapsed: state.turnNumber === 0 });
   finishTurn(next, state.config);
   if (!next.gameOver && isClockEnabled(state.config)) {

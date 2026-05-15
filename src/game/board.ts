@@ -1,7 +1,7 @@
 import type { Board, BoardCell, BoardPosition, GameConfig } from "./types";
 
 export function createEmptyCell(): BoardCell {
-  return { piece: null, brokenTurns: null, brokenCreatedOnTurn: null };
+  return { piece: null, brokenTurns: null, brokenCreatedOnTurn: null, gravityCollisionSolid: false };
 }
 
 export function createBoard(config: GameConfig): Board {

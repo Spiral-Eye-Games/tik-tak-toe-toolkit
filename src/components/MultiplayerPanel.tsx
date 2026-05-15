@@ -5,6 +5,7 @@ import type { PlayerId } from "../game/types";
 import { t } from "../i18n";
 import { playChatPlayerTone, playChatSystemTone } from "../multiplayer/chatSounds";
 import type { MultiplayerState } from "../multiplayer/useMultiplayer";
+import { CustomInput } from "./CustomInput";
 import { PlayerMarkGlyph } from "./PlayerMarkSpan";
 import { Tooltip } from "./Tooltip";
 
@@ -87,7 +88,7 @@ export function MultiplayerPanel({ multiplayer }: MultiplayerPanelProps) {
                   </span>
                 )}
               </button>
-              <input
+              <CustomInput
                 type="text"
                 value={multiplayer.localPlayerNameInput}
                 placeholder={t("multiplayer.nickname")}
@@ -104,7 +105,7 @@ export function MultiplayerPanel({ multiplayer }: MultiplayerPanelProps) {
           </div>
           <label className="field multiplayer-room-field">
             <span>{t("multiplayer.roomCode")}</span>
-            <input
+            <CustomInput
               type="text"
               value={joinCode}
               placeholder={t("multiplayer.roomCodePlaceholder")}
@@ -186,7 +187,7 @@ export function MultiplayerPanel({ multiplayer }: MultiplayerPanelProps) {
               ))}
             </div>
             <div className="multiplayer-chat-compose">
-              <input
+              <CustomInput
                 type="text"
                 value={chatDraft}
                 placeholder={t("multiplayer.chatPlaceholder")}

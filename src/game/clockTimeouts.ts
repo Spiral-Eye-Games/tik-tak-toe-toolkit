@@ -45,7 +45,8 @@ export function applyClockPerTurnTimeout(state: GameState): GameState {
   const remaining = getClockRemainingSeconds(state, state.config, Date.now());
   if (remaining === null || remaining > 0.12) return state;
 
-  const snap = cloneSnapshot(createSnapshot(state));
+  const previousSnapshot = createSnapshot(state);
+  const snap = cloneSnapshot(previousSnapshot);
   snap.turnNumber++;
   snap.statusMessage = "";
   advanceTurnAfterNoLine(snap, state.config);
@@ -56,7 +57,7 @@ export function applyClockPerTurnTimeout(state: GameState): GameState {
     restartTurnClock(snap, state.config, Date.now());
   }
 
-  return snapshotToState(state, snap, state.undoStack, []);
+  return snapshotToState(state, snap, [...state.undoStack, previousSnapshot], []);
 }
 
 export function completePendingGravityRotation(state: GameState): GameState {

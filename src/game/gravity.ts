@@ -1,4 +1,5 @@
 import { getResolvedGravityRotateInterval } from "./config";
+import { isStartPlacementRestricted } from "./restrictions";
 import type { Board, BoardCell, GameConfig, GameSnapshot, GravityDirection, GravityRotateAngle, GravityRotateSpin, Piece } from "./types";
 
 const DIRECTIONS_CW: GravityDirection[] = ["down", "left", "up", "right"];
@@ -24,9 +25,26 @@ export function isVerticalGravity(direction: GravityDirection): boolean {
   return direction === "down" || direction === "up";
 }
 
-function cellBlocksLanding(cell: BoardCell, ignoredPieceId: number | null): boolean {
-  if (cell.piece !== null && (ignoredPieceId === null || cell.piece.id !== ignoredPieceId)) return true;
-  return cell.brokenTurns !== null;
+/** Compat: celdas viejas sin campo tratan el hueco roto como barrera (comportamiento previo). */
+function brokenCellIsGravitySolid(cell: BoardCell): boolean {
+  if (cell.brokenTurns === null) return false;
+  return cell.gravityCollisionSolid !== false;
+}
+
+function pieceBlocksLanding(cell: BoardCell, ignoredPieceId: number | null): boolean {
+  return cell.piece !== null && (ignoredPieceId === null || cell.piece.id !== ignoredPieceId);
+}
+
+function gravityStructuralBarrier(
+  board: Board,
+  config: GameConfig,
+  snapshot: GameSnapshot,
+  row: number,
+  col: number
+): boolean {
+  if (isStartPlacementRestricted(snapshot, config, row, col)) return true;
+  const cell = board[row][col];
+  return brokenCellIsGravitySolid(cell);
 }
 
 /** Landing row for vertical gravity in column `col`. `direction` down or up. */
@@ -35,13 +53,16 @@ export function scanColumnLanding(
   config: GameConfig,
   direction: GravityDirection,
   col: number,
-  ignoredPieceId: number | null
+  ignoredPieceId: number | null,
+  snapshot: GameSnapshot
 ): number | null {
   if (direction === "down") {
     let lastEmpty: number | null = null;
     for (let row = 0; row < config.rows; row++) {
       const cell = board[row][col];
-      if (cellBlocksLanding(cell, ignoredPieceId)) return lastEmpty;
+      if (pieceBlocksLanding(cell, ignoredPieceId)) return lastEmpty;
+      if (gravityStructuralBarrier(board, config, snapshot, row, col)) return lastEmpty;
+      if (cell.brokenTurns !== null && !brokenCellIsGravitySolid(cell)) continue;
       lastEmpty = row;
     }
     return lastEmpty;
@@ -51,7 +72,9 @@ export function scanColumnLanding(
     let lastEmpty: number | null = null;
     for (let row = config.rows - 1; row >= 0; row--) {
       const cell = board[row][col];
-      if (cellBlocksLanding(cell, ignoredPieceId)) return lastEmpty;
+      if (pieceBlocksLanding(cell, ignoredPieceId)) return lastEmpty;
+      if (gravityStructuralBarrier(board, config, snapshot, row, col)) return lastEmpty;
+      if (cell.brokenTurns !== null && !brokenCellIsGravitySolid(cell)) continue;
       lastEmpty = row;
     }
     return lastEmpty;
@@ -66,13 +89,16 @@ export function scanRowLanding(
   config: GameConfig,
   direction: GravityDirection,
   row: number,
-  ignoredPieceId: number | null
+  ignoredPieceId: number | null,
+  snapshot: GameSnapshot
 ): number | null {
   if (direction === "right") {
     let lastEmpty: number | null = null;
     for (let col = 0; col < config.columns; col++) {
       const cell = board[row][col];
-      if (cellBlocksLanding(cell, ignoredPieceId)) return lastEmpty;
+      if (pieceBlocksLanding(cell, ignoredPieceId)) return lastEmpty;
+      if (gravityStructuralBarrier(board, config, snapshot, row, col)) return lastEmpty;
+      if (cell.brokenTurns !== null && !brokenCellIsGravitySolid(cell)) continue;
       lastEmpty = col;
     }
     return lastEmpty;
@@ -82,7 +108,9 @@ export function scanRowLanding(
     let lastEmpty: number | null = null;
     for (let col = config.columns - 1; col >= 0; col--) {
       const cell = board[row][col];
-      if (cellBlocksLanding(cell, ignoredPieceId)) return lastEmpty;
+      if (pieceBlocksLanding(cell, ignoredPieceId)) return lastEmpty;
+      if (gravityStructuralBarrier(board, config, snapshot, row, col)) return lastEmpty;
+      if (cell.brokenTurns !== null && !brokenCellIsGravitySolid(cell)) continue;
       lastEmpty = col;
     }
     return lastEmpty;
@@ -91,21 +119,25 @@ export function scanRowLanding(
   return null;
 }
 
-function isBrokenCell(cell: BoardCell): boolean {
-  return cell.brokenTurns !== null;
-}
-
-/** Segmentos de columna separados solo por casillas rotas; las fichas se deslizan entre sí. */
-function applyGravityColumn(board: Board, config: GameConfig, col: number, packToBottom: boolean): void {
+/** Segmentos de columna entre barreras (rotos firmes/restricciones); huecos permeables enlazan ocupables vecinos. */
+function applyGravityColumn(
+  board: Board,
+  config: GameConfig,
+  snapshot: GameSnapshot,
+  col: number,
+  packToBottom: boolean
+): void {
   const segments: number[][] = [];
   let current: number[] = [];
   for (let row = 0; row < config.rows; row++) {
-    if (isBrokenCell(board[row][col])) {
+    if (gravityStructuralBarrier(board, config, snapshot, row, col)) {
       if (current.length > 0) segments.push(current);
       current = [];
-    } else {
-      current.push(row);
+      continue;
     }
+    const cell = board[row][col];
+    if (cell.brokenTurns !== null && !brokenCellIsGravitySolid(cell)) continue;
+    current.push(row);
   }
   if (current.length > 0) segments.push(current);
 
@@ -135,17 +167,19 @@ function applyGravityColumn(board: Board, config: GameConfig, col: number, packT
   }
 }
 
-/** Segmentos de fila separados solo por casillas rotas. */
-function applyGravityRow(board: Board, config: GameConfig, row: number, packToRight: boolean): void {
+/** Segmentos de fila entre barreras. */
+function applyGravityRow(board: Board, config: GameConfig, snapshot: GameSnapshot, row: number, packToRight: boolean): void {
   const segments: number[][] = [];
   let current: number[] = [];
   for (let col = 0; col < config.columns; col++) {
-    if (isBrokenCell(board[row][col])) {
+    if (gravityStructuralBarrier(board, config, snapshot, row, col)) {
       if (current.length > 0) segments.push(current);
       current = [];
-    } else {
-      current.push(col);
+      continue;
     }
+    const cell = board[row][col];
+    if (cell.brokenTurns !== null && !brokenCellIsGravitySolid(cell)) continue;
+    current.push(col);
   }
   if (current.length > 0) segments.push(current);
 
@@ -175,16 +209,16 @@ function applyGravityRow(board: Board, config: GameConfig, row: number, packToRi
   }
 }
 
-export function applyGravity(board: Board, config: GameConfig, direction: GravityDirection): void {
+export function applyGravity(board: Board, config: GameConfig, direction: GravityDirection, snapshot: GameSnapshot): void {
   if (isVerticalGravity(direction)) {
     for (let col = 0; col < config.columns; col++) {
-      applyGravityColumn(board, config, col, direction === "down");
+      applyGravityColumn(board, config, snapshot, col, direction === "down");
     }
     return;
   }
 
   for (let row = 0; row < config.rows; row++) {
-    applyGravityRow(board, config, row, direction === "right");
+    applyGravityRow(board, config, snapshot, row, direction === "right");
   }
 }
 
@@ -236,5 +270,5 @@ export function applyScheduledGravityRotation(snapshot: GameSnapshot, config: Ga
   if (target === null) return;
   snapshot.gravityDirection = target;
   snapshot.pendingGravityRotationTarget = null;
-  applyGravity(snapshot.board, config, snapshot.gravityDirection);
+  applyGravity(snapshot.board, config, snapshot.gravityDirection, snapshot);
 }
