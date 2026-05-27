@@ -48,6 +48,14 @@ function renderGameOverBanner(state: GameState): ReactNode {
         </>
       );
     }
+    if (cfg.lineRule === "combos") {
+      return (
+        <>
+          <PlayerMarkSpan config={cfg} playerId={summary.winnerId} />
+          {t("gameOver.combosSimpleWin")}
+        </>
+      );
+    }
     const loseId: PlayerId = summary.loserId ?? summary.winnerId;
     return (
       <>

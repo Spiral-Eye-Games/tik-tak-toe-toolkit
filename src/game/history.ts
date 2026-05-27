@@ -20,7 +20,14 @@ export function createSnapshot(state: GameSnapshot): GameSnapshot {
     collapseCount: state.collapseCount,
     clockTurnStartedAtMs: state.clockTurnStartedAtMs,
     clockBankRemaining: state.clockBankRemaining ? { ...state.clockBankRemaining } : null,
-    clockPauseStartedAtMs: state.clockPauseStartedAtMs ?? null
+    clockPauseStartedAtMs: state.clockPauseStartedAtMs ?? null,
+    combosScores: state.combosScores ? { ...state.combosScores } : {},
+    fullRoundsCompleted:
+      state.fullRoundsCompleted ??
+      (state as GameSnapshot & { combosFullRoundsCompleted?: number }).combosFullRoundsCompleted ??
+      0,
+    combosActionsRemainingThisTurn: state.combosActionsRemainingThisTurn ?? 0,
+    combosRngState: state.combosRngState ?? 0
   });
 }
 

@@ -10,7 +10,7 @@ import {
   isLegalMoveDestination
 } from "../game/rules";
 import { isStartPlacementRestricted } from "../game/restrictions";
-import type { GameState, Piece } from "../game/types";
+import type { GameState, Piece, PieceKind } from "../game/types";
 import { t } from "../i18n";
 import { PlayerMarkSpan } from "./PlayerMarkSpan";
 
@@ -72,7 +72,7 @@ export function Cell({ state, row, col, onPlayMove, interactionLocked = false }:
   if (startRestricted) classNames.push("start-restricted");
   if (collapseNext) classNames.push("collapse-next");
   if (state.lineCells.some((position) => position.row === row && position.col === col)) {
-    classNames.push(state.config.lineRule === "win" ? "winning-line" : "losing");
+    classNames.push(state.config.lineRule === "lose" ? "losing" : "winning-line");
   }
 
   return (
@@ -98,6 +98,10 @@ export function Cell({ state, row, col, onPlayMove, interactionLocked = false }:
   );
 }
 
+function pieceKind(piece: Piece): PieceKind {
+  return piece.kind ?? "normal";
+}
+
 function PieceView({ state, piece, outKind }: { state: GameState; piece: Piece; outKind: PieceOutKind }) {
   const mark = getPlayerMark(state.config, piece.owner);
   const pieceExtra =
@@ -107,10 +111,24 @@ function PieceView({ state, piece, outKind }: { state: GameState; piece: Piece; 
         ? " piece-eliminated-win"
         : "";
 
+  const pk = pieceKind(piece);
+  const specialBomb = state.config.lineRule === "combos" && pk === "bomb";
+  const specialStar = state.config.lineRule === "combos" && pk === "star";
+
   return (
-    <span className={`piece player-piece${pieceExtra}`} style={{ color: mark.color }}>
+    <span className={`piece player-piece piece-stack${pieceExtra}`} style={{ color: mark.color }}>
       <PlayerMarkSpan config={state.config} playerId={piece.owner} className="piece-mark" />
       <span className="piece-order">{getPieceOrder(state, piece)}</span>
+      {specialBomb && (
+        <span className="piece-special-overlay" aria-label={t("combos.specials.bomb.label")}>
+          {t("combos.specials.bomb.short")}
+        </span>
+      )}
+      {specialStar && (
+        <span className="piece-special-overlay" aria-label={t("combos.specials.star.label")}>
+          {t("combos.specials.star.short")}
+        </span>
+      )}
     </span>
   );
 }

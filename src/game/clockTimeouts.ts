@@ -5,6 +5,8 @@ import {
   isClockEnabled,
   restartTurnClock
 } from "./clock";
+import { isCombosObjective } from "./config";
+import { finalizeCombosForcedTurnEnd } from "./combosAfterMove";
 import { applyScheduledGravityRotation, scheduleGravityRotationIfDue } from "./gravity";
 import { cloneSnapshot, createSnapshot, snapshotToState } from "./history";
 import { advanceTurnAfterNoLine, resolveActivePlayerLine, resolveBankTimeoutLoss } from "./outcomes";
@@ -49,6 +51,11 @@ export function applyClockPerTurnTimeout(state: GameState): GameState {
   const snap = cloneSnapshot(previousSnapshot);
   snap.turnNumber++;
   snap.statusMessage = "";
+
+  if (isCombosObjective(state.config)) {
+    return finalizeCombosForcedTurnEnd(state, previousSnapshot, snap);
+  }
+
   advanceTurnAfterNoLine(snap, state.config);
   scheduleGravityRotationIfDue(snap, state.config);
   clearClockPauseIfNoPendingGravity(snap);

@@ -1,5 +1,5 @@
-import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { defineConfig } from "vitest/config";
 
 /** GitHub Pages (sitio de proyecto): la URL puede ser /repo o /repo/; con base "./" los assets fallan sin barra final. */
 function viteBase(): string {
@@ -10,5 +10,9 @@ function viteBase(): string {
 
 export default defineConfig({
   plugins: [react()],
-  base: viteBase()
+  base: viteBase(),
+  test: {
+    environment: "node",
+    include: ["src/**/*.test.ts"]
+  }
 });

@@ -7,6 +7,7 @@ import { isSkipTurnUnavailable, skipTurnRemainderTicks } from "../game/skipTurnL
 import type { GameState } from "../game/types";
 import { t } from "../i18n";
 import { BoardEventStrip } from "./BoardEventStrip";
+import { BoardTurnProgress } from "./BoardTurnProgress";
 import { BoardOutcomeStrip } from "./BoardOutcomeStrip";
 import { BoardSkipTurnFab } from "./BoardSkipTurnFab";
 import { BoardSurrenderConfirmModal } from "./BoardSurrenderConfirmModal";
@@ -113,6 +114,7 @@ export function Board({
             <div className="board-event-area__left-col">
               {showTimeline && (
                 <div className="board-event-area__timeline-clip">
+                  <BoardTurnProgress state={state} />
                   <BoardEventStrip
                     state={state}
                     rows={turnTimeline}

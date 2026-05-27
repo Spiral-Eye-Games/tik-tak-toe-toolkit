@@ -1,33 +1,38 @@
 import { clearClockPauseIfNoPendingGravity } from "./clock";
+import { isCombosObjective } from "./config";
 import { applyCollapseIfDue } from "./collapse";
 import { getPlayerLabel } from "./formatters";
 import { scheduleGravityRotationIfDue } from "./gravity";
 import { cloneSnapshot, createSnapshot, snapshotToState } from "./history";
 import { t } from "../i18n";
 import { applyGravity } from "./gravity";
-import {
-  applyStalemateTieBreakMostPieces,
-  resolveExileEmptyBoard
-} from "./objectiveExtras";
+import { finishIfNoLegalMoves } from "./legalMovesFinish";
+import { resolveExileEmptyBoard } from "./objectiveExtras";
 import {
   findLine,
   getDefaultSelectedPieceIdForcedOldest,
   removeAllPiecesForPlayer,
-  shouldDrawIfNoLegalMoves,
   tickBrokenHoles
 } from "./rules";
+import { incrementFullRoundIfWrapped } from "./roundProgress";
 import { getNextActivePlayerAfterChanges } from "./turns";
 import type { BoardPosition, GameConfig, GameSnapshot, GameState, PlayerId } from "./types";
+
+/** Mantenimiento global del tablero (capa A): ruptura, colapso, gravedad. Sin cambio de jugador. */
+export function applyGlobalBoardMaintenance(snapshot: GameSnapshot, config: GameConfig): void {
+  tickBrokenHoles(snapshot.board, config, snapshot.turnNumber);
+  applyCollapseIfDue(snapshot, config);
+  if (snapshot.gameOver) return;
+  if (config.gravityEnabled) applyGravity(snapshot.board, config, snapshot.gravityDirection, snapshot);
+}
 
 export function advanceTurnAfterNoLine(snapshot: GameSnapshot, config: GameConfig): void {
   const oldActive = [...snapshot.activePlayerIds];
   const completedPlayer = snapshot.currentPlayer;
-  tickBrokenHoles(snapshot.board, config, snapshot.turnNumber);
-  applyCollapseIfDue(snapshot, config);
+  applyGlobalBoardMaintenance(snapshot, config);
   if (snapshot.gameOver) return;
 
-  if (config.gravityEnabled) applyGravity(snapshot.board, config, snapshot.gravityDirection, snapshot);
-
+  incrementFullRoundIfWrapped(snapshot, oldActive, completedPlayer);
   snapshot.currentPlayer = getNextActivePlayerAfterChanges(oldActive, snapshot.activePlayerIds, completedPlayer);
   snapshot.selectedPieceId = getDefaultSelectedPieceIdForcedOldest(snapshot, config);
 
@@ -35,6 +40,11 @@ export function advanceTurnAfterNoLine(snapshot: GameSnapshot, config: GameConfi
 }
 
 export function finishTurn(snapshot: GameSnapshot, config: GameConfig): void {
+  if (isCombosObjective(config)) {
+    /** Combos resuelve objetivo en `combosAfterMove.ts`; no usar cadena clásica por raya. */
+    return;
+  }
+
   const completedLine = findLine(snapshot, config, snapshot.currentPlayer);
 
   if (completedLine) {
@@ -53,6 +63,7 @@ export function finishTurn(snapshot: GameSnapshot, config: GameConfig): void {
 
 export function resolveActivePlayerLine(snapshot: GameSnapshot, config: GameConfig): boolean {
   if (snapshot.gameOver) return false;
+  if (isCombosObjective(config)) return false;
 
   const activePlayers = getActivePlayersStartingFromCurrent(snapshot);
   for (const playerId of activePlayers) {
@@ -269,36 +280,6 @@ function advanceAfterPlayerRemoved(
   snapshot.selectedPieceId = getDefaultSelectedPieceIdForcedOldest(snapshot, config);
 
   finishIfNoLegalMoves(snapshot, config);
-}
-
-function finishIfNoLegalMoves(snapshot: GameSnapshot, config: GameConfig): boolean {
-  resolveExileEmptyBoard(snapshot, config);
-  if (snapshot.gameOver) return true;
-  if (!shouldDrawIfNoLegalMoves(snapshot, config)) return false;
-
-  snapshot.gameOver = true;
-  if (snapshot.placementOrderWin.length > 0 || snapshot.eliminationOrderLose.length > 0) {
-    snapshot.gameEndSummary = { type: "ranking", orderedIds: buildResolvedRanking(snapshot) };
-    snapshot.statusMessage = t("gameOver.rankingComplete");
-    return true;
-  }
-
-  if (applyStalemateTieBreakMostPieces(snapshot, config)) {
-    return true;
-  }
-
-  snapshot.gameEndSummary = { type: "draw" };
-  snapshot.statusMessage = t("gameOver.draw");
-  return true;
-}
-
-function buildResolvedRanking(snapshot: GameSnapshot): PlayerId[] {
-  const orderedIds = [
-    ...snapshot.placementOrderWin,
-    ...snapshot.activePlayerIds,
-    ...[...snapshot.eliminationOrderLose].reverse()
-  ];
-  return orderedIds.filter((id, index) => orderedIds.indexOf(id) === index);
 }
 
 function getActivePlayersStartingFromCurrent(snapshot: GameSnapshot): PlayerId[] {

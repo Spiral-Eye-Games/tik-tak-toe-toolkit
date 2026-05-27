@@ -77,6 +77,9 @@ export function VictoryModal({
                   <span className="victory-rank-num">{t("victory.rankLabel", { place: index + 1 })}</span>
                   <PlayerMarkSpan config={config} playerId={id} className="victory-rank-emoji" />
                   <span className="victory-rank-name">{nameFor(id)}</span>
+                  {config.lineRule === "combos" && (
+                    <span className="victory-rank-score">{state.combosScores[id] ?? 0}</span>
+                  )}
                 </div>
               ))}
             </div>

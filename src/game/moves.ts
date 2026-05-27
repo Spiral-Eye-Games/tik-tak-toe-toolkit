@@ -1,4 +1,6 @@
 import { commitBankAfterSuccessfulMove, isClockEnabled, restartTurnClock } from "./clock";
+import { isCombosObjective } from "./config";
+import { finalizeCombosAfterMovePiece, finalizeCombosAfterPlacement } from "./combosAfterMove";
 import { isVerticalGravity, scanColumnLanding, scanRowLanding } from "./gravity";
 import { createSnapshot, cloneSnapshot, movePieceToNewest, snapshotToState } from "./history";
 import { finishTurn } from "./outcomes";
@@ -68,11 +70,16 @@ function placeNewPiece(state: GameState, clickedRow: number, clickedCol: number)
   next.selectedPieceId = null;
   next.statusMessage = "";
 
-  const piece = { id: next.nextPieceId++, owner: next.currentPlayer };
+  const piece = { id: next.nextPieceId++, owner: next.currentPlayer, kind: "normal" as const };
   next.board[row][col].piece = piece;
   next.pieceHistory[next.currentPlayer].push(piece.id);
 
   if (state.config.gravityEnabled) applyGravity(next.board, state.config, next.gravityDirection, next);
+
+  if (isCombosObjective(state.config)) {
+    return finalizeCombosAfterPlacement(state, previousSnapshot, next, { row, col }, piece.owner);
+  }
+
   commitBankAfterSuccessfulMove(next, state.config, Date.now(), { ignoreElapsed: state.turnNumber === 0 });
   finishTurn(next, state.config);
   if (!next.gameOver && isClockEnabled(state.config)) {
@@ -133,6 +140,11 @@ function moveSelectedPiece(state: GameState, clickedRow: number, clickedCol: num
   next.selectedPieceId = null;
 
   if (state.config.gravityEnabled) applyGravity(next.board, state.config, next.gravityDirection, next);
+
+  if (isCombosObjective(state.config)) {
+    return finalizeCombosAfterMovePiece(state, previousSnapshot, next, { row: clickedRow, col: clickedCol }, piece.owner);
+  }
+
   commitBankAfterSuccessfulMove(next, state.config, Date.now(), { ignoreElapsed: state.turnNumber === 0 });
   finishTurn(next, state.config);
   if (!next.gameOver && isClockEnabled(state.config)) {
@@ -166,6 +178,7 @@ function convertCapturedPieces(snapshot: GameSnapshot, positions: BoardPosition[
 
     removePieceFromHistory(snapshot, piece.owner, piece.id);
     piece.owner = newOwner;
+    piece.kind = "normal";
     snapshot.pieceHistory[newOwner]?.push(piece.id);
   }
 }

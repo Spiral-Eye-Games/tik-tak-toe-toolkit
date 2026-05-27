@@ -1,6 +1,7 @@
 import { Clock } from "lucide-react";
 import type { ReactNode } from "react";
 import { t } from "../i18n";
+import { isTatau } from "../isTatau";
 
 interface TopBarProps {
   /** Contenido visible de la pastilla de estado (puede incluir marcas con color). */
@@ -12,10 +13,12 @@ interface TopBarProps {
 }
 
 export function TopBar({ children, statusAriaLabel, clockText }: TopBarProps) {
+  const appTitle = isTatau() ? t("app.titleTatau") : t("app.title");
+
   return (
     <header className="topbar">
       <div className="topbar-brand">
-        <h1>{t("app.title")}</h1>
+        <h1>{appTitle}</h1>
       </div>
       <div className="topbar-stage">
         <div className="topbar-center-cluster">

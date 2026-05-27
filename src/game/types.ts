@@ -19,7 +19,12 @@ export interface RosterPlayer {
   color: string;
 }
 
-export type LineRule = "lose" | "win";
+export type LineRule = "combos" | "lose" | "win";
+/** Solo modo Combos: fichas especiales tras matches 4/5. */
+export type PieceKind = "normal" | "bomb" | "star";
+/** Fin de partida en modo Combos (configurable en sidebar `?dev`). */
+export type CombosEndMode = "maxRounds" | "scoreTarget";
+export type CombosSpecialId = "bomb" | "star";
 export type ObjectiveExtraRuleId = "tieBreakMostPieces" | "exileEmptyBoard";
 export type PieceLimitType = "limited" | "unlimited";
 export type PieceMoveMode = "forcedOldest" | "limitMoveAny" | "limitedFree" | "blocked" | "free";
@@ -117,11 +122,20 @@ export interface GameConfig {
    * Condiciones opcionales de objetivo (multi-selección).
    */
   objectiveExtraRules: ObjectiveExtraRuleId[];
+  /** Solo aplica con `lineRule === "combos"`. */
+  combosEndMode: CombosEndMode;
+  combosEndValue: number;
+  combosActionsMin: number;
+  combosActionsIncrement: number;
+  combosActionsMax: number;
+  combosSpecials: CombosSpecialId[];
 }
 
 export interface Piece {
   id: number;
   owner: PlayerId;
+  /** Solo modo Combos; omitido en clásico (= normal). */
+  kind?: PieceKind;
 }
 
 export interface BoardCell {
@@ -166,6 +180,14 @@ export interface GameSnapshot {
   clockBankRemaining: Record<PlayerId, number> | null;
   /** Si hay pausa de rotación de gravedad, marca cuándo empezó (para no descontar ese intervalo del reloj). */
   clockPauseStartedAtMs: number | null;
+
+  /** --- Modo Combos (valores neutros fuera de `lineRule === "combos"`). --- */
+  combosScores: Partial<Record<PlayerId, number>>;
+  /** Rondas globales ya completadas (cada jugador activo jugó una vez por ronda). Todos los modos. */
+  fullRoundsCompleted: number;
+  combosActionsRemainingThisTurn: number;
+  /** RNG determinista para desempates en pivotes. */
+  combosRngState: number;
 }
 
 export interface GameState extends GameSnapshot {

@@ -9,6 +9,12 @@ import {
   DEFAULT_BROKEN_HOLE_DURATION_UNIT,
   DEFAULT_BROKEN_HOLE_TURNS,
   DEFAULT_BROKEN_RUPTURE_GRAVITY_COLLISION,
+  DEFAULT_COMBOS_ACTIONS_INCREMENT,
+  DEFAULT_COMBOS_ACTIONS_MAX,
+  DEFAULT_COMBOS_ACTIONS_MIN,
+  DEFAULT_COMBOS_END_MODE,
+  DEFAULT_COMBOS_END_VALUE,
+  DEFAULT_COMBOS_SPECIALS,
   DEFAULT_GRAVITY_INITIAL_DIRECTION,
   DEFAULT_GRAVITY_ROTATE_EVERY_TURNS,
   DEFAULT_GRAVITY_ROTATE_EVERY_UNIT,
@@ -28,11 +34,14 @@ import {
 import type {
   ClockMode,
   CollapseType,
+  CombosEndMode,
+  CombosSpecialId,
   GameConfig,
   GravityDirection,
   GravityRotateAngle,
   GravityRotateSpin,
   IntervalUnit,
+  LineRule,
   ObjectiveExtraRuleId,
   PieceMoveMode,
   RosterPlayer,
@@ -160,6 +169,31 @@ function normalizeObjectiveExtraRules(raw: unknown): ObjectiveExtraRuleId[] {
   return (["tieBreakMostPieces", "exileEmptyBoard"] as const).filter((id) => set.has(id));
 }
 
+export function isCombosObjective(config: Pick<GameConfig, "lineRule">): boolean {
+  return config.lineRule === "combos";
+}
+
+function normalizeLineRule(value: unknown): LineRule {
+  if (value === "combos") return "combos";
+  if (value === "lose") return "lose";
+  return "win";
+}
+
+function normalizeCombosEndMode(value: unknown): CombosEndMode {
+  return value === "scoreTarget" ? "scoreTarget" : DEFAULT_COMBOS_END_MODE;
+}
+
+function normalizeCombosSpecials(raw: unknown): CombosSpecialId[] {
+  if (!Array.isArray(raw)) return [...DEFAULT_COMBOS_SPECIALS];
+  const order: CombosSpecialId[] = [];
+  for (const item of raw) {
+    if (item === "bomb" || item === "star") {
+      if (!order.includes(item)) order.push(item);
+    }
+  }
+  return order.length > 0 ? order : [...DEFAULT_COMBOS_SPECIALS];
+}
+
 export function sanitizeConfig(config: GameConfig): GameConfig {
   const columns = clampInt(config.columns, 3, 12, 4);
   const rows = clampInt(config.rows, 3, 12, 4);
@@ -277,10 +311,44 @@ export function sanitizeConfig(config: GameConfig): GameConfig {
     }
   }
 
+  const lineRule = normalizeLineRule(configRecord.lineRule);
+  const combosEndMode = normalizeCombosEndMode(configRecord.combosEndMode);
+  let combosActionsMin = clampInt(
+    Number(configRecord.combosActionsMin),
+    1,
+    99,
+    DEFAULT_COMBOS_ACTIONS_MIN
+  );
+  let combosActionsIncrement = clampInt(
+    Number(configRecord.combosActionsIncrement),
+    0,
+    99,
+    DEFAULT_COMBOS_ACTIONS_INCREMENT
+  );
+  let combosActionsMax = clampInt(
+    Number(configRecord.combosActionsMax),
+    1,
+    99,
+    DEFAULT_COMBOS_ACTIONS_MAX
+  );
+  if (combosActionsMax < combosActionsMin) {
+    combosActionsMax = combosActionsMin;
+  }
+
+  const combosEndMax = combosEndMode === "scoreTarget" ? 99999 : 9999;
+  const combosEndValue = clampInt(
+    Number(configRecord.combosEndValue),
+    1,
+    combosEndMax,
+    DEFAULT_COMBOS_END_VALUE
+  );
+
+  const combosSpecials = normalizeCombosSpecials(configRecord.combosSpecials);
+
   return {
     columns,
     rows,
-    lineRule: config.lineRule === "win" ? "win" : "lose",
+    lineRule,
     lineLength: clampInt(config.lineLength, 2, lineMax, 3),
     pieceLimitType,
     maxPiecesPerPlayer: pieceLimitType === "unlimited"
@@ -323,7 +391,13 @@ export function sanitizeConfig(config: GameConfig): GameConfig {
     restrictionMovementConvertEnabled,
     skipTurnBlockTurns,
     skipTurnBlockMode,
-    objectiveExtraRules: normalizeObjectiveExtraRules(configRecord.objectiveExtraRules)
+    objectiveExtraRules: normalizeObjectiveExtraRules(configRecord.objectiveExtraRules),
+    combosEndMode,
+    combosEndValue,
+    combosActionsMin,
+    combosActionsIncrement,
+    combosActionsMax,
+    combosSpecials
   };
 }
 

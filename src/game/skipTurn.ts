@@ -1,4 +1,11 @@
-import { commitBankAfterVoluntaryPass, clearClockPauseIfNoPendingGravity, isClockEnabled, restartTurnClock } from "./clock";
+import {
+  clearClockPauseIfNoPendingGravity,
+  commitBankAfterVoluntaryPass,
+  isClockEnabled,
+  restartTurnClock
+} from "./clock";
+import { isCombosObjective } from "./config";
+import { finalizeCombosForcedTurnEnd } from "./combosAfterMove";
 import { scheduleGravityRotationIfDue } from "./gravity";
 import { cloneSnapshot, createSnapshot, snapshotToState } from "./history";
 import { advanceTurnAfterNoLine } from "./outcomes";
@@ -15,6 +22,11 @@ export function applySkipTurn(state: GameState): GameState {
   commitBankAfterVoluntaryPass(snap, state.config, Date.now(), { ignoreElapsed: state.turnNumber === 0 });
   snap.turnNumber++;
   snap.statusMessage = "";
+
+  if (isCombosObjective(state.config)) {
+    return finalizeCombosForcedTurnEnd(state, previousSnapshot, snap);
+  }
+
   advanceTurnAfterNoLine(snap, state.config);
   scheduleGravityRotationIfDue(snap, state.config);
   clearClockPauseIfNoPendingGravity(snap);

@@ -1,6 +1,7 @@
 {
   "app": {
-    "title": "Tik-Tak-Toe Toolkit"
+    "title": "Tik-Tak-Toe Toolkit",
+    "titleTatau": "TA-TA-U Toolkit"
   },
   "actions": {
     "undo": "Undo",
@@ -95,6 +96,11 @@
     "rows": "N Rows",
     "lineRuleMode": "Mode",
     "lineLength": "N in a row",
+    "combosDuration": "Duration",
+    "combosActionsMin": "Actions (min)",
+    "combosActionsIncrement": "Increment",
+    "combosActionsMax": "Actions (max)",
+    "combosSpecials": "Specials",
     "objectiveExtraRules": "Extra conditions",
     "skipTurnBlock": "Delay before skipping",
     "quantity": "Quantity",
@@ -169,6 +175,11 @@
       "value": "Fixed quantity",
       "infinite": "Unlimited quantity",
       "cycleAria": "Switch quantity mode (current: {{label}})"
+    },
+    "combosEnd": {
+      "maxRounds": "End after a maximum number of rounds",
+      "scoreTarget": "End when someone reaches points",
+      "cycleAria": "Switch Combos end condition (current: {{label}})"
     }
   },
   "topbar": {
@@ -236,6 +247,10 @@
       "lose": {
         "label": "Avoid",
         "description": "Misère mode: completing the line of N loses; you want to avoid forming it."
+      },
+      "combos": {
+        "label": "Combos",
+        "description": "Experimental: scoring and combo match rules (engine still WIP; starting a match is disabled)."
       }
     }
   },
@@ -254,6 +269,35 @@
       "triggerAria": "Objective extra conditions: {{count}} selected. Open the list.",
       "removeChip": "Remove {{label}}",
       "chipListAria": "Selected extra conditions"
+    }
+  },
+  "combos": {
+    "hud": {
+      "aria": "Combos mode: scores and actions remaining",
+      "title": "Combos",
+      "roundsProgress": "Full rounds completed: {{count}}",
+      "roundsCap": "Round limit: {{max}}",
+      "targetScore": "Target: {{target}} pts",
+      "actionsLeft": "Actions this turn: {{count}}"
+    },
+    "specials": {
+      "bomb": {
+        "label": "Bomb",
+        "description": "A line of 4 leaves a bomb (clears a 3×3 area when triggered).",
+        "short": "bomb"
+      },
+      "star": {
+        "label": "Star",
+        "description": "A cross-shaped match leaves a star (clears full row and column when triggered).",
+        "short": "star"
+      },
+      "multi": {
+        "placeholder": "No specials",
+        "summary": "{{count}} specials: open to edit",
+        "triggerAria": "Combos specials: {{count}} selected. Open the list.",
+        "removeChip": "Remove {{label}}",
+        "chipListAria": "Selected specials"
+      }
     }
   },
   "restrictions": {
@@ -302,7 +346,8 @@
   "rules": {
     "lineRule": {
       "lose": "You lose",
-      "win": "You win"
+      "win": "You win",
+      "combos": "Combos (matches and scoring)."
     },
     "pieces": {
       "unlimited": "unlimited pieces",
@@ -402,6 +447,12 @@
       "boardSize": "{{columns}} columns by {{rows}} rows board.",
       "objectiveWin": "The player who makes {{lineLength}} in a row wins.",
       "objectiveLose": "The player who makes {{lineLength}} in a row loses.",
+      "objectiveCombosIntro": "Horizontal and vertical matches clear pieces for points; length 4 triggers a bomb (3×3), length 5 or a cross of two threes triggers a star (full row and column).",
+      "objectiveCombosEndRounds": "The match ends after at most {{rounds}} complete rounds (one round = one turn per player).",
+      "objectiveCombosEndScore": "The match ends when a player reaches {{points}} points.",
+      "objectiveCombosActions": "Board actions per turn: minimum {{min}}, increase by {{increment}} each new round up to a cap of {{max}}.",
+      "objectiveCombosSpecialsList": "Allowed specials: {{list}}.",
+      "objectiveCombosSpecialsNone": "none",
       "objectiveExtraTieBreak": "Domination: on a no-legal-moves draw, the player with more pieces on the board wins if that maximum is unique.",
       "objectiveExtraExile": "Exile: you lose if you have no pieces left on the board (once the match is underway).",
       "piecesUnlimited": "Each player can place unlimited pieces.",
@@ -432,7 +483,12 @@
       "collapse": "{{type}} collapse every {{intervalText}}, up to {{times}} times.",
       "collapseKills": "With <strong>Exile</strong> under extra conditions, a collapse that leaves someone with no pieces on the board triggers that elimination."
     },
-    "summary": "{{columns}} columns x {{rows}} rows. {{lineText}} if you make {{lineLength}} in a row. {{piecesText}}. {{moveText}}. {{movementLimitText}} {{brokenText}}. {{gravityText}} {{collapseText}} {{clockText}} {{restrictionsText}}",
+    "summary": "{{columns}} columns x {{rows}} rows. {{lineClause}} {{piecesText}}. {{moveText}}. {{movementLimitText}} {{brokenText}}. {{gravityText}} {{collapseText}} {{clockText}} {{restrictionsText}}",
+    "lineClauseClassic": "{{lineText}} if you make {{lineLength}} in a row.",
+    "lineClauseCombos": "{{endPhrase}} Actions per turn: min {{min}}, +{{increment}} per round, cap {{max}}. Specials: {{specials}}.",
+    "combosEndRoundsPhrase": "At most {{rounds}} rounds.",
+    "combosEndScorePhrase": "Win when reaching {{points}} points.",
+    "combosSpecialsNone": "none",
     "modal": {
       "intro": "These are the rules for the current game. If you change values in the sidebar, press {{newGame}} to apply them."
     }
@@ -472,10 +528,13 @@
     "clockMid": " ran out of time. ",
     "collapseMid": " was left without pieces by the collapse. ",
     "clockWinBeforeMark": "",
-    "clockWinAfterMark": " wins."
+    "clockWinAfterMark": " wins.",
+    "combosSimpleWin": " wins the match.",
+    "combosRankingSummary": "{{player}} leads the final ranking."
   },
   "sidebar": {
-    "matchOutcome": "Match result"
+    "matchOutcome": "Match result",
+    "newGameBlockedCombos": "Combos mode cannot start a match yet."
   },
   "multiplayer": {
     "title": "Experimental online",
@@ -624,6 +683,10 @@
     },
     "timeline": {
       "stripAriaLabel": "Current turn and upcoming events",
+      "progressAria": "Completed rounds and turns",
+      "roundLabel": "Rounds",
+      "turnLabel": "Turns",
+      "progressItemAria": "{{label}}: {{count}}",
       "playerTurn": "Turn: {{player}}",
       "gravityPending": "Gravity rotation (pending)",
       "gravityRotate": "Gravity change",

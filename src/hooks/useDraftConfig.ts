@@ -112,7 +112,7 @@ export function useDraftConfig(options?: UseDraftConfigOptions) {
         next.restrictionMovementEatEnabled = false;
       }
 
-      return next;
+      return sanitizeConfig(next);
     });
   }
 

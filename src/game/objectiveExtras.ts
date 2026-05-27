@@ -6,6 +6,7 @@ import { getNextActivePlayerAfterChanges } from "./turns";
 import type { GameConfig, GameSnapshot, ObjectiveExtraRuleId, PlayerId } from "./types";
 
 export function hasObjectiveRule(config: GameConfig, rule: ObjectiveExtraRuleId): boolean {
+  if (config.lineRule === "combos") return false;
   return config.objectiveExtraRules.includes(rule);
 }
 

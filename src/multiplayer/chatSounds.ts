@@ -1,43 +1,4 @@
-let sharedCtx: AudioContext | null = null;
-
-function getAudioContext(): AudioContext | null {
-  if (typeof window === "undefined") return null;
-  try {
-    if (!sharedCtx) {
-      sharedCtx = new AudioContext();
-    }
-    return sharedCtx;
-  } catch {
-    return null;
-  }
-}
-
-function playTone(options: {
-  frequency: number;
-  durationSec: number;
-  peakGain: number;
-  type?: OscillatorType;
-}): void {
-  const ctx = getAudioContext();
-  if (!ctx) return;
-  void ctx.resume().catch(() => {});
-
-  const t0 = ctx.currentTime;
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
-
-  osc.type = options.type ?? "sine";
-  osc.frequency.setValueAtTime(options.frequency, t0);
-
-  gain.gain.setValueAtTime(0, t0);
-  gain.gain.linearRampToValueAtTime(options.peakGain, t0 + 0.012);
-  gain.gain.exponentialRampToValueAtTime(0.0009, t0 + options.durationSec);
-
-  osc.connect(gain);
-  gain.connect(ctx.destination);
-  osc.start(t0);
-  osc.stop(t0 + options.durationSec + 0.03);
-}
+import { playTone, playToneSequence } from "../audio/tonePlayer";
 
 /** Tono corto al recibir mensaje de otro jugador (chat). */
 export function playChatPlayerTone(): void {
@@ -57,4 +18,12 @@ export function playChatSystemTone(): void {
     peakGain: 0.032,
     type: "sine"
   });
+}
+
+/** Dos notas ascendentes cuando le toca jugar al jugador local en modo online. */
+export function playOnlineTurnTone(): void {
+  playToneSequence([
+    { frequency: 660, durationSec: 0.07, peakGain: 0.055, type: "sine", delaySec: 0 },
+    { frequency: 880, durationSec: 0.1, peakGain: 0.055, type: "sine", delaySec: 0.09 }
+  ]);
 }

@@ -1,6 +1,8 @@
 import type {
   ClockMode,
   CollapseType,
+  CombosEndMode,
+  CombosSpecialId,
   GameConfig,
   GravityDirection,
   IntervalUnit,
@@ -78,6 +80,13 @@ export const DEFAULT_SKIP_TURN_BLOCK_MODE: SkipTurnBlockMode = "turns";
 
 export const DEFAULT_OBJECTIVE_EXTRA_RULES: ObjectiveExtraRuleId[] = [];
 
+export const DEFAULT_COMBOS_END_MODE: CombosEndMode = "maxRounds";
+export const DEFAULT_COMBOS_END_VALUE = 10;
+export const DEFAULT_COMBOS_ACTIONS_MIN = 2;
+export const DEFAULT_COMBOS_ACTIONS_INCREMENT = 1;
+export const DEFAULT_COMBOS_ACTIONS_MAX = 5;
+export const DEFAULT_COMBOS_SPECIALS: CombosSpecialId[] = ["bomb", "star"];
+
 export const DRAW_IF_NO_LEGAL_MOVES = true;
 
 export const DEFAULT_CONFIG: GameConfig = {
@@ -124,5 +133,11 @@ export const DEFAULT_CONFIG: GameConfig = {
   restrictionMovementConvertEnabled: DEFAULT_RESTRICTION_MOVEMENT_CONVERT_ENABLED,
   skipTurnBlockTurns: DEFAULT_SKIP_TURN_BLOCK_TURNS,
   skipTurnBlockMode: DEFAULT_SKIP_TURN_BLOCK_MODE,
-  objectiveExtraRules: [...DEFAULT_OBJECTIVE_EXTRA_RULES]
+  objectiveExtraRules: [...DEFAULT_OBJECTIVE_EXTRA_RULES],
+  combosEndMode: DEFAULT_COMBOS_END_MODE,
+  combosEndValue: DEFAULT_COMBOS_END_VALUE,
+  combosActionsMin: DEFAULT_COMBOS_ACTIONS_MIN,
+  combosActionsIncrement: DEFAULT_COMBOS_ACTIONS_INCREMENT,
+  combosActionsMax: DEFAULT_COMBOS_ACTIONS_MAX,
+  combosSpecials: [...DEFAULT_COMBOS_SPECIALS]
 };

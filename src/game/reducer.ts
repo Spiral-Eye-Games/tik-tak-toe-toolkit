@@ -1,6 +1,8 @@
 import { buildClockBankInitial } from "./clock";
 import { applyClockBankTimeout, applyClockPerTurnTimeout, completePendingGravityRotation } from "./clockTimeouts";
 import { sanitizeConfig } from "./config";
+import { computeCombosActionBudget } from "./combosTurn";
+import { combosSeedFromActivePlayers } from "./combosRng";
 import { createSnapshot, redoMove, undoMove } from "./history";
 import { playMove } from "./moves";
 import { forfeitPlayer } from "./outcomes";
@@ -20,6 +22,12 @@ export function createInitialGameState(configInput: GameConfig): GameState {
     config.clockEnabled && config.clockMode === "bank"
       ? buildClockBankInitial(activePlayerIds, config.clockBankSeconds)
       : null;
+
+  const combosScoresEmpty = {} as Record<PlayerId, number>;
+  const combosScoresInitial =
+    config.lineRule === "combos"
+      ? (Object.fromEntries(activePlayerIds.map((id) => [id, 0])) as Record<PlayerId, number>)
+      : combosScoresEmpty;
 
   return {
     config,
@@ -42,6 +50,14 @@ export function createInitialGameState(configInput: GameConfig): GameState {
     clockTurnStartedAtMs: nowMs,
     clockBankRemaining,
     clockPauseStartedAtMs: null,
+    combosScores: combosScoresInitial,
+    fullRoundsCompleted: 0,
+    combosActionsRemainingThisTurn:
+      config.lineRule === "combos" ? computeCombosActionBudget(config, 0) : 0,
+    combosRngState:
+      config.lineRule === "combos"
+        ? combosSeedFromActivePlayers(activePlayerIds, config.columns, config.rows)
+        : 0,
     undoStack: [],
     redoStack: []
   };

@@ -4,6 +4,7 @@ import { mustMovePiece } from "../game/rules";
 import type { GameConfig, GameState } from "../game/types";
 import { t } from "../i18n";
 import { MatchStatusBanner, getMatchStatusAriaText } from "./MatchStatusBanner";
+import { CombosHud } from "./CombosHud";
 import { PresetModal } from "./PresetModal";
 import {
   BrokenHolesSettingsSection,
@@ -28,6 +29,8 @@ interface SidebarProps {
   onRulesHelp: () => void;
   readOnlyConfig?: boolean;
   canStartNewGame?: boolean;
+  /** Tooltip cuando «Nuevo juego» está deshabilitado por reglas de modo online u otras. */
+  newGameTooltip?: string;
   maxPlayerCount?: number;
 }
 
@@ -41,6 +44,7 @@ export function Sidebar({
   onRulesHelp,
   readOnlyConfig = false,
   canStartNewGame = true,
+  newGameTooltip,
   maxPlayerCount
 }: SidebarProps) {
   const [presetModalOpen, setPresetModalOpen] = useState(false);
@@ -49,7 +53,19 @@ export function Sidebar({
     <aside className="sidebar">
       <div className="sidebar-sticky">
         <div className="new-game-row">
-          <button className="button full" type="button" disabled={!canStartNewGame} onClick={onNewGame}>{t("buttons.newGame")}</button>
+          {!canStartNewGame && newGameTooltip ? (
+            <Tooltip text={newGameTooltip} className="new-game-tooltip-wrap">
+              <span className="new-game-tooltip-target">
+                <button className="button full" type="button" disabled onClick={onNewGame}>
+                  {t("buttons.newGame")}
+                </button>
+              </span>
+            </Tooltip>
+          ) : (
+            <button className="button full" type="button" disabled={!canStartNewGame} onClick={onNewGame}>
+              {t("buttons.newGame")}
+            </button>
+          )}
           <Tooltip text={t("presets.openTitle")}>
             <button className="help-button large" type="button" disabled={readOnlyConfig} onClick={() => setPresetModalOpen(true)}>
               <SlidersHorizontal aria-hidden="true" />
@@ -61,6 +77,7 @@ export function Sidebar({
             </button>
           </Tooltip>
         </div>
+        {liveGame.config.lineRule === "combos" && !liveGame.gameOver && <CombosHud state={liveGame} />}
         {liveGame.gameOver && liveGame.gameEndSummary && (
           <div
             className="sidebar-match-outcome"

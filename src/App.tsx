@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Board } from "./components/Board";
 import { HelpModal } from "./components/HelpModal";
 import { MatchStatusBanner } from "./components/MatchStatusBanner";
@@ -9,18 +9,26 @@ import { DEFAULT_CONFIG, DEFAULT_ROSTER } from "./game/defaults";
 import { loadLastSettings } from "./game/sessionCache";
 import { t } from "./i18n";
 import { isDev } from "./isDev";
+import { isTatau } from "./isTatau";
 import { getStatusText, type VictoryOnlineNameContext } from "./game/formatters";
 import { createInitialGameState, reduceGameState } from "./game/reducer";
 import { mustMovePiece } from "./game/rules";
 import type { GameAction, GameConfig, GameState } from "./game/types";
 import { useDraftConfig } from "./hooks/useDraftConfig";
 import { useGameClock } from "./hooks/useGameClock";
+import { useGameJuiceSounds } from "./hooks/useGameJuiceSounds";
 import { useHelpModal } from "./hooks/useHelpModal";
+import { useOnlineTurnSound } from "./hooks/useOnlineTurnSound";
 import { usePendingGravityRotation } from "./hooks/usePendingGravityRotation";
 import { useMultiplayer } from "./multiplayer/useMultiplayer";
 
 export default function App() {
   const isDevUrl = useMemo(() => isDev(), []);
+  const isTatauUrl = useMemo(() => isTatau(), []);
+
+  useEffect(() => {
+    document.title = isTatauUrl ? t("app.titleTatau") : t("app.title");
+  }, [isTatauUrl]);
   const skipDraftPersistForClientRef = useRef(false);
 
   const {
@@ -60,7 +68,22 @@ export default function App() {
     onClientSessionEnd: restoreCachedSettingsAfterClientSession
   });
   skipDraftPersistForClientRef.current = multiplayer.isClient;
+  useOnlineTurnSound({
+    isOnline: multiplayer.isOnline,
+    localSymbol: multiplayer.localSymbol,
+    currentPlayer: gameState.currentPlayer,
+    gameOver: gameState.gameOver,
+    status: multiplayer.status
+  });
+  const ownsClockTurn = !multiplayer.isOnline || multiplayer.localSymbol === gameState.currentPlayer;
+  useGameJuiceSounds({
+    gameState,
+    perspectivePlayer: multiplayer.isOnline ? multiplayer.localSymbol : null,
+    ownsClockTurn
+  });
   const onlineHostMaxPlayerPicker = multiplayer.isHost ? DEFAULT_ROSTER.length : undefined;
+
+  const effectiveCanStartNewGame = multiplayer.canStartNewGame;
 
   const updateConfig = useCallback((patch: Partial<GameConfig>) => {
     updateDraftConfig(patch);
@@ -106,7 +129,6 @@ export default function App() {
     handleHostEventAction(action);
   }, [handleHostEventAction, multiplayer]);
 
-  const ownsClockTurn = !multiplayer.isOnline || multiplayer.localSymbol === gameState.currentPlayer;
   const topbarClockText = useGameClock(gameState, handleClockAction, ownsClockTurn);
 
   usePendingGravityRotation(gameState, handleHostEventAction);
@@ -125,7 +147,7 @@ export default function App() {
   );
 
   function startNewGame() {
-    if (!multiplayer.canStartNewGame) return;
+    if (!effectiveCanStartNewGame) return;
     const nextConfig = multiplayer.isHost
       ? buildOnlineGameConfig(sanitizeDraftConfig(), multiplayer.players)
       : buildOfflineGameConfig(sanitizeDraftConfig());
@@ -133,7 +155,7 @@ export default function App() {
   }
 
   function applyPreset(config: GameConfig) {
-    if (!multiplayer.canStartNewGame) return;
+    if (!effectiveCanStartNewGame) return;
     const nextConfig = replaceDraftConfig(config);
     handleGameAction({
       type: "newGame",
@@ -157,7 +179,7 @@ export default function App() {
           onHelp={openHelp}
           onRulesHelp={openRulesHelp}
           readOnlyConfig={!multiplayer.canEditConfig}
-          canStartNewGame={multiplayer.canStartNewGame}
+          canStartNewGame={effectiveCanStartNewGame}
           maxPlayerCount={onlineHostMaxPlayerPicker}
         />
 
@@ -171,7 +193,7 @@ export default function App() {
           onUndo={() => handleGameAction({ type: "undo" })}
           onRedo={() => handleGameAction({ type: "redo" })}
           interactionLocked={multiplayer.isOnline && !multiplayer.canPlayLocalTurn}
-          victoryNewGameDisabled={!multiplayer.canStartNewGame}
+          victoryNewGameDisabled={!effectiveCanStartNewGame}
           victoryUndoDisabled={!multiplayer.canUseUndoRedo}
           skipTurnInteractive={multiplayer.canPlayLocalTurn}
           onSkipTurn={() => handleGameAction({ type: "skipTurn" })}

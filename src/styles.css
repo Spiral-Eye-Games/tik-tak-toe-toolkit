@@ -212,6 +212,84 @@ body, #root { height: 100vh; }
   color: var(--text);
 }
 
+.combos-hud {
+  margin-top: 12px;
+  padding: 12px 12px 14px;
+  border-radius: 16px;
+  background: rgba(47, 94, 237, 0.08);
+  border: 1px solid rgba(47, 94, 237, 0.22);
+}
+
+.combos-hud-title {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.combos-hud-meta {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.combos-hud-meta-sep {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.combos-hud-scores {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.combos-hud-score-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.combos-hud-score-label {
+  flex: 1;
+  color: var(--text);
+}
+
+.combos-hud-score-value {
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+.piece-special-overlay {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  font-size: 10px;
+  font-weight: 1000;
+  line-height: 1;
+  opacity: 0.92;
+  pointer-events: none;
+}
+
+.piece-stack {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .player-mark-glyph {
   display: inline-grid;
   place-items: center;
@@ -2003,6 +2081,82 @@ body, #root { height: 100vh; }
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  gap: 6px;
+}
+
+.board-turn-progress {
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  width: 100%;
+  pointer-events: none;
+}
+
+.board-turn-progress__bullet {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  padding: 7px 9px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: linear-gradient(165deg, rgba(38, 44, 62, 0.96), rgba(20, 24, 36, 0.94));
+  box-shadow: 0 5px 16px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(8px);
+}
+
+.board-turn-progress__bullet--rounds {
+  --progress-accent: #fbbf24;
+  --progress-accent-soft: rgba(251, 191, 36, 0.16);
+  border-color: rgba(251, 191, 36, 0.22);
+  background:
+    radial-gradient(circle at top left, var(--progress-accent-soft), transparent 58%),
+    linear-gradient(165deg, rgba(52, 46, 34, 0.96), rgba(24, 22, 18, 0.94));
+}
+
+.board-turn-progress__bullet--turns {
+  --progress-accent: #78c8ff;
+  --progress-accent-soft: rgba(120, 200, 255, 0.14);
+  border-color: rgba(120, 200, 255, 0.22);
+  background:
+    radial-gradient(circle at top left, var(--progress-accent-soft), transparent 58%),
+    linear-gradient(165deg, rgba(34, 46, 62, 0.96), rgba(18, 24, 36, 0.94));
+}
+
+.board-turn-progress__dot {
+  flex: 0 0 auto;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--progress-accent);
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.06),
+    0 0 10px color-mix(in srgb, var(--progress-accent) 72%, transparent);
+}
+
+.board-turn-progress__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.board-turn-progress__label {
+  color: var(--muted);
+  font-size: clamp(8px, 1.8cqw, 10px);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.board-turn-progress__value {
+  color: rgba(244, 246, 255, 0.96);
+  font-size: clamp(14px, 3.4cqw, 17px);
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
 }
 
 .board-event-area__fab-col {
@@ -3087,6 +3241,13 @@ body, #root { height: 100vh; }
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.victory-rank-score {
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  font-weight: 900;
+  flex-shrink: 0;
 }
 
 .victory-board-actions {

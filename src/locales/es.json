@@ -1,6 +1,7 @@
 {
   "app": {
-    "title": "Ta-Te-Ti Toolkit"
+    "title": "Ta-Te-Ti Toolkit",
+    "titleTatau": "TA-TA-U Toolkit"
   },
   "actions": {
     "undo": "Deshacer",
@@ -95,6 +96,11 @@
     "rows": "N Filas",
     "lineRuleMode": "Modo",
     "lineLength": "N en raya",
+    "combosDuration": "Duración",
+    "combosActionsMin": "Acciones (mín.)",
+    "combosActionsIncrement": "Incremento",
+    "combosActionsMax": "Acciones (máx.)",
+    "combosSpecials": "Especiales",
     "objectiveExtraRules": "Condiciones adicionales",
     "skipTurnBlock": "Omitir a partir de",
     "quantity": "Cantidad",
@@ -169,6 +175,11 @@
       "value": "Cantidad fija",
       "infinite": "Cantidad ilimitada",
       "cycleAria": "Cambiar modo de cantidad (actual: {{label}})"
+    },
+    "combosEnd": {
+      "maxRounds": "Fin por cantidad máxima de rondas",
+      "scoreTarget": "Fin al alcanzar puntos",
+      "cycleAria": "Cambiar criterio de fin de partida Combos (actual: {{label}})"
     }
   },
   "topbar": {
@@ -236,6 +247,10 @@
       "lose": {
         "label": "Evitar",
         "description": "Modo misère: si completás la raya de N en línea perdés; el objetivo es no formarla."
+      },
+      "combos": {
+        "label": "Combos",
+        "description": "Experimental: partida por puntos y combinaciones (motor en desarrollo; no iniciar partida aún)."
       }
     }
   },
@@ -254,6 +269,35 @@
       "triggerAria": "Condiciones adicionales del objetivo: {{count}} seleccionadas. Abrí la lista.",
       "removeChip": "Quitar {{label}}",
       "chipListAria": "Condiciones adicionales elegidas"
+    }
+  },
+  "combos": {
+    "hud": {
+      "aria": "Modo Combos: puntajes y acciones restantes",
+      "title": "Combos",
+      "roundsProgress": "Rondas completas jugadas: {{count}}",
+      "roundsCap": "Tope de rondas: {{max}}",
+      "targetScore": "Objetivo: {{target}} pts",
+      "actionsLeft": "Acciones en este turno: {{count}}"
+    },
+    "specials": {
+      "bomb": {
+        "label": "Bomba",
+        "description": "Combinación de 4 en línea deja una bomba (área 3×3 al activarse).",
+        "short": "bomba"
+      },
+      "star": {
+        "label": "Estrella",
+        "description": "Combinación en forma de cruz deja una estrella (limpia fila y columna completas).",
+        "short": "estrella"
+      },
+      "multi": {
+        "placeholder": "Sin especiales",
+        "summary": "{{count}} especiales: abrí para editar",
+        "triggerAria": "Especiales Combos: {{count}} seleccionados. Abrí la lista.",
+        "removeChip": "Quitar {{label}}",
+        "chipListAria": "Especiales elegidos"
+      }
     }
   },
   "restrictions": {
@@ -302,7 +346,8 @@
   "rules": {
     "lineRule": {
       "lose": "Perdés",
-      "win": "Ganás"
+      "win": "Ganás",
+      "combos": "Combos (combinaciones y puntos)."
     },
     "pieces": {
       "unlimited": "fichas ilimitadas",
@@ -402,6 +447,12 @@
       "boardSize": "Tablero de {{columns}} columnas por {{rows}} filas.",
       "objectiveWin": "Gana quien forme {{lineLength}} en raya.",
       "objectiveLose": "Pierde quien forme {{lineLength}} en raya.",
+      "objectiveCombosIntro": "Las combinaciones horizontales y verticales eliminan fichas y suman puntos; una línea de 4 activa bomba (área 3×3), una de 5 o dos cruces de tres activan estrella (fila y columna completas).",
+      "objectiveCombosEndRounds": "La partida termina como máximo tras {{rounds}} rondas completas (una ronda = un turno por jugador).",
+      "objectiveCombosEndScore": "La partida termina cuando algún jugador alcanza {{points}} puntos.",
+      "objectiveCombosActions": "Acciones de tablero por turno: mínimo {{min}}, suben {{increment}} por cada nueva ronda hasta un tope de {{max}}.",
+      "objectiveCombosSpecialsList": "Especiales permitidos: {{list}}.",
+      "objectiveCombosSpecialsNone": "ninguno",
       "objectiveExtraTieBreak": "Dominio: ante tablas por falta de jugadas, desempata quien tenga más fichas en juego (si el máximo es único).",
       "objectiveExtraExile": "Exilio: quien se quede sin fichas en el tablero pierde (con partida ya en marcha).",
       "piecesUnlimited": "Cada jugador puede colocar fichas sin límite.",
@@ -432,7 +483,12 @@
       "collapse": "Colapso {{type}} cada {{intervalText}}, hasta {{times}} veces.",
       "collapseKills": "Si tenés <strong>Exilio</strong> en condiciones adicionales, un colapso que deje a alguien sin fichas en el tablero aplica esa eliminación."
     },
-    "summary": "{{columns}} columnas x {{rows}} filas. {{lineText}} si formás {{lineLength}} en raya. {{piecesText}}. {{moveText}}. {{movementLimitText}} {{brokenText}}. {{gravityText}} {{collapseText}} {{clockText}} {{restrictionsText}}",
+    "summary": "{{columns}} columnas x {{rows}} filas. {{lineClause}} {{piecesText}}. {{moveText}}. {{movementLimitText}} {{brokenText}}. {{gravityText}} {{collapseText}} {{clockText}} {{restrictionsText}}",
+    "lineClauseClassic": "{{lineText}} si formás {{lineLength}} en raya.",
+    "lineClauseCombos": "{{endPhrase}} Acciones por turno: mín. {{min}}, +{{increment}} por ronda, tope {{max}}. Especiales: {{specials}}.",
+    "combosEndRoundsPhrase": "Hasta {{rounds}} rondas como máximo.",
+    "combosEndScorePhrase": "Victoria al llegar a {{points}} puntos.",
+    "combosSpecialsNone": "ninguno",
     "modal": {
       "intro": "Estas son las reglas de la partida actual. Si modificás valores en la sidebar, presioná {{newGame}} para aplicarlos."
     }
@@ -472,10 +528,13 @@
     "clockMid": " se quedó sin tiempo. ",
     "collapseMid": " se quedó sin fichas por el colapso. ",
     "clockWinBeforeMark": "Gana ",
-    "clockWinAfterMark": "."
+    "clockWinAfterMark": ".",
+    "combosSimpleWin": " gana la partida.",
+    "combosRankingSummary": "{{player}} encabeza el ranking final."
   },
   "sidebar": {
-    "matchOutcome": "Resultado de la partida"
+    "matchOutcome": "Resultado de la partida",
+    "newGameBlockedCombos": "El modo Combos aún no puede iniciar una partida."
   },
   "multiplayer": {
     "title": "Online experimental",
@@ -624,6 +683,10 @@
     },
     "timeline": {
       "stripAriaLabel": "Turno actual y próximos eventos",
+      "progressAria": "Rondas y turnos completados",
+      "roundLabel": "Rondas",
+      "turnLabel": "Turnos",
+      "progressItemAria": "{{label}}: {{count}}",
       "playerTurn": "Turno: {{player}}",
       "gravityPending": "Rotación de gravedad (pendiente)",
       "gravityRotate": "Cambio de gravedad",

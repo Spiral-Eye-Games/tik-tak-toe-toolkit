@@ -6,6 +6,7 @@ import { movementSupportsConversion, RESTRICTION_MOVEMENT_MODES_ORDER } from "..
 import type {
   ClockMode,
   CollapseType,
+  CombosSpecialId,
   GameConfig,
   GravityDirection,
   GravityRotateAngle,
@@ -14,10 +15,11 @@ import type {
   RestrictionMovementMode
 } from "../game/types";
 import { t } from "../i18n";
+import { isDev } from "../isDev";
 import { CustomSelect } from "./CustomSelect";
 import { MovementInfoModal } from "./MovementInfoModal";
 import { NumericDraftInput } from "./NumericDraftInput";
-import { QuantityModeDraftInput, TimeIntervalDraftInput, type TimeIntervalPickerMode } from "./NumericModeInputs";
+import { QuantityModeDraftInput, TimeIntervalDraftInput, CombosEndDraftInput, type TimeIntervalPickerMode } from "./NumericModeInputs";
 import { CustomMultiSelect } from "./CustomMultiSelect";
 import { CustomToggle } from "./CustomToggle";
 import { LineRuleSelect } from "./LineRuleSelect";
@@ -44,6 +46,8 @@ function skipTurnBlockPickerMode(config: GameConfig): TimeIntervalPickerMode {
 }
 
 const OBJECTIVE_EXTRA_IDS = ["tieBreakMostPieces", "exileEmptyBoard"] as const satisfies readonly ObjectiveExtraRuleId[];
+
+const COMBOS_SPECIAL_IDS = ["bomb", "star"] as const satisfies readonly CombosSpecialId[];
 
 const GRAVITY_DIRECTIONS_ORDER: GravityDirection[] = ["down", "up", "left", "right"];
 const GRAVITY_ROTATE_ANGLES_ORDER: GravityRotateAngle[] = ["90", "180", "270", "random"];
@@ -117,12 +121,22 @@ export function GeneralSettingsSection({ config, onChangeConfig, onHelp }: Sideb
 
 export function ObjectiveSettingsSection({ config, onChangeConfig, onHelp }: SidebarSectionProps) {
   const lineMax = Math.max(config.columns, config.rows);
+  const showCombosInObjective = isDev();
+  const isCombos = config.lineRule === "combos";
 
   const objectiveExtraOptions = OBJECTIVE_EXTRA_IDS.map((id) => ({
     value: id,
     label: t(`objectiveExtra.${id}.label`),
     description: t(`objectiveExtra.${id}.description`)
   }));
+
+  const combosSpecialOptions = COMBOS_SPECIAL_IDS.map((id) => ({
+    value: id,
+    label: t(`combos.specials.${id}.label`),
+    description: t(`combos.specials.${id}.description`)
+  }));
+
+  const combosEndMax = config.combosEndMode === "scoreTarget" ? 99999 : 9999;
 
   return (
     <SettingsSection
@@ -135,36 +149,110 @@ export function ObjectiveSettingsSection({ config, onChangeConfig, onHelp }: Sid
       <div className="field-row compact">
         <label className="field">
           {t("fields.lineRuleMode")}
-          <LineRuleSelect value={config.lineRule} onChange={(rule) => onChangeConfig({ lineRule: rule })} />
-        </label>
-
-        <label className="field">
-          {t("fields.lineLength")}
-          <NumericDraftInput
-            min={2}
-            max={lineMax}
-            step={1}
-            value={config.lineLength}
-            onCommit={(value) => onChangeConfig({ lineLength: value })}
+          <LineRuleSelect
+            value={config.lineRule}
+            showCombosOption={showCombosInObjective}
+            onChange={(rule) => onChangeConfig({ lineRule: rule })}
           />
         </label>
+
+        {!isCombos && (
+          <label className="field">
+            {t("fields.lineLength")}
+            <NumericDraftInput
+              min={2}
+              max={lineMax}
+              step={1}
+              value={config.lineLength}
+              onCommit={(value) => onChangeConfig({ lineLength: value })}
+            />
+          </label>
+        )}
       </div>
 
-      <label className="field">
-        {t("fields.objectiveExtraRules")}
-        <CustomMultiSelect<ObjectiveExtraRuleId>
-          options={objectiveExtraOptions}
-          values={config.objectiveExtraRules}
-          onChange={(rules) => onChangeConfig({ objectiveExtraRules: rules })}
-          placeholder={t("objectiveExtra.multi.placeholder")}
-          getTriggerLabel={(selected) => t("objectiveExtra.multi.summary", { count: selected.length })}
-          triggerAriaLabel={t("objectiveExtra.multi.triggerAria", { count: config.objectiveExtraRules.length })}
-          getChipRemoveAriaLabel={(_value, chipLabel) =>
-            t("objectiveExtra.multi.removeChip", { label: chipLabel })
-          }
-          chipListAriaLabel={t("objectiveExtra.multi.chipListAria")}
-        />
-      </label>
+      {isCombos && (
+        <>
+          <label className="field">
+            {t("fields.combosDuration")}
+            <CombosEndDraftInput
+              min={1}
+              max={combosEndMax}
+              step={1}
+              mode={config.combosEndMode}
+              value={config.combosEndValue}
+              onValueCommit={(value) => onChangeConfig({ combosEndValue: value })}
+              onModeChange={(mode) => onChangeConfig({ combosEndMode: mode })}
+            />
+          </label>
+
+          <div className="field-row compact">
+            <label className="field">
+              {t("fields.combosActionsMin")}
+              <NumericDraftInput
+                min={1}
+                max={99}
+                step={1}
+                value={config.combosActionsMin}
+                onCommit={(value) => onChangeConfig({ combosActionsMin: value })}
+              />
+            </label>
+            <label className="field">
+              {t("fields.combosActionsIncrement")}
+              <NumericDraftInput
+                min={0}
+                max={99}
+                step={1}
+                value={config.combosActionsIncrement}
+                onCommit={(value) => onChangeConfig({ combosActionsIncrement: value })}
+              />
+            </label>
+            <label className="field">
+              {t("fields.combosActionsMax")}
+              <NumericDraftInput
+                min={1}
+                max={99}
+                step={1}
+                value={config.combosActionsMax}
+                onCommit={(value) => onChangeConfig({ combosActionsMax: value })}
+              />
+            </label>
+          </div>
+
+          <label className="field">
+            {t("fields.combosSpecials")}
+            <CustomMultiSelect<CombosSpecialId>
+              options={combosSpecialOptions}
+              values={config.combosSpecials}
+              onChange={(specials) => onChangeConfig({ combosSpecials: specials })}
+              placeholder={t("combos.specials.multi.placeholder")}
+              getTriggerLabel={(selected) => t("combos.specials.multi.summary", { count: selected.length })}
+              triggerAriaLabel={t("combos.specials.multi.triggerAria", { count: config.combosSpecials.length })}
+              getChipRemoveAriaLabel={(_value, chipLabel) =>
+                t("combos.specials.multi.removeChip", { label: chipLabel })
+              }
+              chipListAriaLabel={t("combos.specials.multi.chipListAria")}
+            />
+          </label>
+        </>
+      )}
+
+      {!isCombos && (
+        <label className="field">
+          {t("fields.objectiveExtraRules")}
+          <CustomMultiSelect<ObjectiveExtraRuleId>
+            options={objectiveExtraOptions}
+            values={config.objectiveExtraRules}
+            onChange={(rules) => onChangeConfig({ objectiveExtraRules: rules })}
+            placeholder={t("objectiveExtra.multi.placeholder")}
+            getTriggerLabel={(selected) => t("objectiveExtra.multi.summary", { count: selected.length })}
+            triggerAriaLabel={t("objectiveExtra.multi.triggerAria", { count: config.objectiveExtraRules.length })}
+            getChipRemoveAriaLabel={(_value, chipLabel) =>
+              t("objectiveExtra.multi.removeChip", { label: chipLabel })
+            }
+            chipListAriaLabel={t("objectiveExtra.multi.chipListAria")}
+          />
+        </label>
+      )}
     </SettingsSection>
   );
 }

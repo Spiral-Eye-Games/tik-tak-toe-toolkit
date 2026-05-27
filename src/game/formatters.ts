@@ -112,19 +112,41 @@ function getIntervalText(amount: number, unit: "turns" | "rounds", turns: number
     : t("rules.interval.turns", { amount });
 }
 
-export function buildRulesHtml(config: GameConfig): string {
-  const boardItems = [
-    t("rules.current.boardSize", { columns: config.columns, rows: config.rows }),
-    config.lineRule === "lose"
-      ? t("rules.current.objectiveLose", { lineLength: config.lineLength })
-      : t("rules.current.objectiveWin", { lineLength: config.lineLength })
-  ];
+function combosSpecialsListShort(config: GameConfig): string {
+  if (config.combosSpecials.length === 0) return t("rules.current.objectiveCombosSpecialsNone");
+  return config.combosSpecials.map((id) => t(`combos.specials.${id}.short`)).join(", ");
+}
 
-  if (config.objectiveExtraRules.includes("tieBreakMostPieces")) {
-    boardItems.push(t("rules.current.objectiveExtraTieBreak"));
-  }
-  if (config.objectiveExtraRules.includes("exileEmptyBoard")) {
-    boardItems.push(t("rules.current.objectiveExtraExile"));
+export function buildRulesHtml(config: GameConfig): string {
+  const boardItems =
+    config.lineRule === "combos"
+      ? [
+          t("rules.current.boardSize", { columns: config.columns, rows: config.rows }),
+          t("rules.current.objectiveCombosIntro"),
+          config.combosEndMode === "maxRounds"
+            ? t("rules.current.objectiveCombosEndRounds", { rounds: config.combosEndValue })
+            : t("rules.current.objectiveCombosEndScore", { points: config.combosEndValue }),
+          t("rules.current.objectiveCombosActions", {
+            min: config.combosActionsMin,
+            increment: config.combosActionsIncrement,
+            max: config.combosActionsMax
+          }),
+          t("rules.current.objectiveCombosSpecialsList", { list: combosSpecialsListShort(config) })
+        ]
+      : [
+          t("rules.current.boardSize", { columns: config.columns, rows: config.rows }),
+          config.lineRule === "lose"
+            ? t("rules.current.objectiveLose", { lineLength: config.lineLength })
+            : t("rules.current.objectiveWin", { lineLength: config.lineLength })
+        ];
+
+  if (config.lineRule !== "combos") {
+    if (config.objectiveExtraRules.includes("tieBreakMostPieces")) {
+      boardItems.push(t("rules.current.objectiveExtraTieBreak"));
+    }
+    if (config.objectiveExtraRules.includes("exileEmptyBoard")) {
+      boardItems.push(t("rules.current.objectiveExtraExile"));
+    }
   }
 
   const pieceItems = [
@@ -231,7 +253,7 @@ export function buildRulesHtml(config: GameConfig): string {
       times: config.collapseTimes
     }));
 
-    if (config.objectiveExtraRules.includes("exileEmptyBoard")) {
+    if (config.lineRule !== "combos" && config.objectiveExtraRules.includes("exileEmptyBoard")) {
       mechanicItems.push(t("rules.current.collapseKills"));
     }
   }
@@ -248,7 +270,26 @@ export function buildRulesHtml(config: GameConfig): string {
 }
 
 export function buildRulesText(config: GameConfig): string {
-  const lineText = config.lineRule === "lose" ? t("rules.lineRule.lose") : t("rules.lineRule.win");
+  const lineClause =
+    config.lineRule === "combos"
+      ? t("rules.summary.lineClauseCombos", {
+          endPhrase:
+            config.combosEndMode === "maxRounds"
+              ? t("rules.summary.combosEndRoundsPhrase", { rounds: config.combosEndValue })
+              : t("rules.summary.combosEndScorePhrase", { points: config.combosEndValue }),
+          min: config.combosActionsMin,
+          increment: config.combosActionsIncrement,
+          max: config.combosActionsMax,
+          specials:
+            config.combosSpecials.length === 0
+              ? t("rules.summary.combosSpecialsNone")
+              : config.combosSpecials.map((id) => t(`combos.specials.${id}.short`)).join(", ")
+        })
+      : t("rules.summary.lineClauseClassic", {
+          lineText:
+            config.lineRule === "lose" ? t("rules.lineRule.lose") : t("rules.lineRule.win"),
+          lineLength: config.lineLength
+        });
 
   const piecesText = config.pieceLimitType === "unlimited"
     ? t("rules.pieces.unlimited")
@@ -325,16 +366,16 @@ export function buildRulesText(config: GameConfig): string {
       type: t(`rules.collapse.type.${config.collapseType}`),
       intervalText: collapseIntervalText,
       times: config.collapseTimes,
-      killsText: config.objectiveExtraRules.includes("exileEmptyBoard")
-        ? t("rules.collapse.kills")
-        : t("rules.collapse.noKills")
+      killsText:
+        config.lineRule !== "combos" && config.objectiveExtraRules.includes("exileEmptyBoard")
+          ? t("rules.collapse.kills")
+          : t("rules.collapse.noKills")
     });
 
   return t("rules.summary", {
     columns: config.columns,
     rows: config.rows,
-    lineText,
-    lineLength: config.lineLength,
+    lineClause,
     piecesText,
     moveText,
     movementLimitText,
@@ -378,6 +419,7 @@ export function getStatusText(snapshot: GameSnapshot, config: GameConfig, mustMo
 
 export function victoryModalShowsRanking(config: GameConfig, summary: GameEndSummary): boolean {
   if (summary.type !== "ranking" || summary.orderedIds.length <= 1) return false;
+  if (config.lineRule === "combos") return true;
   if (config.lineRule === "lose") {
     return config.playerCount > 2;
   }
